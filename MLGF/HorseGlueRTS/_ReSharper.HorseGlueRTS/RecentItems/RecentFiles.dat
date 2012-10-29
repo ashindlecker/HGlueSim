@@ -1,0 +1,66 @@
+﻿<RecentFiles>
+  <RecentFiles>
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/f:GameClient.cs" caret="1463" fromTop="19" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/f:ExternalResources.cs" caret="0" fromTop="0" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/f:ILoadable.cs" caret="157" fromTop="7" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:Entities/f:UnitBase.cs" caret="5634" fromTop="24" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:Entities/f:EntityBase.cs" caret="913" fromTop="34" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:GameModes/f:GameModeBase.cs" caret="1501" fromTop="11" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:Entities/f:BuildingBase.cs" caret="2906" fromTop="0" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/f:Program.cs" caret="866" fromTop="27" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:Gamemode.cs" caret="433" fromTop="20" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/f:ISavable.cs" caret="0" fromTop="0" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:Player.cs" caret="507" fromTop="0" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:UnitData.cs" caret="254" fromTop="11" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:Entities/f:Resources.cs" caret="0" fromTop="0" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:Entities/f:Worker.cs" caret="455" fromTop="3" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/f:InputHandler.cs" caret="1525" fromTop="23" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:GameModes/f:StandardMelee.cs" caret="8064" fromTop="20" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/f:Resources.cs" caret="1157" fromTop="18" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/f:BuildingBase.cs" caret="2158" fromTop="32" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/d:Buildings/f:SupplyBuilding.cs" caret="242" fromTop="11" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/f:UnitBase.cs" caret="4643" fromTop="32" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/f:Program.cs" caret="724" fromTop="26" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:Protocol.cs" caret="1007" fromTop="33" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:Entity.cs" caret="174" fromTop="9" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:BuildingData.cs" caret="231" fromTop="10" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:STileBase.cs" caret="0" fromTop="0" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/d:Buildings/f:HomeBuilding.cs" caret="1826" fromTop="28" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/f:EntityBase.cs" caret="6426" fromTop="11" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:GameModes/f:StandardMelee.cs" caret="8217" fromTop="27" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/d:Units/f:StandardWorker.cs" caret="369" fromTop="12" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/f:Worker.cs" caret="1906" fromTop="20" />
+  </RecentFiles>
+  <RecentEdits>
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/f:GameServer.cs" caret="4263" fromTop="39" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/f:ExternalResources.cs" caret="164" fromTop="8" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:Entities/f:HomeBuilding.cs" caret="530" fromTop="25" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/f:Program.cs" caret="744" fromTop="26" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/f:GameClient.cs" caret="3173" fromTop="36" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/d:Buildings/f:SupplyBuilding.cs" caret="624" fromTop="21" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:Gamemode.cs" caret="433" fromTop="20" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:GameModes/f:GameModeBase.cs" caret="1895" fromTop="26" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:Entities/f:UnitBase.cs" caret="5504" fromTop="21" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/f:Resources.cs" caret="652" fromTop="24" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:Entities/f:Resources.cs" caret="556" fromTop="23" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/f:UnitBase.cs" caret="3237" fromTop="27" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/f:Program.cs" caret="401" fromTop="15" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:Entities/f:BuildingBase.cs" caret="1458" fromTop="8" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:Entities/f:EntityBase.cs" caret="913" fromTop="34" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:GameModes/f:GameModeBase.cs" caret="2635" fromTop="32" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/f:BuildingBase.cs" caret="1692" fromTop="21" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:UnitData.cs" caret="254" fromTop="11" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:Player.cs" caret="492" fromTop="15" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:GameModes/f:StandardMelee.cs" caret="2899" fromTop="12" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:Entities/f:Worker.cs" caret="803" fromTop="23" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/f:InputHandler.cs" caret="1571" fromTop="25" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/d:Buildings/f:HomeBuilding.cs" caret="1948" fromTop="31" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:Protocol.cs" caret="1007" fromTop="33" />
+    <File id="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724/d:GameModes/f:StandardMelee.cs" caret="8217" fromTop="27" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:Entity.cs" caret="367" fromTop="17" />
+    <File id="C4FCCA46-D438-41E1-B488-762B780170D0/f:BuildingData.cs" caret="337" fromTop="13" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/f:EntityBase.cs" caret="7211" fromTop="32" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/d:Units/f:StandardWorker.cs" caret="681" fromTop="19" />
+    <File id="F029068E-A3C6-42D2-8D06-10F107952B7F/d:Entities/f:Worker.cs" caret="1904" fromTop="20" />
+  </RecentEdits>
+</RecentFiles>
