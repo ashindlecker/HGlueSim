@@ -1,7 +1,0 @@
-<Modules>
-  <Module PersistentId="0531DFBF-1D91-4AA4-A6DB-29ECD87E885C" ModuleId="HorseGlueRTS" />
-  <Module PersistentId="D92B6E4B-4A3C-4AA4-AA08-01511DA57133" ModuleId="Serve" />
-  <Module PersistentId="F029068E-A3C6-42D2-8D06-10F107952B7F" ModuleId="Server" />
-  <Module PersistentId="C4FCCA46-D438-41E1-B488-762B780170D0" ModuleId="Shared" />
-  <Module PersistentId="AAD3414D-BC2D-4147-A8D7-AA6C56B2E724" ModuleId="Client" />
-</Modules>
