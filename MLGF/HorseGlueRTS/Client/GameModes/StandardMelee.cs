@@ -205,6 +205,7 @@ namespace Client.GameModes
                 else if (!selectedAttackMove)
                 {
                     controlBoxP1 = convertedPos;
+                    controlBoxP2 = controlBoxP1;
                     releaseSelect = true;
                 }
                 else
@@ -244,8 +245,9 @@ namespace Client.GameModes
             if (releaseSelect && button == Mouse.Button.Left)
             {
                 controlBoxP2 = convertedPos;
-                SetControlUnits(new FloatRect(controlBoxP1.X, controlBoxP1.Y, controlBoxP2.X - controlBoxP1.X,
-                                              controlBoxP2.Y - controlBoxP1.Y));
+                //SetControlUnits(new FloatRect(controlBoxP1.X, controlBoxP1.Y, controlBoxP2.X - controlBoxP1.X,
+                                              //controlBoxP2.Y - controlBoxP1.Y));
+                SetControlUnits(CorrectedRect(controlBoxP1, controlBoxP2));
                 releaseSelect = false;
             }
             if(button == Mouse.Button.Right)
@@ -307,6 +309,16 @@ namespace Client.GameModes
             }
         }
 
+        public override void MouseMoved(int x, int y)
+        {
+            base.MouseMoved(x, y);
+            if (releaseSelect)
+            {
+                Vector2f convertedPos = Program.window.ConvertCoords(new Vector2i(x, y));
+                controlBoxP2 = convertedPos;
+            }
+        }
+
 
         private void SetControlUnits(FloatRect floatRect)
         {
@@ -351,6 +363,27 @@ namespace Client.GameModes
             return null;
         }
 
+        static FloatRect CorrectedRect(Vector2f point1, Vector2f point2)
+        {
+            float left = point1.X;
+            if (point2.X < left) 
+                left = point2.X;
+            float top = point1.Y;
+            if(point2.Y < top)
+                top = point2.Y;
+
+            float right = point2.X;
+            if (point1.X > right)
+                right = point1.X;
+
+
+            float bottom = point2.Y;
+            if (point1.Y > bottom)
+                bottom = point1.Y;
+
+            return new FloatRect(left, top, right - left, bottom - top);
+        }
+
         public override void Update(float ms)
         {
             var readOnly = new Dictionary<ushort, EntityBase>(entities);
@@ -374,12 +407,28 @@ namespace Client.GameModes
         {
             map.Render(target);
             Text debugHPText = new Text();
+            debugHPText.Color = new Color(255, 255, 255, 100);
+            const float selectCircleRadius = 20;
+            CircleShape selectedCircle = new CircleShape(selectCircleRadius);
+            selectedCircle.OutlineColor = new Color(100, 255, 100, 200);
+            selectedCircle.OutlineThickness = 5;
+            selectedCircle.FillColor = new Color(0, 0, 0, 0);
+            selectedCircle.Origin = new Vector2f(selectCircleRadius, selectCircleRadius);
+            if(selectedUnits != null)
+            {
+                foreach (var entityBase in selectedUnits)
+                {
+                    selectedCircle.Position = entityBase.Position;
+                    target.Draw(selectedCircle);
+                }
+            }
+
 
             Dictionary<ushort, Entities.EntityBase> readOnly = new Dictionary<ushort, EntityBase>(entities);
 
             foreach (var entityBase in readOnly.Values)
             {
-                debugHPText.Color = new Color(255, 255, 255);
+                debugHPText.Color = new Color(255, 255, 255,100);
                 entityBase.Render(target);
                 debugHPText.DisplayedString = "HP: " + entityBase.Health.ToString();
                 debugHPText.Position = entityBase.Position;
@@ -390,12 +439,22 @@ namespace Client.GameModes
                     var buildingCast = (Entities.BuildingBase) entityBase;
                     if(buildingCast.IsProductingUnit)
                     {
-                        debugHPText.Color = new Color(255, 255, 0);
+                        debugHPText.Color = new Color(255, 255, 0,100);
                         debugHPText.DisplayedString = buildingCast.UnitBuildCompletePercent.ToString();
                         debugHPText.Position += new Vector2f(0, 50);
                         target.Draw(debugHPText);
                     }
                 }
+            }
+
+            if(releaseSelect)
+            {
+                var rect = new FloatRect(controlBoxP1.X, controlBoxP1.Y, controlBoxP2.X - controlBoxP1.X,
+                                         controlBoxP2.Y - controlBoxP1.Y);
+                RectangleShape rectangle = new RectangleShape(new Vector2f(rect.Width, rect.Height));
+                rectangle.Position = new Vector2f(rect.Left, rect.Top);
+                rectangle.FillColor = new Color(100, 200, 100, 100);
+                target.Draw(rectangle);
             }
 
             if(myPlayer != null)
