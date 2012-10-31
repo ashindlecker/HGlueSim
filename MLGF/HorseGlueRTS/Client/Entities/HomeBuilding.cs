@@ -10,7 +10,15 @@ namespace Client.Entities
     {
         public HomeBuilding()
         {
-            
+            BuildTime = 2000;
+
+            var standardSprites = ExternalResources.GetSprites("Resources/Sprites/HomeBase/Standard/");
+            Sprites[AnimationTypes.Standard].Sprites.AddRange(standardSprites);
+
+            var producingSprites = ExternalResources.GetSprites("Resources/Sprites/HomeBase/Producing/");
+            Sprites[AnimationTypes.Producing].Sprites.AddRange(producingSprites);
+
+            SetSprites();
         }
 
         public override void Use(EntityBase user)

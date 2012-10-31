@@ -14,6 +14,3 @@ E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Client\obj\D
 E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Client\obj\Debug\Client.pdb
 E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Client\bin\Debug\Shared.dll
 E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Client\obj\Debug\Client.csprojResolveAssemblyReference.cache
-E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Client\bin\Debug\Client.exe.config
-E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Client\obj\Debug\Client.exe
-E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Client\obj\Debug\Client.pdb

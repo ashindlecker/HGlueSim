@@ -12,6 +12,3 @@ E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Server\obj\D
 E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Server\bin\Debug\sfmlnet-graphics-2.dll
 E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Server\bin\Debug\sfmlnet-graphics-2.pdb
 E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Server\obj\Debug\Server.csprojResolveAssemblyReference.cache
-E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Server\bin\Debug\Server.exe.config
-E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Server\obj\Debug\Server.exe
-E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Server\obj\Debug\Server.pdb

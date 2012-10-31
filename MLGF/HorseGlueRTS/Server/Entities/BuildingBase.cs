@@ -38,7 +38,7 @@ namespace Server.Entities
         {
             supportedBuilds = new List<byte>();
             IsBuilding = true;
-            BuildTime = 1;
+            BuildTime = 10000;
             elapsedBuildTime = 0;
 
             buildOrder = new List<byte>();

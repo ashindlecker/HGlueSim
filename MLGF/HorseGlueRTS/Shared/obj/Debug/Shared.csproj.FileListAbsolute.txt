@@ -5,9 +5,3 @@ E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Shared\obj\D
 E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Shared\bin\Debug\sfmlnet-window-2.dll
 E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Shared\bin\Debug\sfmlnet-window-2.pdb
 E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Shared\obj\Debug\Shared.csprojResolveAssemblyReference.cache
-E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Shared\bin\Debug\Shared.dll
-E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Shared\bin\Debug\Shared.pdb
-E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Shared\bin\Debug\sfmlnet-window-2.pdb
-E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Shared\obj\Debug\Shared.csprojResolveAssemblyReference.cache
-E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Shared\obj\Debug\Shared.dll
-E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Shared\obj\Debug\Shared.pdb

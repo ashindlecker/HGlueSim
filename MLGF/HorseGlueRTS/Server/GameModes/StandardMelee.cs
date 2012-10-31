@@ -243,10 +243,13 @@ namespace Server.GameModes
                         {
                             var entityId = reader.ReadUInt16();
                             if (entities.ContainsKey(entityId) == false) continue;
-
                             if (entities[entityId].Team != player.Team) continue;
 
-                            entities[entityId].Move(posX, posY, reset);
+                            if(!attackMove)
+                                entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.StandardMove, reset);
+                            else
+                                entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.AttackMove, reset);
+
                             entities[entityId].OnPlayerCustomMove();
 
                             if (entities[entityId] is UnitBase)

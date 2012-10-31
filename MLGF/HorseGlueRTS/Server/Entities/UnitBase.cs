@@ -73,20 +73,24 @@ namespace Server.Entities
             if(State == UnitState.Agro)
             {
                 var rangeBounds = RangeBounds();
+
+                //If the unit has something to attack
                 if (EntityToAttack != null)
                 {
+                    //If the unit is dead, there's nothing to attack
                     if (EntityToAttack.Health <= 0)
                     {
                         EntityToAttack = null;
                     }
                     else
                     {
+                        //If the entity to attack is not in range, allow movement
                         if (!rangeBounds.Intersects(EntityToAttack.GetBounds()))
                         {
                             EntityToAttack = null;
                             setAllowMove(true);
                         }
-                        else
+                        else //Otherwize, try to attack and stop ability to move
                         {
                             if (rallyPoints.Count > 0)
                             {
@@ -96,7 +100,7 @@ namespace Server.Entities
                         }
                     }
                 }
-                else
+                else //Otherwise look for something to attack
                 {
                     foreach (var entity in MyGameMode.WorldEntities.Values)
                     {
@@ -116,7 +120,12 @@ namespace Server.Entities
             //Rallypoint movement
             if (allowMovement && rallyPoints.Count > 0)
             {
-                Vector2f destination = rallyPoints[0];
+                if(rallyPoints[0].RallyType == Entity.RallyPoint.RallyTypes.AttackMove)
+                    State = UnitState.Agro;
+                else
+                    State = UnitState.Standard;
+
+                Vector2f destination = new Vector2f(rallyPoints[0].X, rallyPoints[0].Y);
                 if ((int)Position.X < (int)destination.X)
                 {
                     Position.X += Speed*ms;
@@ -140,6 +149,7 @@ namespace Server.Entities
 
                 if ((int) Position.X == (int) destination.X && (int) Position.Y == (int) destination.Y)
                 {
+                    OnRallyPointCompleted(rallyPoints[0]);
                     rallyPoints.RemoveAt(0);
                     if (rallyPoints.Count == 0)
                     {
@@ -159,6 +169,11 @@ namespace Server.Entities
                     }
                 }
             }
+        }
+
+        protected virtual void OnRallyPointCompleted(Entity.RallyPoint rally)
+        {
+            //Called when a rally is popped off
         }
 
         public void Attack(EntityBase entity)

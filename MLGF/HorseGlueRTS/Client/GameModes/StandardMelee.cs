@@ -9,6 +9,7 @@ using Client.Level;
 using SFML.Graphics;
 using SFML.Window;
 using Shared;
+
 namespace Client.GameModes
 {
     class StandardMelee : GameModeBase
@@ -199,8 +200,6 @@ namespace Client.GameModes
                     {
                         InputHandler.SendSpellInput(convertedPos.X, convertedPos.Y, buildingToPlace,
                                                     new ushort[1] {prioritySelectedUnit().WorldId});
-                        InputHandler.SendMoveInput(convertedPos.X, convertedPos.Y,
-                                                   new ushort[1] {prioritySelectedUnit().WorldId}, false, false);
                     }
                 }
                 else if (!selectedAttackMove)

@@ -27,7 +27,7 @@ namespace Server.Entities
         public float MaxHealth;
 
         public Vector2f Position;
-        protected List<Vector2f> rallyPoints;
+        protected List<Entity.RallyPoint> rallyPoints;
 
         public EntityBase EntityToUse;  //Workers use minerals, gas geisers, etc
         public Vector2f BoundsSize;
@@ -68,7 +68,7 @@ namespace Server.Entities
             EntityToUse = null;
             MyGameMode = null;
             Server = _server;
-            rallyPoints = new List<Vector2f>();
+            rallyPoints = new List<Entity.RallyPoint>();
             Health = 0;
             MaxHealth = 0;
             Energy = 0;
@@ -152,11 +152,17 @@ namespace Server.Entities
             return memory.ToArray();
         }
 
-        public void Move(float x, float y, bool reset = false,  bool send = true)
+        public void Move(float x, float y, Entity.RallyPoint.RallyTypes type = Entity.RallyPoint.RallyTypes.StandardMove, bool reset = false,  bool send = true, byte buildData = 0)
         {
             if(reset)
                 rallyPoints.Clear();
-            rallyPoints.Add(new Vector2f(x, y));
+            rallyPoints.Add(new Entity.RallyPoint()
+                                {
+                                    X = x,
+                                    Y = y,
+                                    RallyType = type,
+                                    BuildType = buildData,
+                                });
 
 
             var data = MoveResponse(x, y, reset);

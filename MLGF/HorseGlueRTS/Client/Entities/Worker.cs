@@ -24,6 +24,19 @@ namespace Client.Entities
         {
             ResourceCount = 0;
             HeldResource = 0;
+
+            var idleSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/Idle/");
+            Sprites[AnimationTypes.Idle].Sprites.AddRange(idleSprites);
+
+
+            var moveSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/Moving/");
+            Sprites[AnimationTypes.Moving].Sprites.AddRange(moveSprites);
+
+            var resourceMoveSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/MovingWithResources/");
+            Sprites[AnimationTypes.MovingWithResources].Sprites.AddRange(resourceMoveSprites);
+
+            var resourceIdleSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/IdleWithResources/");
+            Sprites[AnimationTypes.IdleWithResources].Sprites.AddRange(resourceMoveSprites);
         }
 
         public void GiveResource(ResourceTypes type, byte amount)
@@ -35,25 +48,27 @@ namespace Client.Entities
             }
         }
 
-        public override void Render(RenderTarget target)
+        protected override void onSetIdleAnimation()
         {
-            //debug drawing
-            Sprite sprite = new Sprite(ExternalResources.GTexture("Resources/Sprites/TestTile.png"));
-
-            sprite.Origin = new Vector2f(sprite.TextureRect.Width / 2, sprite.TextureRect.Height / 2);
-            sprite.Position = Position;
-            sprite.Color = new Color(255, 100, 255);
-            sprite.Scale = new Vector2f(.5f, .5f);
-            target.Draw(sprite);
-
+            base.onSetIdleAnimation();
             if (IsHoldingResources)
             {
-                sprite.Position = Position + new Vector2f(50, 0);
-                sprite.Color = new Color(100, 100, 200);
-                target.Draw(sprite);
+                CurrentAnimation = AnimationTypes.IdleWithResources;
             }
+        }
 
-            debugDrawRange(target);
+        protected override void onSetMovingAnimation()
+        {
+            base.onSetMovingAnimation();
+            if (IsHoldingResources)
+            {
+                CurrentAnimation = AnimationTypes.MovingWithResources;
+            }
+        }
+
+        public override void Render(RenderTarget target)
+        {
+            base.Render(target);
         }
 
         protected override void ParseUpdate(MemoryStream memoryStream)

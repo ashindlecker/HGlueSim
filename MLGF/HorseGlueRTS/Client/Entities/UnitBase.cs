@@ -20,6 +20,16 @@ namespace Client.Entities
             Standard,
         }
 
+        public enum AnimationTypes: byte
+        {
+            Idle,
+            Moving,
+            Attacking,
+            SpellCast,
+            IdleWithResources,
+            MovingWithResources,
+        }
+
         public float Speed;
         public UnitState State;
         public float Range;
@@ -30,6 +40,11 @@ namespace Client.Entities
         protected EntityBase EntityToAttack { get; private set; }
 
         private bool allowMovement;
+
+
+        protected Dictionary<AnimationTypes, AnimatedSprite> Sprites;
+        protected AnimationTypes CurrentAnimation;
+
 
         public UnitBase()
         {
@@ -42,6 +57,17 @@ namespace Client.Entities
             AttackDelay = 2000;
             attackTimer = new Stopwatch();
             attackTimer.Restart();
+
+            CurrentAnimation = AnimationTypes.Idle;
+            Sprites = new Dictionary<AnimationTypes, AnimatedSprite>();
+
+
+            const byte AnimationTypeCount = 6;
+            for (int i = 0; i < AnimationTypeCount; i++)
+            {
+                Sprites.Add((AnimationTypes) i, new AnimatedSprite(100));
+            }
+
         }
 
         protected override void ParseCustom(MemoryStream memoryStream)
@@ -89,6 +115,7 @@ namespace Client.Entities
             }
         }
 
+
         protected virtual void onAttack(EntityBase ent)
         {
             ent.OnTakeDamage(10, Entity.DamageElement.Normal);
@@ -124,9 +151,29 @@ namespace Client.Entities
             }
         }
 
+        protected virtual void onSetIdleAnimation()
+        {
+            CurrentAnimation = AnimationTypes.Idle;
+        }
+
+        protected virtual void onSetMovingAnimation()
+        {
+            CurrentAnimation = AnimationTypes.Moving;
+        }
+
         public override void Update(float ms)
         {
+            if (Sprites.ContainsKey(CurrentAnimation))
+            {
+                Sprites[CurrentAnimation].Update(ms);
+            }
+
+            if(CurrentAnimation != AnimationTypes.SpellCast && rallyPoints.Count == 0) onSetIdleAnimation();
+
             if (!allowMovement || rallyPoints.Count == 0) return;
+
+            if(CurrentAnimation != AnimationTypes.SpellCast)
+                onSetMovingAnimation();
 
             Vector2f destination = rallyPoints[0];
 
@@ -159,14 +206,13 @@ namespace Client.Entities
 
         public override void Render(RenderTarget target)
         {
-            //debug drawing
-            Sprite sprite = new Sprite(ExternalResources.GTexture("Resources/Sprites/TestTile.png"));
-            sprite.Origin = new Vector2f(sprite.TextureRect.Width/2, sprite.TextureRect.Height/2);
-            sprite.Position = Position;
-            sprite.Color = new Color(255, 200, 200);
-            target.Draw(sprite);
-
-            debugDrawRange(target);
+            if(Sprites.ContainsKey(CurrentAnimation) && Sprites[CurrentAnimation].Sprites.Count > 0)
+            {
+                Sprite spr = Sprites[CurrentAnimation].CurrentSprite;
+                spr.Position = Position;
+                spr.Origin = new Vector2f(spr.TextureRect.Width/2, spr.TextureRect.Height/2);
+                target.Draw(spr);
+            }
         }
 
         protected void debugDrawRange(RenderTarget target)

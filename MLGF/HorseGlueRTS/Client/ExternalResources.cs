@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SFML.Graphics;
+using System.IO;
 
 namespace Client
 {
@@ -18,6 +19,18 @@ namespace Client
                 textures.Add(file, new Texture(file));
             }
             return textures[file];
+        }
+
+        public static Sprite[] GetSprites(string directory)
+        {
+            string[] files = Directory.GetFiles(directory);
+            List<Sprite> ret = new List<Sprite>();
+            for(int i = 0; i < files.Count(); i++)
+            {
+                ret.Add(new Sprite(GTexture(files[i])));
+            }
+
+            return ret.ToArray();
         }
     }
 }

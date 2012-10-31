@@ -37,7 +37,7 @@ namespace Client
                 float dt = (float)(stopwatch.Elapsed.TotalSeconds * 1000);
                 stopwatch.Restart();
                 window.DispatchEvents();
-                window.Clear();
+                window.Clear(new Color(100, 100, 200));
 
                 client.Update(dt);
                 client.GameMode.Render(window);

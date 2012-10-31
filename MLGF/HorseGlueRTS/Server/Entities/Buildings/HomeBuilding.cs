@@ -14,6 +14,7 @@ namespace Server.Entities
 
         public HomeBuilding(GameServer server, Player plr) : base(server)
         {
+            BuildTime = 2000;
             EntityType = Entity.EntityType.HomeBuilding;
             player = plr;
 

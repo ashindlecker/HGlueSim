@@ -13,6 +13,19 @@ namespace Client.Entities
 {
     class BuildingBase : EntityBase
     {
+        public enum AnimationTypes : byte
+        {
+            BeingBuilt,
+            Standard,
+            Producing,
+            Wrecked,
+            WreckedProducing,
+        }
+
+        protected Dictionary<AnimationTypes, AnimatedSprite> Sprites;
+        protected AnimationTypes CurrentAnimation;
+
+
         protected List<byte> buildOrder;
 
         public ushort BuildTime //in milliseconds
@@ -63,6 +76,27 @@ namespace Client.Entities
 
             Health = 1;
             MaxHealth = 100;
+
+            Sprites = new Dictionary<AnimationTypes, AnimatedSprite>();
+
+            const byte AnimationTypeCount = 5;
+
+
+            for (int i = 0; i < AnimationTypeCount; i++)
+            {
+                Sprites.Add((AnimationTypes)i, new AnimatedSprite(100));
+            }
+
+            var buildSprites = ExternalResources.GetSprites("Resources/Sprites/Buildings/BeingBuilt/");
+            Sprites[AnimationTypes.BeingBuilt].Sprites.AddRange(buildSprites);
+
+            SetSprites();
+        }
+
+        protected void SetSprites()
+        {
+            Sprites[AnimationTypes.BeingBuilt].Delay =
+                (uint)((float)BuildTime / (float)Sprites[AnimationTypes.BeingBuilt].Sprites.Count);
         }
 
         protected override void ParseCustom(MemoryStream memoryStream)
@@ -152,11 +186,29 @@ namespace Client.Entities
 
         public override void Update(float ms)
         {
+            if (Sprites.ContainsKey(CurrentAnimation))
+            {
+                Sprites[CurrentAnimation].Update(ms);
+            }
+
             if (IsBuilding)
             {
+                CurrentAnimation = AnimationTypes.BeingBuilt;
                 elapsedBuildTime += ms;
                 Health += (float)((MaxHealth / BuildTime)) * ms;
             }
+            else
+            {
+                if (buildOrder.Count > 0)
+                {
+                    CurrentAnimation = AnimationTypes.Producing;
+                }
+                else
+                {
+                    CurrentAnimation = AnimationTypes.Standard;
+                }
+            }
+
 
             if (buildOrder.Count > 0 && stopwatch.IsRunning == false)
             {
@@ -166,17 +218,13 @@ namespace Client.Entities
 
         public override void Render(RenderTarget target)
         {
-            Sprite sprite = new Sprite(ExternalResources.GTexture("Resources/Sprites/TestTile.png"));
-
-            sprite.Position = Position;
-            sprite.Origin = new Vector2f(sprite.TextureRect.Width/2, sprite.TextureRect.Height/2);
-            sprite.Color = new Color(255, 255, 0);
-            if(IsBuilding)
+            if (Sprites.ContainsKey(CurrentAnimation) && Sprites[CurrentAnimation].Sprites.Count > 0)
             {
-                sprite.Color = new Color(255, 0, 255, 200);
+                Sprite spr = Sprites[CurrentAnimation].CurrentSprite;
+                spr.Position = Position;
+                spr.Origin = new Vector2f(spr.TextureRect.Width / 2, spr.TextureRect.Height / 2);
+                target.Draw(spr);
             }
-            target.Draw(sprite);
-
 
         }
     }

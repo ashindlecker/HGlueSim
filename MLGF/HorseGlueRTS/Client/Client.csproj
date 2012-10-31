@@ -57,6 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnimatedSprite.cs" />
     <Compile Include="Entities\BuildingBase.cs" />
     <Compile Include="Entities\EntityBase.cs" />
     <Compile Include="Entities\HomeBuilding.cs" />

@@ -24,20 +24,6 @@ namespace Server.Entities
         private Stopwatch updatedMovePositionTimer;
         private const float moveUpdateDelay = 3000; //3 seconds
 
-        protected class BuildingListData
-        {
-            public BuildingListData(Vector2f pos, EntityBase entity)
-            {
-                Position = pos;
-                EntityToAdd = entity;
-            }
-            public Vector2f Position;
-            public EntityBase EntityToAdd;
-        }
-
-        protected List<BuildingListData> buildingsToBuild; 
-
-
         public bool IsHoldingResources
         {
             get { return (resourceCount > 0); }
@@ -58,15 +44,12 @@ namespace Server.Entities
             Health = 50;
             MaxHealth = 50;
 
-            buildingsToBuild = new List<BuildingListData>();
-            
             updatedMovePositionTimer = new Stopwatch();
         }
 
         public override void OnPlayerCustomMove()
         {
             EntityToUse = null;
-            buildingsToBuild.Clear();
         }
 
 
@@ -112,21 +95,15 @@ namespace Server.Entities
                 Move(toUse.Position.X, toUse.Position.Y);
         }
 
+        protected void AddBuildingToBuild(byte type, float x, float y)
+        {
+            Move(x, y, Entity.RallyPoint.RallyTypes.Build, false, true, type);
+        }
+
         public override void Update(float ms)
         {
             base.Update(ms);
 
-            foreach (var building in buildingsToBuild)
-            {
-                if(RangeBounds().Contains(building.Position.X, building.Position.Y))
-                {
-                    var entity = building.EntityToAdd;
-                    entity.Position = building.Position;
-                    MyGameMode.AddEntity(entity);
-                    buildingsToBuild.Remove(building);
-                    break;
-                }
-            }
 
             if(EntityToUse != null)
             {
@@ -175,6 +152,20 @@ namespace Server.Entities
                     moveToUsedEntity(EntityToUse);
                 }
             }
+        }
+
+        protected override void OnRallyPointCompleted(Entity.RallyPoint rally)
+        {
+            base.OnRallyPointCompleted(rally);
+            if(rally.RallyType == Entity.RallyPoint.RallyTypes.Build)
+            {
+                OnPlaceBuilding(rally.BuildType, rally.X, rally.Y);
+            }
+        }
+
+        protected virtual void OnPlaceBuilding(byte type, float x, float y)
+        {
+            
         }
 
         protected TYPE GetClosest<TYPE>(Entity.EntityType eType) where TYPE:EntityBase

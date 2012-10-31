@@ -93,8 +93,23 @@ namespace Client.Entities
                 case Entity.Signature.EntityToUseChange:
                     ParseEntityToUseChange(memory);
                     break;
+                    case Entity.Signature.Spell:
+                    ParseSpellCast(memory);
+                    break;
             }
 
+        }
+
+        protected virtual void ParseSpellCast(MemoryStream memoryStream)
+        {
+            var reader = new BinaryReader(memoryStream);
+            var spell = reader.ReadByte();
+
+            onSpellCast(memoryStream, spell);
+        }
+
+        protected virtual void onSpellCast(MemoryStream memory, byte type)
+        {
         }
 
         private void ParseUse(MemoryStream memoryStream)
