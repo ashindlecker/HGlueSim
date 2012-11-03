@@ -165,14 +165,19 @@ namespace Server.Entities
             buildOrder.RemoveAt(0);
 
             buildData.producedEntity.Position = Position;
-            MyGameMode.AddEntity(buildData.producedEntity);
+            buildData.producedEntity.Team = Team;
 
-            if(EntityToUse == null)
+            if (EntityToUse == null)
             {
                 if (rallyPoints.Count > 0)
-                    buildData.producedEntity.Move(rallyPoints[0].X, rallyPoints[0].Y);
+                    for (int i = 0; i < rallyPoints.Count; i++)
+                    {
+                        buildData.producedEntity.rallyPoints = rallyPoints;
+                    }
             }
-            else
+            MyGameMode.AddEntity(buildData.producedEntity);
+
+            if(EntityToUse != null)
             {
                 buildData.producedEntity.SetEntityToUse(EntityToUse);
             }

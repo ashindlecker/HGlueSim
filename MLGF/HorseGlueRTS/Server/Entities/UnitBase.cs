@@ -8,7 +8,6 @@ using System.IO;
 using SFML.Window;
 using System.Diagnostics;
 using SFML.Graphics;
-
 namespace Server.Entities
 {
     class UnitBase : EntityBase
@@ -33,6 +32,10 @@ namespace Server.Entities
         protected EntityBase EntityToAttack { get; private set; }
 
 
+        private float _moveAngle;
+        private float _moveX, _moveY;
+        private bool _callMoveCalculations;
+
         public UnitBase(GameServer _server) : base(_server)
         {
             EntityToAttack = null;
@@ -46,6 +49,11 @@ namespace Server.Entities
             attackTimer.Restart();
 
             allowMovement = false;
+
+            _moveAngle = 0;
+            _moveX = 0;
+            _moveY = 0;
+            _callMoveCalculations = true;
         }
 
         protected FloatRect RangeBounds()
@@ -68,6 +76,12 @@ namespace Server.Entities
             }
         }
 
+        public override void OnPlayerCustomMove()
+        {
+            base.OnPlayerCustomMove();
+            _callMoveCalculations = true;
+        }
+
         public override void Update(float ms)
         {
             if(State == UnitState.Agro)
@@ -87,6 +101,7 @@ namespace Server.Entities
                         //If the entity to attack is not in range, allow movement
                         if (!rangeBounds.Intersects(EntityToAttack.GetBounds()))
                         {
+                            attackTimer.Restart();
                             EntityToAttack = null;
                             setAllowMove(true);
                         }
@@ -117,38 +132,45 @@ namespace Server.Entities
 
             if(EntityToAttack == null || State == UnitState.Standard) setAllowMove(true);
 
+            if (State != UnitState.Agro)
+                attackTimer.Restart();
+
             //Rallypoint movement
             if (allowMovement && rallyPoints.Count > 0)
             {
-                if(rallyPoints[0].RallyType == Entity.RallyPoint.RallyTypes.AttackMove)
+
+                if (rallyPoints[0].RallyType == Entity.RallyPoint.RallyTypes.AttackMove)
                     State = UnitState.Agro;
                 else
                     State = UnitState.Standard;
 
                 Vector2f destination = new Vector2f(rallyPoints[0].X, rallyPoints[0].Y);
-                if ((int)Position.X < (int)destination.X)
+
+
+                if (_callMoveCalculations)
                 {
-                    Position.X += Speed*ms;
-                    if ((int)Position.X >= (int)destination.X) Position.X = (int)destination.X;
-                }
-                if ((int)Position.Y < (int)destination.Y)
-                {
-                    Position.Y += Speed*ms;
-                    if ((int)Position.Y >= (int)destination.Y) Position.Y = (int)destination.Y;
-                }
-                if ((int)Position.X > destination.X)
-                {
-                    Position.X -= Speed*ms;
-                    if ((int)Position.X <= (int)destination.X) Position.X = (int)destination.X;
-                }
-                if ((int)Position.Y > (int)destination.Y)
-                {
-                    Position.Y -= Speed*ms;
-                    if ((int)Position.Y <= (int)destination.Y) Position.Y = (int)destination.Y;
+                    _callMoveCalculations = false;
+
+                    _moveAngle = (float) Math.Atan2(destination.Y - Position.Y, destination.X - Position.X);
+                    _moveX = (float) Math.Cos(_moveAngle);
+                    _moveY = (float) Math.Sin(_moveAngle);
                 }
 
-                if ((int) Position.X == (int) destination.X && (int) Position.Y == (int) destination.Y)
+                Position.X += (_moveX*Speed)*ms;
+                Position.Y += (_moveY*Speed)*ms;
+
+                bool completedDestinationX = (_moveX > 0 && Position.X >= destination.X) ||
+                                             (_moveX < 0 && Position.X <= destination.X) || (int)Position.X == (int)destination.X;
+
+                bool completedDestinationY = (_moveY > 0 && Position.Y >= destination.Y) ||
+                                             (_moveY < 0 && Position.Y <= destination.Y) || (int)Position.Y == (int)destination.Y;
+
+
+                if (completedDestinationX && completedDestinationY)
                 {
+                    _callMoveCalculations = true;
+                    Position = destination;
+
                     OnRallyPointCompleted(rallyPoints[0]);
                     rallyPoints.RemoveAt(0);
                     if (rallyPoints.Count == 0)
@@ -181,7 +203,6 @@ namespace Server.Entities
             if (entity.Team == Team) return;
             if (attackTimer.ElapsedMilliseconds < AttackDelay) return;
 
-            rallyPoints.Clear();
             attackTimer.Restart();
 
             var memory = new MemoryStream();
@@ -201,6 +222,12 @@ namespace Server.Entities
         {
             entity.TakeDamage(10, Entity.DamageElement.Normal, false);
             return new byte[0];
+        }
+
+        protected override byte[] MoveResponse(float x, float y, bool reset)
+        {
+            _callMoveCalculations = true;
+            return base.MoveResponse(x, y, reset);
         }
 
         public override byte[] UpdateData()

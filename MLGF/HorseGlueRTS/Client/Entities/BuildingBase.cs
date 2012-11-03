@@ -143,8 +143,7 @@ namespace Client.Entities
             IsBuilding = reader.ReadBoolean();
             BuildTime = reader.ReadUInt16();
             Energy = reader.ReadUInt16();
-            Position.X = reader.ReadSingle();
-            Position.Y = reader.ReadSingle();
+            Position = new Vector2f(reader.ReadSingle(), reader.ReadSingle());
             byte buildCount = reader.ReadByte();
             buildOrder.Clear();
             for(var i = 0; i < buildCount; i++)

@@ -16,9 +16,11 @@ namespace Client.GameModes
     {
         protected Dictionary<ushort, EntityBase> entities;
         protected Dictionary<byte, Player> players;
- 
+
+
         public GameModeBase()
         {
+
             entities = new Dictionary<ushort, EntityBase>();
             players = new Dictionary<byte, Player>();
         }
@@ -55,7 +57,7 @@ namespace Client.GameModes
                         entity.WorldEntities = entities;
                         entity.LoadFromBytes(stream);
                         entity.WorldId = id;
-                        if (entities.ContainsKey(id) == false) entities.Add(id, entity);
+                        AddEntity(entity, id);
                     }
                     break;
                 case Gamemode.Signature.EntityLoad:
@@ -70,7 +72,7 @@ namespace Client.GameModes
                             entAdd.WorldEntities = entities;
                             entAdd.LoadFromBytes(stream);
                             entAdd.WorldId = entId;
-                            if (entities.ContainsKey(entId) == false) entities.Add(entId, entAdd);
+                            AddEntity(entAdd, entId);
                         }
                     }
                     break;
@@ -107,6 +109,15 @@ namespace Client.GameModes
                         }
                     }
                     break;
+            }
+        }
+
+        private void AddEntity(EntityBase entity, ushort id)
+        {
+            if (entities.ContainsKey(id) == false)
+            {
+                entity.WorldId = id;
+                entities.Add(id, entity);
             }
         }
 

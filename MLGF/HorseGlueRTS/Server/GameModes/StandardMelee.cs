@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Lidgren.Network;
 using SFML.Window;
+using SettlersEngine;
 using Shared;
 using Server.Entities;
 using Server.Level;
@@ -23,9 +25,11 @@ namespace Server.GameModes
 
 
         private TileMap map;
+
         public byte MaxPlayers;
         public byte idToGive;
 
+        private SettlersEngine.SpatialAStar<PathNode, object> pathFinding; 
 
         private StatusState _gameStatus;
         public StatusState GameStatus
@@ -39,6 +43,7 @@ namespace Server.GameModes
             }
         }
 
+
         public BuildingBase Building;
         
         public StandardMelee(GameServer server, byte mplayers) : base(server)
@@ -48,13 +53,16 @@ namespace Server.GameModes
             idToGive = 0;
 
             map = new TileMap();
-            map.SetMap<TileBase>(10, 10);
+            map.SetMap<TileBase>(50, 50);
 
 
             var resources = new Resources(server);
             resources.Position = new Vector2f(400, 200);
             resources.ResourceType = ResourceTypes.Apple;
             AddEntity(resources);
+
+
+            pathFinding = new SpatialAStar<PathNode, object>(map.GetPathNodeMap());
         }
 
         public override void Update(float ms)
@@ -113,7 +121,6 @@ namespace Server.GameModes
                             if(hasBuilding == false)
                             {
                                //player has been eliminated
- 
                             }
                         }
                     }
@@ -130,6 +137,23 @@ namespace Server.GameModes
             }
 
             
+        }
+
+        public override PathFindReturn PathFindNodes(float sx, float sy, float x, float y)
+        {
+            var path =
+                pathFinding.Search(
+                    new Point((int)sx / map.TileSize.X,
+                              (int)sy / map.TileSize.Y),
+                    new Point((int)x / map.TileSize.X,
+                              (int)y / map.TileSize.Y), null);
+
+            
+            return new PathFindReturn()
+                       {
+                           List = path,
+                           MapSize = map.TileSize,
+                       };
         }
 
         public override void UpdatePlayer(Player player)
@@ -186,6 +210,9 @@ namespace Server.GameModes
                         else
                         {
                             //Connectd client must be a spectator or something non-player type?
+                            SendAllPlayers();
+                            SendData(map.ToBytes(), Gamemode.Signature.MapLoad);
+                            SendAllEntities();
                         }
                         //we don't increase the idToGive here, that's handled by the handshake.
                     }
@@ -239,16 +266,22 @@ namespace Server.GameModes
                         var reset = reader.ReadBoolean();
                         var attackMove = reader.ReadBoolean();
                         var unitCount = reader.ReadByte();
+
                         for (var i = 0; i < unitCount; i++)
                         {
                             var entityId = reader.ReadUInt16();
                             if (entities.ContainsKey(entityId) == false) continue;
                             if (entities[entityId].Team != player.Team) continue;
 
-                            if(!attackMove)
+                            if (!attackMove)
+                            {
                                 entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.StandardMove, reset);
+                            }
                             else
+                            {
                                 entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.AttackMove, reset);
+                            }
+
 
                             entities[entityId].OnPlayerCustomMove();
 

@@ -67,8 +67,7 @@ namespace Client.Entities
         {
             var reader = new BinaryReader(memoryStream);
 
-            Position.X = reader.ReadSingle();
-            Position.Y = reader.ReadSingle();
+            Position = new Vector2f(reader.ReadSingle(), reader.ReadSingle());
 
             ResourceType = (ResourceTypes)reader.ReadByte();
             RemainingResources = reader.ReadUInt16();

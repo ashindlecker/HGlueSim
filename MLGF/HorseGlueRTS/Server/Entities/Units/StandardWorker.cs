@@ -42,6 +42,7 @@ namespace Server.Entities.Units
                         MyPlayer.Wood -= BuildingData.SupplyBuildingWoodCost;
                         var add = new SupplyBuilding(Server, MyPlayer, 12);
                         add.Position = new Vector2f(x, y);
+                        add.Team = Team;
                         MyGameMode.AddEntity(add);
                     }
                     break;
@@ -52,6 +53,7 @@ namespace Server.Entities.Units
                         MyPlayer.Wood -= BuildingData.HomeBaseWoodCost;
                         var add = new HomeBuilding(Server, MyPlayer);
                         add.Position = new Vector2f(x, y);
+                        add.Team = Team;
                         MyGameMode.AddEntity(add);
                     }
                     break;

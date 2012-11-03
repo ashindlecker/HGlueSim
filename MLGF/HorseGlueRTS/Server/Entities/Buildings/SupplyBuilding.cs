@@ -17,23 +17,13 @@ namespace Server.Entities.Buildings
         {
             SupplyAdd = sAdd;
             player = ply;
+            EntityType = Entity.EntityType.SupplyBuilding;
         }
 
         public override void onBuildComplete()
         {
             player.Supply += SupplyAdd;
             MyGameMode.UpdatePlayer(player);
-        }
-
-        public override byte[] UpdateData()
-        {
-            var memory = new MemoryStream();
-            var writer = new BinaryWriter(memory);
-            writer.Write(base.UpdateData());
-
-            writer.Write(SupplyAdd);
-
-            return memory.ToArray();
         }
     }
 }

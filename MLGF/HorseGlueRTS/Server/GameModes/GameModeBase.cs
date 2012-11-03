@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SettlersEngine;
 using Shared;
 using System.IO;
 using Lidgren.Network;
 using Server.Entities;
+using SFML.Window;
 
 namespace Server.GameModes
 {
@@ -35,7 +37,6 @@ namespace Server.GameModes
         {
             var readOnlyList = new Dictionary<ushort, EntityBase>(entities);
 
-
             foreach (var entityBase in readOnlyList.Values)
             {
                 entityBase.Update(ms);
@@ -62,6 +63,13 @@ namespace Server.GameModes
             writer.Write(entity.WorldId);
             SendData(memory.ToArray(), Gamemode.Signature.RemoveEntity);
         }
+
+        public class PathFindReturn
+        {
+            public LinkedList<PathNode> List;
+            public Vector2i MapSize;
+        }
+        public abstract PathFindReturn PathFindNodes(float sx, float sy, float x, float y);
 
         public abstract void OnStatusChange(NetConnection connection, NetConnectionStatus status);
         public abstract void ParseInput(MemoryStream memory, NetConnection client);

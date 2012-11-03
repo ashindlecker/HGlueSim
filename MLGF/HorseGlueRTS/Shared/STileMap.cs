@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SFML.Window;
+using SettlersEngine;
 
 namespace Shared
 {
@@ -35,5 +36,42 @@ namespace Shared
             }
         }
 
+        public byte[,] GetPathMap()
+        {
+            var ret = new byte[Tiles.GetLength(0),Tiles.GetLength(1)];
+
+
+            for (int y = 0; y < Tiles.GetLength(1); y++)
+            {
+                for (int x = 0; x < Tiles.GetLength(0);x++)
+                {
+                    ret[x, y] = 0;
+                    if(Tiles[x,y].Solid)
+                    {
+                        ret[x, y] = 1;
+                    }
+                }
+            }
+
+            return ret;
+        }
+
+        public SettlersEngine.PathNode[,] GetPathNodeMap()
+        {
+            var ret = new SettlersEngine.PathNode[Tiles.GetLength(0), Tiles.GetLength(1)];
+
+            for (int y = 0; y < Tiles.GetLength(1); y++)
+            {
+                for (int x = 0; x < Tiles.GetLength(0); x++)
+                {
+                    ret[x, y] = new PathNode();
+                    ret[x, y].X = x;
+                    ret[x, y].Y = y;
+                    ret[x, y].IsWall = Tiles[x, y].Solid;
+                }
+            }
+
+            return ret;
+        }
     }
 }

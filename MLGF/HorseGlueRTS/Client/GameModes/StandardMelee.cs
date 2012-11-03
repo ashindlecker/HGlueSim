@@ -391,6 +391,7 @@ namespace Client.GameModes
             {
                 entityBase.Update(ms);
             }
+
         }
 
         protected void onPlayerSurrender(Player player)

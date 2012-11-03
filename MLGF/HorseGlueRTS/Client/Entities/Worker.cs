@@ -36,7 +36,7 @@ namespace Client.Entities
             Sprites[AnimationTypes.MovingWithResources].Sprites.AddRange(resourceMoveSprites);
 
             var resourceIdleSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/IdleWithResources/");
-            Sprites[AnimationTypes.IdleWithResources].Sprites.AddRange(resourceMoveSprites);
+            Sprites[AnimationTypes.IdleWithResources].Sprites.AddRange(resourceIdleSprites);
         }
 
         public void GiveResource(ResourceTypes type, byte amount)

@@ -8,26 +8,27 @@ using Shared;
 using SFML.Graphics;
 using SFML.Window;
 
-
 namespace Client.Entities
 {
     abstract class EntityBase :ILoadable
     {
         protected List<Vector2f> rallyPoints;
+
         public Vector2f Position;
+
         public float Health;
         public float MaxHealth;
 
         public ushort Energy;
         public ushort MaxEnergy;
         public byte EnergyRegenRate;    //in milliseconds
-        
 
         public EntityBase EntityToUse;  //Workers use minerals, gas geisers, etc
 
         public Dictionary<ushort, EntityBase> WorldEntities;
 
         public ushort WorldId;
+
         public Entity.EntityType Type;
 
         protected Vector2f BoundsSize;
@@ -52,15 +53,17 @@ namespace Client.Entities
         public abstract void Update(float ts);
         public abstract void Render(RenderTarget target);
 
-        public virtual void Use(EntityBase user)
-        {
-            //minerals may give the user minerals to hold, etc
-        }
 
         public virtual FloatRect GetBounds()
         {
             return new FloatRect(Position.X - (BoundsSize.X/2), Position.Y - (BoundsSize.Y/2), BoundsSize.X,
                                  BoundsSize.Y);
+        }
+
+
+        public virtual void Use(EntityBase user)
+        {
+            //minerals may give the user minerals to hold, etc
         }
 
         public virtual void OnDeath()
@@ -105,10 +108,10 @@ namespace Client.Entities
             var reader = new BinaryReader(memoryStream);
             var spell = reader.ReadByte();
 
-            onSpellCast(memoryStream, spell);
+            OnSpellCast(memoryStream, spell);
         }
 
-        protected virtual void onSpellCast(MemoryStream memory, byte type)
+        protected virtual void OnSpellCast(MemoryStream memory, byte type)
         {
         }
 
@@ -171,10 +174,10 @@ namespace Client.Entities
                 rallyPoints.Add(new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
             }
 
-            onMove();
+            OnMove();
         }
 
-        public virtual void onMove()
+        public virtual void OnMove()
         {
             //perhaps a sound is played or HUD change
         }
@@ -190,6 +193,7 @@ namespace Client.Entities
 
         public static EntityBase EntityFactory(byte type)
         {
+            Console.WriteLine(type);
             switch ((Entity.EntityType)type)
             {
                 case Entity.EntityType.Unit:
@@ -207,8 +211,11 @@ namespace Client.Entities
                 case Entity.EntityType.HomeBuilding:
                     return new HomeBuilding();
                     break;
+                case Entity.EntityType.SupplyBuilding:
+                    return new SupplyBuilding();
+                    break;
                 default:
-                    throw new ArgumentOutOfRangeException("type");
+                    throw new ArgumentOutOfRangeException("type " + type);
             }
             return null;
         }

@@ -49,6 +49,7 @@ namespace Server.Entities
 
         public override void OnPlayerCustomMove()
         {
+            base.OnPlayerCustomMove();
             EntityToUse = null;
         }
 
@@ -103,7 +104,6 @@ namespace Server.Entities
         public override void Update(float ms)
         {
             base.Update(ms);
-
 
             if(EntityToUse != null)
             {
@@ -175,8 +175,9 @@ namespace Server.Entities
 
             foreach (var entity in MyGameMode.WorldEntities.Values)
             {
-                if (entity.EntityType != eType)
+                if (entity.EntityType != eType || (entity.Team != Team && entity.Neutral == false))
                     continue;
+
                 float distance = Math.Abs(Position.X - entity.Position.X) + Math.Abs(Position.Y - entity.Position.Y);
                 if (ret == null || distance < shortest)
                 {

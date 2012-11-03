@@ -27,7 +27,10 @@ namespace Server.Entities
         public float MaxHealth;
 
         public Vector2f Position;
-        protected List<Entity.RallyPoint> rallyPoints;
+
+        public Vector2f LastMoveDistance;
+
+        public List<Entity.RallyPoint> rallyPoints;
 
         public EntityBase EntityToUse;  //Workers use minerals, gas geisers, etc
         public Vector2f BoundsSize;
@@ -35,6 +38,8 @@ namespace Server.Entities
         public ushort Energy;
         public ushort MaxEnergy;
         public byte EnergyRegenRate;    //in milliseconds
+
+
 
         public bool RemoveOnNoHealth
         {
@@ -74,8 +79,21 @@ namespace Server.Entities
             Energy = 0;
             EnergyRegenRate = 0;
             MaxEnergy = 0;
+
             Position = new Vector2f();
+            LastMoveDistance = new Vector2f();
+
             spells = new Dictionary<byte, SpellData>();
+        }
+
+        public virtual void OnPlayerCustomMove()
+        {
+            //Called when player sends a move input
+        }
+
+        public virtual void OnDeath()
+        {
+            //Called when Entity has 0 or less HP
         }
 
         public abstract void Update(float ms);
@@ -92,11 +110,6 @@ namespace Server.Entities
             SendData(data, Entity.Signature.EntityToUseChange);
         }
 
-        public virtual void OnPlayerCustomMove()
-        {
-            
-        }
-
         protected virtual byte[] SetEntityToUseResponse(EntityBase toUse)
         {
             var memory = new MemoryStream();
@@ -111,10 +124,6 @@ namespace Server.Entities
             return memory.ToArray();
         }
 
-        public virtual void OnDeath()
-        {
-            
-        }
 
         public void Use(EntityBase user)
         {
@@ -154,16 +163,21 @@ namespace Server.Entities
 
         public void Move(float x, float y, Entity.RallyPoint.RallyTypes type = Entity.RallyPoint.RallyTypes.StandardMove, bool reset = false,  bool send = true, byte buildData = 0)
         {
-            if(reset)
+            if (reset)
                 rallyPoints.Clear();
-            rallyPoints.Add(new Entity.RallyPoint()
-                                {
-                                    X = x,
-                                    Y = y,
-                                    RallyType = type,
-                                    BuildType = buildData,
-                                });
 
+            var nodes = MyGameMode.PathFindNodes(Position.X, Position.Y, x, y);
+
+            foreach (var node in nodes.List)
+            {
+                rallyPoints.Add(new Entity.RallyPoint()
+                                    {
+                                        X = node.X * nodes.MapSize.X,
+                                        Y = node.Y * nodes.MapSize.Y,
+                                        RallyType = type,
+                                        BuildType = buildData,
+                                    });
+            }
 
             var data = MoveResponse(x, y, reset);
             if (send)
@@ -189,9 +203,6 @@ namespace Server.Entities
             return memory.ToArray();
         }
 
-        public abstract byte[] UpdateData();
-
-
         public bool CastSpell(byte spell, float x, float y)
         {
             if (spells.ContainsKey(spell) == false) return false;
@@ -206,7 +217,6 @@ namespace Server.Entities
             SendData(memory.ToArray(), Entity.Signature.Spell);
             return true;
         }
-
 
         protected void SendData(byte[] data, Entity.Signature signature)
         {
@@ -223,6 +233,9 @@ namespace Server.Entities
             memory.Close();
             writer.Close();
         }
+
+
+        public abstract byte[] UpdateData();
 
         public byte[] ToBytes()
         {

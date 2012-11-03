@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -62,6 +63,7 @@
     <Compile Include="Entities\EntityBase.cs" />
     <Compile Include="Entities\HomeBuilding.cs" />
     <Compile Include="Entities\Resources.cs" />
+    <Compile Include="Entities\SupplyBuilding.cs" />
     <Compile Include="Entities\UnitBase.cs" />
     <Compile Include="Entities\Worker.cs" />
     <Compile Include="GameClient.cs" />
