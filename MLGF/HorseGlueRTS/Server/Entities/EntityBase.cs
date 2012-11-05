@@ -166,19 +166,33 @@ namespace Server.Entities
             if (reset)
                 rallyPoints.Clear();
 
-            var nodes = MyGameMode.PathFindNodes(Position.X, Position.Y, x, y);
-
-            foreach (var node in nodes.List)
+            var searchStartPos = Position;
+            if(rallyPoints.Count > 0)
             {
-                rallyPoints.Add(new Entity.RallyPoint()
-                                    {
-                                        X = node.X * nodes.MapSize.X,
-                                        Y = node.Y * nodes.MapSize.Y,
-                                        RallyType = type,
-                                        BuildType = buildData,
-                                    });
+                searchStartPos = new Vector2f(rallyPoints[rallyPoints.Count - 1].X, rallyPoints[rallyPoints.Count - 1].Y);
             }
 
+            var nodes = MyGameMode.PathFindNodes(searchStartPos.X, searchStartPos.Y, x, y);
+            if (nodes.List != null)
+            {
+                foreach (var node in nodes.List)
+                {
+                    if (node != nodes.List.First.Value)
+                    {
+                        Entity.RallyPoint.RallyTypes rallyType = type;
+                        if (rallyType == Entity.RallyPoint.RallyTypes.Build && node != nodes.List.Last.Value)
+                            rallyType = Entity.RallyPoint.RallyTypes.StandardMove;
+
+                        rallyPoints.Add(new Entity.RallyPoint()
+                                            {
+                                                X = node.X*nodes.MapSize.X + (nodes.MapSize.X/2),
+                                                Y = node.Y*nodes.MapSize.Y + (nodes.MapSize.Y/2),
+                                                RallyType = rallyType,
+                                                BuildType = buildData,
+                                            });
+                    }
+                }
+            }
             var data = MoveResponse(x, y, reset);
             if (send)
                 SendData(data, Entity.Signature.Move);
@@ -189,15 +203,15 @@ namespace Server.Entities
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);
 
-            writer.Write(Position.X);
-            writer.Write(Position.Y);
+            writer.Write((ushort)Position.X);
+            writer.Write((ushort)Position.Y);
 
             writer.Write((byte)rallyPoints.Count);
 
             for (int i = 0; i < rallyPoints.Count; i++)
             {
-                writer.Write(rallyPoints[i].X);
-                writer.Write(rallyPoints[i].Y);
+                writer.Write((ushort)rallyPoints[i].X);
+                writer.Write((ushort)rallyPoints[i].Y);
             }
 
             return memory.ToArray();

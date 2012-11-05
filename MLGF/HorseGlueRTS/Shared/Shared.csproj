@@ -49,6 +49,7 @@
     <Compile Include="BuildingData.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Gamemode.cs" />
+    <Compile Include="Globals.cs" />
     <Compile Include="STileBase.cs" />
     <Compile Include="STileMap.cs" />
     <Compile Include="Player.cs" />

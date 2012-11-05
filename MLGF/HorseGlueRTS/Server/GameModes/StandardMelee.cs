@@ -39,7 +39,7 @@ namespace Server.GameModes
             set
             {
                 _gameStatus = value;
-                SendData(new byte[1] {(byte) _gameStatus}, Gamemode.Signature.Custom);
+                SendData(new byte[2] {(byte)StandardMeleeSignature.StatusChanged,(byte) _gameStatus}, Gamemode.Signature.Custom);
             }
         }
 
@@ -54,20 +54,25 @@ namespace Server.GameModes
 
             map = new TileMap();
             map.SetMap<TileBase>(50, 50);
-
+            for (int i = 0; i < 20; i++)
+            {
+                map.Tiles[i, i].Solid = true;
+                map.Tiles[i, i].Type = STileBase.TileType.Water;
+                map.Tiles[i, i+1].Solid = true;
+                map.Tiles[i, i+1].Type = STileBase.TileType.Water;
+            }
 
             var resources = new Resources(server);
             resources.Position = new Vector2f(400, 200);
             resources.ResourceType = ResourceTypes.Apple;
             AddEntity(resources);
 
-
             pathFinding = new SpatialAStar<PathNode, object>(map.GetPathNodeMap());
         }
 
         public override void Update(float ms)
         {
-            base.Update(ms);
+            //base.Update(ms);
             switch(GameStatus)
             {
                 case StatusState.InProgress:
@@ -75,7 +80,7 @@ namespace Server.GameModes
                         //Check if players are still playing
 
                         //TODO: Change back to non-comment when ready
-                        //base.Update(ms);
+                        base.Update(ms);
                         var team1Count = 0;
                         var team1Id = 0;
                         var gameInProgress = false;
@@ -120,7 +125,8 @@ namespace Server.GameModes
                             }
                             if(hasBuilding == false)
                             {
-                               //player has been eliminated
+                                //player has been eliminated
+                                GameStatus = StatusState.Completed;
                             }
                         }
                     }
@@ -130,7 +136,7 @@ namespace Server.GameModes
                     break;
                 case StatusState.Completed:
                     //TODO: Change back to non-comment when ready
-                    //base.Update(ms);
+                    base.Update(ms);
                     break;
                 default:
                     break;

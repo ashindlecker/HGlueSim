@@ -52,8 +52,14 @@ namespace Client.Entities
         private float _moveY;
         private float _moveAngle;
 
+        private bool _moveXCompleted, _moveYCompleted;
+
+
+
         public UnitBase()
         {
+            _moveXCompleted = false;
+            _moveYCompleted = false;
 
             EntityToAttack = null;
             allowMovement = false;
@@ -135,6 +141,7 @@ namespace Client.Entities
             ent.OnTakeDamage(10, Entity.DamageElement.Normal);
         }
 
+
         protected override void ParseUpdate(MemoryStream memoryStream)
         {
             var reader = new BinaryReader(memoryStream);
@@ -179,6 +186,8 @@ namespace Client.Entities
         {
             base.OnMove();
             _callMoveCalculations = true;
+            _moveXCompleted = false;
+            _moveYCompleted = false;
         }
 
         public override void Update(float ms)
@@ -191,14 +200,15 @@ namespace Client.Entities
             if(CurrentAnimation != AnimationTypes.SpellCast && (rallyPoints.Count == 0 || allowMovement == false)) onSetIdleAnimation();
 
             if (!allowMovement || rallyPoints.Count == 0) return;
-
             if(CurrentAnimation != AnimationTypes.SpellCast)
                 onSetMovingAnimation();
 
             Vector2f destination = rallyPoints[0];
 
+            /*
             if (_callMoveCalculations)
             {
+                debugStopwatch.Restart();
                 _callMoveCalculations = false;
 
                 _moveAngle = (float)Math.Atan2(destination.Y - Position.Y, destination.X - Position.X);
@@ -209,14 +219,45 @@ namespace Client.Entities
             Position.X += (_moveX * Speed) * ms;
             Position.Y += (_moveY * Speed) * ms;
 
-            bool completedDestinationX = (_moveX > 0 && Position.X >= destination.X) ||
-                                         (_moveX < 0 && Position.X <= destination.X) || (int)Position.X == (int)destination.X;
+            bool completedDestinationX = (_moveX > 0 && (int)Position.X >= (int)destination.X) || _moveX == 0 ||
+                                         (_moveX < 0 && (int)Position.X <= (int)destination.X) || (int)Position.X == (int)destination.X;
 
-            bool completedDestinationY = (_moveY > 0 && Position.Y >= destination.Y) ||
-                                         (_moveY < 0 && Position.Y <= destination.Y) || (int)Position.Y == (int)destination.Y;
+            bool completedDestinationY = (_moveY > 0 && (int)Position.Y >= (int)destination.Y) || _moveY == 0 || 
+                                         (_moveY < 0 && (int)Position.Y <= (int)destination.Y) || (int)Position.Y == (int)destination.Y;
 
-            if (completedDestinationX && completedDestinationY)
+            if (completedDestinationX && completedDestinationY)*/
+            if ((int)Position.X < (int)destination.X)
             {
+                Position.X += Speed * ms;
+                if ((int)Position.X >= (int)destination.X) _moveXCompleted = true;
+            }
+            if ((int)Position.Y < (int)destination.Y)
+            {
+                Position.Y += Speed * ms;
+                if ((int)Position.Y >= (int)destination.Y) _moveYCompleted = true;
+            }
+            if ((int)Position.X > destination.X)
+            {
+                Position.X -= Speed * ms;
+                if ((int)Position.X <= (int)destination.X) _moveXCompleted = true;
+            }
+            if ((int)Position.Y > (int)destination.Y)
+            {
+                Position.Y -= Speed * ms;
+                if ((int)Position.Y <= (int)destination.Y) _moveYCompleted = true;
+            }
+
+            if ((int)Position.X == (int)destination.X) _moveXCompleted = true;
+            if ((int)Position.Y == (int)destination.Y) _moveYCompleted = true;
+
+
+            if (_moveXCompleted && _moveYCompleted)
+            {
+                _moveXCompleted = false;
+                _moveYCompleted = false;
+
+                if(rallyPoints.Count == 1)
+                    Position = destination;
                 _callMoveCalculations = true;
                 rallyPoints.RemoveAt(0);
             }

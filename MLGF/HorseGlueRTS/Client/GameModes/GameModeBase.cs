@@ -14,16 +14,35 @@ namespace Client.GameModes
 {
     internal abstract class GameModeBase
     {
+        public class HUDAlert
+        {
+            public enum AlertTypes : byte
+            {
+                CreatedUnit,
+                UnitUnderAttack,
+                UnitCreated,
+                BuildingCompleted
+            }
+
+            public AlertTypes Type;
+            public float Alpha;
+            
+        }
+
         protected Dictionary<ushort, EntityBase> entities;
         protected Dictionary<byte, Player> players;
 
+        protected const float ALERTFADESPEED = .05f;
+        protected List<HUDAlert> alerts;
+        
 
         public GameModeBase()
         {
-
+            alerts = new List<HUDAlert>();
             entities = new Dictionary<ushort, EntityBase>();
             players = new Dictionary<byte, Player>();
         }
+
 
         public void ParseData(MemoryStream stream)
         {
@@ -116,9 +135,15 @@ namespace Client.GameModes
         {
             if (entities.ContainsKey(id) == false)
             {
+                entity.MyGameMode = this;
                 entity.WorldId = id;
                 entities.Add(id, entity);
             }
+        }
+
+        public void AddAlert(HUDAlert.AlertTypes type)
+        {
+            alerts.Add(new HUDAlert() { Alpha = 255, Type = type });
         }
 
         protected abstract void ParseCustom(MemoryStream memory);
@@ -127,6 +152,21 @@ namespace Client.GameModes
 
         public abstract void Update(float ms);
         public abstract void Render(RenderTarget target);
+
+
+        protected void UpdateAlerts(float ms)
+        {
+            var readonlyAlerts = new List<HUDAlert>(alerts);
+
+            foreach (var hudAlert in readonlyAlerts)
+            {
+                hudAlert.Alpha -= ALERTFADESPEED*ms;
+                if(hudAlert.Alpha <= 0)
+                {
+                    alerts.Remove(hudAlert);
+                }
+            }
+        }
 
         public virtual void MouseMoved(int x, int y)
         {

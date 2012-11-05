@@ -18,6 +18,8 @@ namespace Server.Entities
 
         public Resources(GameServer _server) : base(_server)
         {
+            Team = 100;
+            Neutral = true;
             EntityType = Entity.EntityType.Resources;
             RemainingResources = 65535;
             resourcesPerTrip = 10;

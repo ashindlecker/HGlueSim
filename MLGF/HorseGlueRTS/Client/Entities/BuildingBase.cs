@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Client.GameModes;
 using SFML.Graphics;
 using System.Diagnostics;
 using SFML.Window;
@@ -127,6 +128,7 @@ namespace Client.Entities
                     {
                         IsBuilding = false;
                         Health = reader.ReadSingle();
+                        MyGameMode.AddAlert(GameModeBase.HUDAlert.AlertTypes.BuildingCompleted);
                     }
                     break;
                 default:
@@ -163,6 +165,7 @@ namespace Client.Entities
         protected virtual void onCompleteProduction(byte type)
         {
             //play sound or add something to HUD
+            MyGameMode.AddAlert(GameModeBase.HUDAlert.AlertTypes.UnitCreated);
         }
         protected virtual void onStartProduction(byte type)
         {

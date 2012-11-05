@@ -86,6 +86,7 @@ namespace Server.Entities
         {
             updatedMovePositionTimer.Restart();
             rallyPoints.Clear();
+            State = UnitState.Standard;
             moveToUsedEntity(toUse);
             return base.SetEntityToUseResponse(toUse);
         }
@@ -128,14 +129,21 @@ namespace Server.Entities
                     }
                     else if(EntityToUse.EntityType == Entity.EntityType.HomeBuilding)
                     {
-                        //Give resources to base
-                        EntityToUse.Use(this);
+                        if (EntityToUse.Team != Team)
+                        {
+                            SetEntityToUse(null);
+                        }
+                        else
+                        {
+                            //Give resources to base
+                            EntityToUse.Use(this);
 
-                        //Go back to closest resource field
+                            //Go back to closest resource field
 
-                        EntityBase resourceEntity = GetClosest<EntityBase>(Entity.EntityType.Resources);
-                        if (resourceEntity != null)
-                            SetEntityToUse(resourceEntity);
+                            EntityBase resourceEntity = GetClosest<EntityBase>(Entity.EntityType.Resources);
+                            if (resourceEntity != null)
+                                SetEntityToUse(resourceEntity);
+                        }
                     }
                 }
                 else
@@ -175,8 +183,13 @@ namespace Server.Entities
 
             foreach (var entity in MyGameMode.WorldEntities.Values)
             {
-                if (entity.EntityType != eType || (entity.Team != Team && entity.Neutral == false))
+                if (entity.EntityType != eType)
                     continue;
+                if(entity.Neutral == false)
+                {
+                    if(entity.Team != Team)
+                    continue;
+                }
 
                 float distance = Math.Abs(Position.X - entity.Position.X) + Math.Abs(Position.Y - entity.Position.Y);
                 if (ret == null || distance < shortest)

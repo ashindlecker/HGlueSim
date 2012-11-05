@@ -26,6 +26,7 @@ namespace Client.Entities
         public EntityBase EntityToUse;  //Workers use minerals, gas geisers, etc
 
         public Dictionary<ushort, EntityBase> WorldEntities;
+        public GameModes.GameModeBase MyGameMode;
 
         public ushort WorldId;
 
@@ -48,6 +49,7 @@ namespace Client.Entities
             Energy = 0;
             MaxHealth = 0;
             EnergyRegenRate = 0;
+            MyGameMode = null;
         }
 
         public abstract void Update(float ts);
@@ -165,13 +167,13 @@ namespace Client.Entities
         {
             var reader = new BinaryReader(memoryStream);
 
-            Position.X = reader.ReadSingle();
-            Position.Y = reader.ReadSingle();
+            Position.X = reader.ReadUInt16();
+            Position.Y = reader.ReadUInt16();
             var count = reader.ReadByte();
             rallyPoints.Clear();
             for (var i = 0; i < count; i++)
             {
-                rallyPoints.Add(new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
+                rallyPoints.Add(new Vector2f(reader.ReadUInt16(), reader.ReadUInt16()));
             }
 
             OnMove();

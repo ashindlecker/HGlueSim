@@ -43,7 +43,7 @@ namespace Client
             client = new NetClient(config);
             client.Start();
             client.Connect(ip, port);
-
+            client.Socket.Blocking = false;
 
             //networkThread = new Thread(new ThreadStart(netThreadLoop));
             //networkThread.Start();
@@ -71,7 +71,7 @@ namespace Client
                     case NetIncomingMessageType.StatusChanged:
                         if(client.ConnectionStatus == NetConnectionStatus.Disconnected)
                         {
-                            networkThread.Abort();
+                            //networkThread.Abort();
                         }
                         break;
                     case NetIncomingMessageType.UnconnectedData:
@@ -126,7 +126,19 @@ namespace Client
 
         public void Update(float ms)
         {
-            GameMode.Update(ms);
+            while (ms > 0)
+            {
+                if (ms > Shared.Globals.MAXUPDATETIME)
+                {
+                    GameMode.Update(Shared.Globals.MAXUPDATETIME);
+                    ms -= Shared.Globals.MAXUPDATETIME;
+                }
+                else
+                {
+                    GameMode.Update(ms);
+                    ms = 0;
+                }
+            }
             updateNetwork();
 
             if(bitsPerSecondTimer.ElapsedMilliseconds >= 1000)

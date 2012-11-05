@@ -32,12 +32,19 @@ namespace Server.Entities
         protected EntityBase EntityToAttack { get; private set; }
 
 
+        //OLD MOVEMENT CODE VARIABLES
         private float _moveAngle;
         private float _moveX, _moveY;
         private bool _callMoveCalculations;
 
+        private bool _moveXCompleted, _moveYCompleted;
+
+
         public UnitBase(GameServer _server) : base(_server)
         {
+            _moveXCompleted = false;
+            _moveYCompleted = false;
+
             EntityToAttack = null;
 
             EntityType = Entity.EntityType.Unit;
@@ -54,6 +61,7 @@ namespace Server.Entities
             _moveX = 0;
             _moveY = 0;
             _callMoveCalculations = true;
+
         }
 
         protected FloatRect RangeBounds()
@@ -80,11 +88,13 @@ namespace Server.Entities
         {
             base.OnPlayerCustomMove();
             _callMoveCalculations = true;
+            _moveXCompleted = false;
+            _moveYCompleted = false;
         }
 
         public override void Update(float ms)
         {
-            if(State == UnitState.Agro)
+            if (State == UnitState.Agro)
             {
                 var rangeBounds = RangeBounds();
 
@@ -130,15 +140,15 @@ namespace Server.Entities
                 }
             }
 
-            if(EntityToAttack == null || State == UnitState.Standard) setAllowMove(true);
+            if (EntityToAttack == null || State == UnitState.Standard) setAllowMove(true);
 
             if (State != UnitState.Agro)
                 attackTimer.Restart();
-
+            if(rallyPoints.Count == 0)
+                State = UnitState.Agro;
             //Rallypoint movement
             if (allowMovement && rallyPoints.Count > 0)
             {
-
                 if (rallyPoints[0].RallyType == Entity.RallyPoint.RallyTypes.AttackMove)
                     State = UnitState.Agro;
                 else
@@ -146,9 +156,12 @@ namespace Server.Entities
 
                 Vector2f destination = new Vector2f(rallyPoints[0].X, rallyPoints[0].Y);
 
-
+                /*
+                OLD MOVE ALGORITHM (BUGGED FOR SOME REASON)
+                 * TODO: FIX
                 if (_callMoveCalculations)
                 {
+                    debugStopwatch.Restart();
                     _callMoveCalculations = false;
 
                     _moveAngle = (float) Math.Atan2(destination.Y - Position.Y, destination.X - Position.X);
@@ -159,17 +172,46 @@ namespace Server.Entities
                 Position.X += (_moveX*Speed)*ms;
                 Position.Y += (_moveY*Speed)*ms;
 
-                bool completedDestinationX = (_moveX > 0 && Position.X >= destination.X) ||
-                                             (_moveX < 0 && Position.X <= destination.X) || (int)Position.X == (int)destination.X;
+                bool completedDestinationX = (_moveX > 0 && (int)Position.X >= (int)destination.X) || _moveX == 0 ||
+                                             (_moveX < 0 && (int)Position.X <= (int)destination.X) || (int)Position.X == (int)destination.X;
 
-                bool completedDestinationY = (_moveY > 0 && Position.Y >= destination.Y) ||
-                                             (_moveY < 0 && Position.Y <= destination.Y) || (int)Position.Y == (int)destination.Y;
+                bool completedDestinationY = (_moveY > 0 && (int)Position.Y >= (int)destination.Y) || _moveY == 0 ||
+                                             (_moveY < 0 && (int)Position.Y <= (int)destination.Y) || (int)Position.Y == (int)destination.Y;
 
-
-                if (completedDestinationX && completedDestinationY)
+                
+                if (completedDestinationX && completedDestinationY)*/
+                if ((int) Position.X < (int) destination.X)
                 {
+                    Position.X += Speed*ms;
+                    if ((int)Position.X >= (int)destination.X) _moveXCompleted = true;
+                }
+                if ((int) Position.Y < (int) destination.Y)
+                {
+                    Position.Y += Speed*ms;
+                    if ((int)Position.Y >= (int)destination.Y) _moveYCompleted = true;
+                }
+                if ((int) Position.X > destination.X)
+                {
+                    Position.X -= Speed*ms;
+                    if ((int)Position.X <= (int)destination.X) _moveXCompleted = true;
+                }
+                if ((int) Position.Y > (int) destination.Y)
+                {
+                    Position.Y -= Speed*ms;
+                    if ((int)Position.Y <= (int)destination.Y) _moveYCompleted = true;
+                }
+
+                if ((int)Position.X == (int)destination.X) _moveXCompleted = true;
+                if ((int)Position.Y == (int)destination.Y) _moveYCompleted = true;
+
+                if (_moveXCompleted && _moveYCompleted)
+                {
+                    _moveXCompleted = false;
+                    _moveYCompleted = false;
+
                     _callMoveCalculations = true;
-                    Position = destination;
+                    if (rallyPoints.Count == 1)
+                        Position = destination;
 
                     OnRallyPointCompleted(rallyPoints[0]);
                     rallyPoints.RemoveAt(0);

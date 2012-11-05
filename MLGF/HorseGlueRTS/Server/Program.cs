@@ -24,7 +24,7 @@ namespace Server
                 float dt = (float)(stopwatch.Elapsed.TotalSeconds * 1000);
                 stopwatch.Restart();
                 server.Update(dt);
-                System.Threading.Thread.Sleep(5);
+                System.Threading.Thread.Sleep(100);
             }
         }
     }

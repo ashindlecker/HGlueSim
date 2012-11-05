@@ -34,11 +34,11 @@ namespace Client
             while(window.IsOpen())
             {
 
-                float dt = (float)(stopwatch.Elapsed.TotalSeconds * 1000);
-                stopwatch.Restart();
                 window.DispatchEvents();
                 window.Clear(new Color(100, 100, 200));
 
+                var dt = (float)(stopwatch.Elapsed.TotalSeconds * 1000);
+                stopwatch.Restart();
                 client.Update(dt);
                 client.GameMode.Render(window);
                 window.Display();

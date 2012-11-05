@@ -32,11 +32,24 @@ namespace Server
         public void Start()
         {
             server.Start();
+            server.Socket.Blocking = false;
         }
 
         public void Update(float ms)
         {
-            gameMode.Update(ms);
+            while (ms > 0)
+            {
+                if (ms > Globals.MAXUPDATETIME)
+                {
+                    gameMode.Update(Globals.MAXUPDATETIME);
+                    ms -= Globals.MAXUPDATETIME;
+                }
+                else
+                {
+                    gameMode.Update(ms);
+                    ms = 0;
+                }
+            }
 
             NetIncomingMessage message = null;
             while ((message = server.ReadMessage()) != null)
