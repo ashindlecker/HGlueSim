@@ -10,20 +10,18 @@ namespace Server.Entities.Buildings
 {
     class SupplyBuilding : BuildingBase
     {
-        private Player player;
         public byte SupplyAdd;
 
-        public SupplyBuilding(GameServer server, Player ply, byte sAdd) : base(server)
+        public SupplyBuilding(GameServer server, Player ply, byte sAdd) : base(server, ply)
         {
             SupplyAdd = sAdd;
-            player = ply;
             EntityType = Entity.EntityType.SupplyBuilding;
         }
 
         public override void onBuildComplete()
         {
-            player.Supply += SupplyAdd;
-            MyGameMode.UpdatePlayer(player);
+            MyPlayer.Supply += SupplyAdd;
+            MyGameMode.UpdatePlayer(MyPlayer);
         }
     }
 }

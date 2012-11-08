@@ -57,6 +57,7 @@ namespace Client.GameModes
         private const Keyboard.Key HomeBaseHotkey = Keyboard.Key.N;
         private const Keyboard.Key SupplyBuildingHotkey = Keyboard.Key.E;
         private const Keyboard.Key WorkerHotkey = Keyboard.Key.E;
+        private const Keyboard.Key GlueFactoryHotkey = Keyboard.Key.A;
 
         //UI
         private enum WorkerUIStateTypes : byte
@@ -310,9 +311,25 @@ namespace Client.GameModes
             {
                 if (keyEvent.Shift)
                 {
-                    controlGroups[keyEvent.Code] = new List<EntityBase>(selectedUnits);
+                    if (selectedUnits != null)
+                    {
+                        var copy = new List<EntityBase>(controlGroups[keyEvent.Code]);
+
+                        foreach (var selectedUnit in selectedUnits)
+                        {
+                            if(copy.Contains(selectedUnit) == false)
+                            {
+                                controlGroups[keyEvent.Code].Add(selectedUnit);
+                            }
+                        }
+                    }
                 }
-                if (controlGroups.ContainsKey(keyEvent.Code))
+                else if (keyEvent.Control)
+                {
+                    if (selectedUnits != null)
+                        controlGroups[keyEvent.Code] = new List<EntityBase>(selectedUnits);
+                }
+                else if (controlGroups.ContainsKey(keyEvent.Code))
                 {
                     if(controlGroups[keyEvent.Code].Count > 0)
                     selectedUnits = controlGroups[keyEvent.Code].ToArray();
@@ -345,6 +362,12 @@ namespace Client.GameModes
                         workerUIState = WorkerUIStateTypes.ReadyToPlace;
                         buildingToPlace = (byte) WorkerSpellIds.BuildSupplyBuilding;
                     }
+
+                    if(keyEvent.Code == GlueFactoryHotkey)
+                    {
+                        workerUIState = WorkerUIStateTypes.ReadyToPlace;
+                        buildingToPlace = (byte) WorkerSpellIds.BuildGlueFactory;
+                    }
                 }
                 else if (workerUIState == WorkerUIStateTypes.AdvancedBuildings)
                 {
@@ -363,7 +386,7 @@ namespace Client.GameModes
                 }
             }
 
-            if(keyEvent.Code == AttackHotkey)
+            if(workerUIState == WorkerUIStateTypes.Normal && keyEvent.Code == AttackHotkey)
             {
                 selectedAttackMove = true;
             }
@@ -455,12 +478,16 @@ namespace Client.GameModes
             }
 
             UpdateAlerts(ms);
-            if(CurrentStatus == StatusState.InProgress)
+            if(CurrentStatus == StatusState.InProgress || CurrentStatus == StatusState.Completed)
             {
                 var readOnly = new Dictionary<ushort, EntityBase>(entities);
                 foreach (var entityBase in readOnly.Values)
                 {
                     entityBase.Update(ms);
+                    if (entityBase.Health >= entityBase.MaxHealth)
+                        entityBase.Health = entityBase.MaxHealth;
+                    if (entityBase.Energy >= entityBase.MaxEnergy)
+                        entityBase.Energy = entityBase.MaxEnergy;
                 }
             }
 
@@ -513,7 +540,6 @@ namespace Client.GameModes
                 {
                     if (entities.ContainsValue(entityBase) == false)
                         list.Remove(entityBase);
-
                 }
 
                 listArray.Clear();

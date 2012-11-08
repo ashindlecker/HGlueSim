@@ -18,6 +18,14 @@ namespace Server.Entities
             Standard,
         }
 
+        public byte SupplyUsage
+        {
+            get; protected set;
+        }
+
+        public float StandardAttackDamage { get; protected set; }
+        public Entity.DamageElement StandardAttackElement { get; protected set; }
+
 
         public float Speed;
         public UnitState State;
@@ -31,37 +39,30 @@ namespace Server.Entities
         private Stopwatch attackTimer;
         protected EntityBase EntityToAttack { get; private set; }
 
-
-        //OLD MOVEMENT CODE VARIABLES
-        private float _moveAngle;
-        private float _moveX, _moveY;
-        private bool _callMoveCalculations;
-
         private bool _moveXCompleted, _moveYCompleted;
 
 
-        public UnitBase(GameServer _server) : base(_server)
+        public UnitBase(GameServer _server, Player player) : base(_server, player)
         {
-            _moveXCompleted = false;
-            _moveYCompleted = false;
+            EntityType = Entity.EntityType.Unit;
 
             EntityToAttack = null;
 
-            EntityType = Entity.EntityType.Unit;
             Speed = .01f;
-            State = UnitState.Agro;
             Range = 50;
             AttackDelay = 2000;
+            SupplyUsage = 1;
+
+            StandardAttackDamage = 1;
+            StandardAttackElement = Entity.DamageElement.Normal;
+
+            State = UnitState.Agro;
+            allowMovement = false;
+            _moveXCompleted = false;
+            _moveYCompleted = false;
+
             attackTimer = new Stopwatch();
             attackTimer.Restart();
-
-            allowMovement = false;
-
-            _moveAngle = 0;
-            _moveX = 0;
-            _moveY = 0;
-            _callMoveCalculations = true;
-
         }
 
         protected FloatRect RangeBounds()
@@ -87,7 +88,6 @@ namespace Server.Entities
         public override void OnPlayerCustomMove()
         {
             base.OnPlayerCustomMove();
-            _callMoveCalculations = true;
             _moveXCompleted = false;
             _moveYCompleted = false;
         }
@@ -154,32 +154,8 @@ namespace Server.Entities
                 else
                     State = UnitState.Standard;
 
-                Vector2f destination = new Vector2f(rallyPoints[0].X, rallyPoints[0].Y);
+                var destination = new Vector2f(rallyPoints[0].X, rallyPoints[0].Y);
 
-                /*
-                OLD MOVE ALGORITHM (BUGGED FOR SOME REASON)
-                 * TODO: FIX
-                if (_callMoveCalculations)
-                {
-                    debugStopwatch.Restart();
-                    _callMoveCalculations = false;
-
-                    _moveAngle = (float) Math.Atan2(destination.Y - Position.Y, destination.X - Position.X);
-                    _moveX = (float) Math.Cos(_moveAngle);
-                    _moveY = (float) Math.Sin(_moveAngle);
-                }
-
-                Position.X += (_moveX*Speed)*ms;
-                Position.Y += (_moveY*Speed)*ms;
-
-                bool completedDestinationX = (_moveX > 0 && (int)Position.X >= (int)destination.X) || _moveX == 0 ||
-                                             (_moveX < 0 && (int)Position.X <= (int)destination.X) || (int)Position.X == (int)destination.X;
-
-                bool completedDestinationY = (_moveY > 0 && (int)Position.Y >= (int)destination.Y) || _moveY == 0 ||
-                                             (_moveY < 0 && (int)Position.Y <= (int)destination.Y) || (int)Position.Y == (int)destination.Y;
-
-                
-                if (completedDestinationX && completedDestinationY)*/
                 if ((int) Position.X < (int) destination.X)
                 {
                     Position.X += Speed*ms;
@@ -209,7 +185,6 @@ namespace Server.Entities
                     _moveXCompleted = false;
                     _moveYCompleted = false;
 
-                    _callMoveCalculations = true;
                     if (rallyPoints.Count == 1)
                         Position = destination;
 
@@ -262,14 +237,15 @@ namespace Server.Entities
 
         protected virtual byte[] onAttack(EntityBase entity)
         {
-            entity.TakeDamage(10, Entity.DamageElement.Normal, false);
+            entity.TakeDamage(StandardAttackDamage, StandardAttackElement, false);
             return new byte[0];
         }
 
-        protected override byte[] MoveResponse(float x, float y, bool reset)
+        public override void OnDeath()
         {
-            _callMoveCalculations = true;
-            return base.MoveResponse(x, y, reset);
+            base.OnDeath();
+            MyPlayer.UsedSupply -= UnitData.WorkerSupplyCost;
+            MyGameMode.UpdatePlayer(MyPlayer);
         }
 
         public override byte[] UpdateData()

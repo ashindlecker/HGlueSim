@@ -14,22 +14,17 @@ namespace Server.Entities
     abstract class EntityBase : ISavable
     {
         public GameServer Server;
-
         public GameModes.GameModeBase MyGameMode;
+        public Player MyPlayer;
  
         public ushort WorldId { get; set; }
-
         public Entity.EntityType EntityType { get; protected set; }
-
         public byte Team { get; set; }
 
         public float Health;
         public float MaxHealth;
 
         public Vector2f Position;
-
-        public Vector2f LastMoveDistance;
-
         public List<Entity.RallyPoint> rallyPoints;
 
         public EntityBase EntityToUse;  //Workers use minerals, gas geisers, etc
@@ -38,8 +33,6 @@ namespace Server.Entities
         public ushort Energy;
         public ushort MaxEnergy;
         public byte EnergyRegenRate;    //in milliseconds
-
-
 
         public bool RemoveOnNoHealth
         {
@@ -57,22 +50,31 @@ namespace Server.Entities
             {
                 EnergyCost = engy;
                 Function = dDelegate;
+                WoodCost = 0;
+                AppleCost = 0;
+                GlueCost = 0;
             }
             public SpellResponseDelegate Function;
             public float EnergyCost;
+            public ushort WoodCost;
+            public ushort AppleCost;
+            public ushort GlueCost;
         }
-        protected Dictionary<byte, SpellData> spells;  
-        
 
-        protected EntityBase(GameServer _server)
+        protected Dictionary<byte, SpellData> spells;
+
+
+        protected EntityBase(GameServer _server, Player player)
         {
+            Server = _server;
+            MyPlayer = player;
+
             Neutral = false;
             BoundsSize = new Vector2f(10, 10);
             RemoveOnNoHealth = true;
 
             EntityToUse = null;
             MyGameMode = null;
-            Server = _server;
             rallyPoints = new List<Entity.RallyPoint>();
             Health = 0;
             MaxHealth = 0;
@@ -81,7 +83,6 @@ namespace Server.Entities
             MaxEnergy = 0;
 
             Position = new Vector2f();
-            LastMoveDistance = new Vector2f();
 
             spells = new Dictionary<byte, SpellData>();
         }

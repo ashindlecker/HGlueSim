@@ -16,7 +16,7 @@ namespace Server.Entities
         public ResourceTypes ResourceType;
 
 
-        public Resources(GameServer _server) : base(_server)
+        public Resources(GameServer _server, Player player) : base(_server, player)
         {
             Team = 100;
             Neutral = true;

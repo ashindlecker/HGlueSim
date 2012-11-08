@@ -8,7 +8,7 @@ namespace Shared
 {
     public class Gamemode
     {
-        public enum Signature
+        public enum Signature : byte
         {
             Custom,
             PlayerData,
@@ -21,6 +21,7 @@ namespace Shared
             RemoveEntity,
             PlayerLeft,
             GameEnded,
+            GroupMovement,
         }
     }
 }

@@ -128,6 +128,25 @@ namespace Client.GameModes
                         }
                     }
                     break;
+                case Gamemode.Signature.GroupMovement:
+                    {
+                        var rallyCount = reader.ReadByte();
+                        var rallyList = new List<Vector2f>();
+                        for (var i = 0; i < rallyCount; i++)
+                        {
+                            rallyList.Add(new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
+                        }
+                        var unitCount = reader.ReadByte();
+                        for (var i = 0; i < unitCount; i++)
+                        {
+                            var unitId = reader.ReadUInt16();
+                            if(entities.ContainsKey(unitId))
+                            {
+                                entities[unitId].rallyPoints = new List<Vector2f>(rallyList);
+                            }
+                        }
+                    }
+                    break;
             }
         }
 

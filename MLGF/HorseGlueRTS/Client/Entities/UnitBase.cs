@@ -14,8 +14,6 @@ namespace Client.Entities
 {
     class UnitBase : EntityBase
     {
-
-        
         public enum UnitState : byte
         {
             Agro,
@@ -32,6 +30,9 @@ namespace Client.Entities
             MovingWithResources,
         }
 
+        public float StandardAttackDamage { get; protected set; }
+        public Entity.DamageElement StandardAttackElement { get; protected set; }
+
         public float Speed;
         public UnitState State;
         public float Range;
@@ -46,11 +47,6 @@ namespace Client.Entities
 
         protected Dictionary<AnimationTypes, AnimatedSprite> Sprites;
         protected AnimationTypes CurrentAnimation;
-
-        private bool _callMoveCalculations;
-        private float _moveX;
-        private float _moveY;
-        private float _moveAngle;
 
         private bool _moveXCompleted, _moveYCompleted;
 
@@ -71,13 +67,11 @@ namespace Client.Entities
             attackTimer = new Stopwatch();
             attackTimer.Restart();
 
+            StandardAttackDamage = 1;
+            StandardAttackElement = Entity.DamageElement.Normal;
+
             CurrentAnimation = AnimationTypes.Idle;
             Sprites = new Dictionary<AnimationTypes, AnimatedSprite>();
-
-            _moveAngle = 0;
-            _moveX = 0;
-            _moveY = 0;
-            _callMoveCalculations = true;
 
             const byte AnimationTypeCount = 6;
             for (int i = 0; i < AnimationTypeCount; i++)
@@ -101,8 +95,6 @@ namespace Client.Entities
 
                         Position = new Vector2f(posX, posY);
                         rallyPoints.Clear();
-
-                        _callMoveCalculations = true;
                     }
                     break;
                 case UnitSignature.Attack:
@@ -120,12 +112,10 @@ namespace Client.Entities
                         Position = new Vector2f(posX, posY);
                         if (rallyPoints.Count > 0)
                             rallyPoints.RemoveAt(0);
-                        _callMoveCalculations = true;
                     }
                     break;
                 case UnitSignature.ClearRally:
                     rallyPoints.Clear();
-                    _callMoveCalculations = true;
                     break;
                 case UnitSignature.ChangeMovementAllow:
                     allowMovement = reader.ReadBoolean();
@@ -138,7 +128,7 @@ namespace Client.Entities
 
         protected virtual void onAttack(EntityBase ent)
         {
-            ent.OnTakeDamage(10, Entity.DamageElement.Normal);
+            ent.OnTakeDamage(StandardAttackDamage, StandardAttackElement);
         }
 
 
@@ -185,7 +175,6 @@ namespace Client.Entities
         public override void OnMove()
         {
             base.OnMove();
-            _callMoveCalculations = true;
             _moveXCompleted = false;
             _moveYCompleted = false;
         }
@@ -205,27 +194,6 @@ namespace Client.Entities
 
             Vector2f destination = rallyPoints[0];
 
-            /*
-            if (_callMoveCalculations)
-            {
-                debugStopwatch.Restart();
-                _callMoveCalculations = false;
-
-                _moveAngle = (float)Math.Atan2(destination.Y - Position.Y, destination.X - Position.X);
-                _moveX = (float)Math.Cos(_moveAngle);
-                _moveY = (float)Math.Sin(_moveAngle);
-            }
-
-            Position.X += (_moveX * Speed) * ms;
-            Position.Y += (_moveY * Speed) * ms;
-
-            bool completedDestinationX = (_moveX > 0 && (int)Position.X >= (int)destination.X) || _moveX == 0 ||
-                                         (_moveX < 0 && (int)Position.X <= (int)destination.X) || (int)Position.X == (int)destination.X;
-
-            bool completedDestinationY = (_moveY > 0 && (int)Position.Y >= (int)destination.Y) || _moveY == 0 || 
-                                         (_moveY < 0 && (int)Position.Y <= (int)destination.Y) || (int)Position.Y == (int)destination.Y;
-
-            if (completedDestinationX && completedDestinationY)*/
             if ((int)Position.X < (int)destination.X)
             {
                 Position.X += Speed * ms;
@@ -258,7 +226,6 @@ namespace Client.Entities
 
                 if(rallyPoints.Count == 1)
                     Position = destination;
-                _callMoveCalculations = true;
                 rallyPoints.RemoveAt(0);
             }
         }

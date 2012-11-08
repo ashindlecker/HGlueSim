@@ -12,7 +12,7 @@ namespace Client.Entities
 {
     abstract class EntityBase :ILoadable
     {
-        protected List<Vector2f> rallyPoints;
+        public List<Vector2f> rallyPoints;
 
         public Vector2f Position;
 
@@ -196,7 +196,7 @@ namespace Client.Entities
         public static EntityBase EntityFactory(byte type)
         {
             Console.WriteLine(type);
-            switch ((Entity.EntityType)type)
+            switch ((Entity.EntityType) type)
             {
                 case Entity.EntityType.Unit:
                     return new UnitBase();
@@ -215,6 +215,9 @@ namespace Client.Entities
                     break;
                 case Entity.EntityType.SupplyBuilding:
                     return new SupplyBuilding();
+                    break;
+                case Entity.EntityType.GlueFactory:
+                    return new GlueFactory();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("type " + type);

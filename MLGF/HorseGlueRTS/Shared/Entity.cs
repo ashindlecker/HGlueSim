@@ -17,6 +17,7 @@ namespace Shared
             Resources,
             HomeBuilding,
             SupplyBuilding,
+            GlueFactory,
         }
 
         public enum DamageElement : byte

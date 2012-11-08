@@ -15,51 +15,44 @@ namespace Server.Entities.Units
         {
             spells.Add((byte)WorkerSpellIds.BuildHomeBase, new SpellData(0, BuildHomeBase));
             spells.Add((byte)WorkerSpellIds.BuildSupplyBuilding, new SpellData(0, BuildSupplyBuilding));
+            spells.Add((byte)WorkerSpellIds.BuildGlueFactory, new SpellData(0, BuildGlueFactory));
         }
 
         private byte[] BuildSupplyBuilding(float x, float y)
         {
-            AddBuildingToBuild(0, x, y);
+            AddBuildingToBuild((byte)WorkerSpellIds.BuildSupplyBuilding, x, y);
             return new byte[0];
         }
 
 
         public byte[] BuildHomeBase(float x, float y)
         {
-            AddBuildingToBuild(1, x, y);
+            AddBuildingToBuild((byte)WorkerSpellIds.BuildHomeBase, x, y);
             return new byte[0];
         }
 
-        protected override void OnPlaceBuilding(byte type, float x, float y)
+        public byte[] BuildGlueFactory(float x, float y)
+        {
+            AddBuildingToBuild((byte)WorkerSpellIds.BuildGlueFactory, x, y);
+            return new byte[0];
+        }
+
+        protected override EntityBase OnPlaceBuilding(byte type, float x, float y)
         {
             base.OnPlaceBuilding(type, x, y);
             switch(type)
             {
-                case 0://Supply building
-
-                    if (true || MyPlayer.Wood >= BuildingData.SupplyBuildingWoodCost)
-                    {
-                        MyPlayer.Wood -= BuildingData.SupplyBuildingWoodCost;
-                        var add = new SupplyBuilding(Server, MyPlayer, 12);
-                        add.Position = new Vector2f(x, y);
-                        add.Team = Team;
-                        MyGameMode.AddEntity(add);
-                    }
+                case (byte)WorkerSpellIds.BuildSupplyBuilding://Supply building
+                        return new SupplyBuilding(Server, MyPlayer, 12);
                     break;
-                case 1: //Home base
-                    if (true || MyPlayer.Apples >= BuildingData.HomeBaseAppleCost && MyPlayer.Wood >= BuildingData.HomeBaseWoodCost)
-                    {
-                        MyPlayer.Apples -= BuildingData.HomeBaseAppleCost;
-                        MyPlayer.Wood -= BuildingData.HomeBaseWoodCost;
-                        var add = new HomeBuilding(Server, MyPlayer);
-                        add.Position = new Vector2f(x, y);
-                        add.Team = Team;
-                        MyGameMode.AddEntity(add);
-                    }
+                case (byte)WorkerSpellIds.BuildHomeBase: //Home base
+                        return new HomeBuilding(Server, MyPlayer);
+                    break;
+                case (byte)WorkerSpellIds.BuildGlueFactory: //Glue Factory
+                        return new GlueFactory(Server, MyPlayer);
                     break;
             }
-
-            MyGameMode.UpdatePlayer(MyPlayer);
+            return null;
         }
     }
 }

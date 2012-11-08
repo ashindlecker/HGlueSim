@@ -44,7 +44,6 @@ namespace Client
             client.Start();
             client.Connect(ip, port);
             client.Socket.Blocking = false;
-
             //networkThread = new Thread(new ThreadStart(netThreadLoop));
             //networkThread.Start();
         }

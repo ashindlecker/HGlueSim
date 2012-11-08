@@ -62,7 +62,7 @@ namespace Server.GameModes
                 map.Tiles[i, i+1].Type = STileBase.TileType.Water;
             }
 
-            var resources = new Resources(server);
+            var resources = new Resources(server, null);
             resources.Position = new Vector2f(400, 200);
             resources.ResourceType = ResourceTypes.Apple;
             AddEntity(resources);
@@ -147,12 +147,25 @@ namespace Server.GameModes
 
         public override PathFindReturn PathFindNodes(float sx, float sy, float x, float y)
         {
+            sx /= map.TileSize.X;
+            x /= map.TileSize.X;
+            sy /= map.TileSize.Y;
+            y /= map.TileSize.Y;
+
+            if(sx < 0 || sy < 0 || x < 0 || y < 0 || sx >= map.Tiles.GetLength(0) || x >= map.Tiles.GetLength(0) ||  sy >= map.Tiles.GetLength(1) || y >= map.Tiles.GetLength(1))
+            {
+                return new PathFindReturn()
+                {
+                    List = null,
+                    MapSize = map.TileSize,
+                };
+            }
             var path =
                 pathFinding.Search(
-                    new Point((int)sx / map.TileSize.X,
-                              (int)sy / map.TileSize.Y),
-                    new Point((int)x / map.TileSize.X,
-                              (int)y / map.TileSize.Y), null);
+                    new Point((int)sx,
+                              (int)sy),
+                    new Point((int)x,
+                              (int)y), null);
 
             
             return new PathFindReturn()
@@ -273,6 +286,12 @@ namespace Server.GameModes
                         var attackMove = reader.ReadBoolean();
                         var unitCount = reader.ReadByte();
 
+
+                        var writeRally = true;
+                        var outmemory = new MemoryStream();
+                        var outwriter = new BinaryWriter(outmemory);
+
+
                         for (var i = 0; i < unitCount; i++)
                         {
                             var entityId = reader.ReadUInt16();
@@ -281,13 +300,12 @@ namespace Server.GameModes
 
                             if (!attackMove)
                             {
-                                entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.StandardMove, reset);
+                                entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.StandardMove, reset, true);
                             }
                             else
                             {
-                                entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.AttackMove, reset);
+                                entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.AttackMove, reset, true);
                             }
-
 
                             entities[entityId].OnPlayerCustomMove();
 
@@ -304,7 +322,27 @@ namespace Server.GameModes
                                     unitCast.State = UnitBase.UnitState.Standard;
                                 }
                             }
+
+                            if(writeRally)
+                            {
+                                writeRally = false;
+
+                                outwriter.Write((byte)entities[entityId].rallyPoints.Count);
+                                foreach (var rallyPoint in entities[entityId].rallyPoints)
+                                {
+                                    outwriter.Write(rallyPoint.X);
+                                    outwriter.Write(rallyPoint.Y);
+                                }
+
+                                outwriter.Write(unitCount);
+                            }
+                            outwriter.Write(entityId);
                         }
+
+                        //SendData(outmemory.ToArray(), Gamemode.Signature.GroupMovement);
+
+                        outmemory.Close();
+                        outwriter.Close();
                     }
                     break;
                 case InputSignature.CreateUnit:

@@ -24,7 +24,7 @@ namespace Client
             window.KeyPressed += WindowOnKeyPressed;
             window.KeyReleased += WindowOnKeyReleased;
             window.MouseButtonReleased += WindowOnMouseButtonReleased;
-            window.SetFramerateLimit(60);
+            window.SetFramerateLimit(100);
 
             client.GameMode = new StandardMelee(client.InputHandler);
             client.Connect("localhost", 5555);

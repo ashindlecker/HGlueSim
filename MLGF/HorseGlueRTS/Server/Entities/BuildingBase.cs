@@ -15,7 +15,18 @@ namespace Server.Entities
     class BuildingBase : EntityBase
     {
         protected List<byte> buildOrder;
-        protected List<byte> supportedBuilds;
+        
+        protected class BuildProduceData
+        {
+            public byte id;
+            public ushort AppleCost;
+            public ushort WoodCost;
+            public ushort GlueCost;
+            public byte SupplyCost;
+            public ushort CreationTime;
+        }
+
+        protected List<BuildProduceData> supportedBuilds;
  
         public ushort BuildTime //in milliseconds
         {
@@ -34,11 +45,11 @@ namespace Server.Entities
         private Stopwatch stopwatch;
 
 
-        public BuildingBase(GameServer server) : base(server)
+        public BuildingBase(GameServer server, Player player) : base(server, player)
         {
-            supportedBuilds = new List<byte>();
+            supportedBuilds = new List<BuildProduceData>();
             IsBuilding = true;
-            BuildTime = 10000;
+            BuildTime = 1000;
             elapsedBuildTime = 0;
 
             buildOrder = new List<byte>();
@@ -50,25 +61,27 @@ namespace Server.Entities
             MaxHealth = 100;
         }
 
-        protected virtual bool allowProduction(byte unitType)
-        {
-            return false;
-        }
-
         public void StartProduce(byte type)
         {
+            if (buildOrder.Count >= 5) return;
             bool allow = false;
-            for(int i = 0; i < supportedBuilds.Count; i++)
+            foreach (var buildProduceData in supportedBuilds)
             {
-                if(supportedBuilds[i] == type)
+                if (buildProduceData.id == type)
                 {
-                    allow = true;
-                    break;
+                    if (MyPlayer.Apples >= buildProduceData.AppleCost && MyPlayer.Glue >= buildProduceData.GlueCost && MyPlayer.Wood >= buildProduceData.WoodCost && MyPlayer.FreeSupply >= buildProduceData.SupplyCost)
+                    {
+                        MyPlayer.Apples -= buildProduceData.AppleCost;
+                        MyPlayer.Glue -= buildProduceData.GlueCost;
+                        MyPlayer.Wood -= buildProduceData.WoodCost;
+                        MyPlayer.UsedSupply += buildProduceData.SupplyCost;
+                        allow = true;
+                        break;
+                    }
                 }
             }
+
             if (!allow) return;
-            if (buildOrder.Count >= 5) return;
-            if (!allowProduction(type)) return;
 
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);
@@ -84,17 +97,13 @@ namespace Server.Entities
 
             buildOrder.Add(type);
             onStartProduce(type);
+            MyGameMode.UpdatePlayer(MyPlayer);
         }
 
         //Called when a unit just started producing
         protected virtual void onStartProduce(byte type)
         {
             //Usually blank
-        }
-
-        protected virtual uint creationTime(byte type)
-        {
-            return 0;
         }
 
         //Called when the building is finished building
@@ -142,9 +151,13 @@ namespace Server.Entities
 
                 if (buildOrder.Count > 0 && stopwatch.IsRunning)
                 {
-                    if (stopwatch.ElapsedMilliseconds >= creationTime(buildOrder[0]))
+                    foreach (var buildProduceData in supportedBuilds)
                     {
-                        Complete();
+                        if(buildProduceData.id == buildOrder[0] && stopwatch.ElapsedMilliseconds >= buildProduceData.CreationTime)
+                        {
+
+                            Complete();
+                        }
                     }
                 }
             }
@@ -170,10 +183,7 @@ namespace Server.Entities
             if (EntityToUse == null)
             {
                 if (rallyPoints.Count > 0)
-                    for (int i = 0; i < rallyPoints.Count; i++)
-                    {
-                        buildData.producedEntity.rallyPoints = rallyPoints;
-                    }
+                    buildData.producedEntity.rallyPoints = new List<Entity.RallyPoint>(rallyPoints);
             }
             MyGameMode.AddEntity(buildData.producedEntity);
 

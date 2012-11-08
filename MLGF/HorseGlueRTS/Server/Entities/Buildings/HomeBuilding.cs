@@ -10,49 +10,21 @@ namespace Server.Entities
     class HomeBuilding : BuildingBase
     {
 
-        private Player player;
-
-        public HomeBuilding(GameServer server, Player plr) : base(server)
+        public HomeBuilding(GameServer server, Player plr) : base(server, plr)
         {
             BuildTime = 2000;
             EntityType = Entity.EntityType.HomeBuilding;
-            player = plr;
 
-            supportedBuilds.Add((byte) UnitBuildIds.Worker);
+            supportedBuilds.Add(new BuildProduceData()
+                                    {
+                                        AppleCost = UnitData.WorkerAppleCost,
+                                        WoodCost = 0,
+                                        GlueCost = 0,
+                                        SupplyCost = UnitData.WorkerSupplyCost,
+                                        CreationTime = 1,
+                                    });
         }
 
-        protected override bool allowProduction(byte type)
-        {
-            bool ret = false;
-            switch ((UnitBuildIds)type)
-            {
-                default:
-                case UnitBuildIds.Worker: //Worker
-                    if (player.Apples >= UnitData.WorkerAppleCost && player.FreeSupply >= UnitData.WorkerSupplyCost)
-                    {
-                        ret = true;
-                        player.Apples -= UnitData.WorkerAppleCost;
-                        player.UsedSupply += UnitData.WorkerSupplyCost;
-                    }
-                    break;
-            }
-            if(ret)
-            {
-                MyGameMode.UpdatePlayer(player);
-            }
-            return ret;
-        }
-
-        protected override uint creationTime(byte type)
-        {
-            switch ((UnitBuildIds)type)
-            {
-                default:
-                case UnitBuildIds.Worker: //Worker
-                    return 5000;
-                    break;
-            }
-        }
 
         protected override BuildingBase.BuildCompleteData onComplete(byte unit)
         {
@@ -63,7 +35,7 @@ namespace Server.Entities
                     return new BuildCompleteData()
                     {
                         messageData = new byte[0],
-                        producedEntity = new Units.StandardWorker(Server, player)
+                        producedEntity = new Units.StandardWorker(Server, MyPlayer)
                     };
                     break;
             }
@@ -80,19 +52,19 @@ namespace Server.Entities
                     switch (workerCast.heldResource)
                     {
                         case ResourceTypes.Tree:
-                            player.Wood += workerCast.resourceCount;
+                            MyPlayer.Wood += workerCast.resourceCount;
                             break;
                         case ResourceTypes.Glue:
-                            player.Glue += workerCast.resourceCount;
+                            MyPlayer.Glue += workerCast.resourceCount;
                             break;
                         case ResourceTypes.Apple:
-                            player.Apples += workerCast.resourceCount;
+                            MyPlayer.Apples += workerCast.resourceCount;
                             break;
                         default:
                             break;
                     }
 
-                    MyGameMode.UpdatePlayer(player);
+                    MyGameMode.UpdatePlayer(MyPlayer);
                     workerCast.resourceCount = 0;
                 }
             }

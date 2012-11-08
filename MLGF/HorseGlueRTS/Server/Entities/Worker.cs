@@ -19,7 +19,6 @@ namespace Server.Entities
 
         private Stopwatch passedGatherTime;
 
-        
         //The worker should constantly move towards it's target, but not flood the client
         private Stopwatch updatedMovePositionTimer;
         private const float moveUpdateDelay = 3000; //3 seconds
@@ -29,12 +28,8 @@ namespace Server.Entities
             get { return (resourceCount > 0); }
         }
 
-        protected Player MyPlayer;
-
-        public Worker(GameServer server, Player mPlayer) : base(server)
+        public Worker(GameServer server, Player mPlayer) : base(server, mPlayer)
         {
-            MyPlayer = mPlayer;
-
             GatherResourceTime = 1000;
             passedGatherTime = new Stopwatch();
 
@@ -51,14 +46,6 @@ namespace Server.Entities
         {
             base.OnPlayerCustomMove();
             EntityToUse = null;
-        }
-
-
-        public override void OnDeath()
-        {
-            base.OnDeath();
-            MyPlayer.Supply -= UnitData.WorkerSupplyCost;
-            MyGameMode.UpdatePlayer(MyPlayer);
         }
 
         public void GiveResource(ResourceTypes type, byte amount)
@@ -91,7 +78,7 @@ namespace Server.Entities
             return base.SetEntityToUseResponse(toUse);
         }
 
-        protected void moveToUsedEntity(EntityBase toUse)
+        private void moveToUsedEntity(EntityBase toUse)
         {
             if (toUse != null)
                 Move(toUse.Position.X, toUse.Position.Y);
@@ -145,6 +132,10 @@ namespace Server.Entities
                                 SetEntityToUse(resourceEntity);
                         }
                     }
+                    else
+                    {
+                        EntityToUse.Use(this);
+                    }
                 }
                 else
                 {
@@ -167,13 +158,26 @@ namespace Server.Entities
             base.OnRallyPointCompleted(rally);
             if(rally.RallyType == Entity.RallyPoint.RallyTypes.Build)
             {
-                OnPlaceBuilding(rally.BuildType, rally.X, rally.Y);
+                if(spells.ContainsKey(rally.BuildType))
+                {
+                    if(spells[rally.BuildType].AppleCost <= MyPlayer.Apples && spells[rally.BuildType].GlueCost <= MyPlayer.Glue && spells[rally.BuildType].WoodCost <= MyPlayer.Wood)
+                    {
+                        MyPlayer.Apples -= spells[rally.BuildType].AppleCost;
+                        MyPlayer.Glue -= spells[rally.BuildType].GlueCost;
+                        MyPlayer.Wood -= spells[rally.BuildType].WoodCost;
+                    }
+                }
+                var ent = OnPlaceBuilding(rally.BuildType, rally.X, rally.Y);
+                ent.Position = new Vector2f(rally.X, rally.Y);
+                ent.Team = Team;
+                MyGameMode.AddEntity(ent);
+                MyGameMode.UpdatePlayer(MyPlayer);
             }
         }
 
-        protected virtual void OnPlaceBuilding(byte type, float x, float y)
+        protected virtual EntityBase OnPlaceBuilding(byte type, float x, float y)
         {
-            
+            return null;
         }
 
         protected TYPE GetClosest<TYPE>(Entity.EntityType eType) where TYPE:EntityBase

@@ -54,6 +54,7 @@ namespace Shared
     {
         BuildHomeBase = 0,
         BuildSupplyBuilding = 1,
+        BuildGlueFactory = 2,
     }
 
     public enum StandardMeleeSignature : byte

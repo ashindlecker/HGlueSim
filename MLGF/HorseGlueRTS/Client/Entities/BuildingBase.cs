@@ -70,7 +70,7 @@ namespace Client.Entities
         public BuildingBase()
         {
             IsBuilding = true;
-            BuildTime = 1;
+            BuildTime = 10000;
             elapsedBuildTime = 0;
             buildOrder = new List<byte>();
             stopwatch = new Stopwatch();
