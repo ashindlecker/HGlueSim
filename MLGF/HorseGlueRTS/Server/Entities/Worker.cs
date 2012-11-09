@@ -71,7 +71,6 @@ namespace Server.Entities
 
         protected override byte[] SetEntityToUseResponse(EntityBase toUse)
         {
-            updatedMovePositionTimer.Restart();
             rallyPoints.Clear();
             State = UnitState.Standard;
             moveToUsedEntity(toUse);
@@ -150,6 +149,10 @@ namespace Server.Entities
                     updatedMovePositionTimer.Restart();
                     moveToUsedEntity(EntityToUse);
                 }
+            }
+            else
+            {
+                updatedMovePositionTimer.Restart();
             }
         }
 

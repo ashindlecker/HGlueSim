@@ -163,6 +163,7 @@ namespace Client.Entities
             Health -= damage;
         }
 
+
         private void ParseMove(MemoryStream memoryStream)
         {
             var reader = new BinaryReader(memoryStream);
@@ -182,6 +183,15 @@ namespace Client.Entities
         public virtual void OnMove()
         {
             //perhaps a sound is played or HUD change
+        }
+
+        public void ClearRally()
+        {
+            rallyPoints.Clear();
+        }
+        public virtual void Move(float x, float y)
+        {
+            rallyPoints.Add(new Vector2f(x, y));
         }
 
         protected abstract void ParseCustom(MemoryStream memoryStream);

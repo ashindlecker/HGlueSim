@@ -9,8 +9,6 @@ namespace Server.Entities.Buildings
 {
     class GlueFactory:BuildingBase
     {
-        private Player myPlayer;
-
         public GlueFactory(GameServer server, Player player) : base(server, player)
         {
             EntityType = Entity.EntityType.GlueFactory;
@@ -23,8 +21,8 @@ namespace Server.Entities.Buildings
                 var userHealth = user.Health;
                 user.TakeDamage(userHealth, Entity.DamageElement.Normal, false);
 
-                myPlayer.Glue += (ushort)userHealth;
-                MyGameMode.UpdatePlayer(myPlayer);
+                MyPlayer.Glue += (ushort)userHealth;
+                MyGameMode.UpdatePlayer(MyPlayer);
             }
             return base.UseResponse(user);
         }

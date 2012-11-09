@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using Client.Entities;
+using SettlersEngine;
 using Shared;
 using SFML.Graphics;
 using SFML.Window;
@@ -130,19 +131,28 @@ namespace Client.GameModes
                     break;
                 case Gamemode.Signature.GroupMovement:
                     {
-                        var rallyCount = reader.ReadByte();
-                        var rallyList = new List<Vector2f>();
-                        for (var i = 0; i < rallyCount; i++)
+                        var x = reader.ReadSingle();
+                        var y = reader.ReadSingle();
+                        var reset = reader.ReadBoolean();
+                        var attack = reader.ReadBoolean();
+                        var count = reader.ReadByte();
+
+                        for(int i = 0; i< count; i++)
                         {
-                            rallyList.Add(new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
-                        }
-                        var unitCount = reader.ReadByte();
-                        for (var i = 0; i < unitCount; i++)
-                        {
-                            var unitId = reader.ReadUInt16();
-                            if(entities.ContainsKey(unitId))
+                            var id = reader.ReadUInt16();
+                            if(entities.ContainsKey(id))
                             {
-                                entities[unitId].rallyPoints = new List<Vector2f>(rallyList);
+                                if(reset)
+                                    entities[id].ClearRally();
+
+                                var path = PathFindNodes(entities[id].Position.X, entities[id].Position.Y, x, y);
+                                foreach (var pathNode in path.List)
+                                {
+                                    var pos =
+                                        new Vector2f(pathNode.X*path.MapSize.X + (path.MapSize.X/2),
+                                                     pathNode.Y*path.MapSize.Y + (path.MapSize.Y/2));
+                                    entities[id].Move(pos.X, pos.Y);
+                                }
                             }
                         }
                     }
@@ -171,6 +181,15 @@ namespace Client.GameModes
 
         public abstract void Update(float ms);
         public abstract void Render(RenderTarget target);
+
+
+        public class PathFindReturn
+        {
+            public LinkedList<PathNode> List;
+            public Vector2i MapSize;
+        }
+
+        public abstract PathFindReturn PathFindNodes(float sx, float sy, float x, float y);
 
 
         protected void UpdateAlerts(float ms)

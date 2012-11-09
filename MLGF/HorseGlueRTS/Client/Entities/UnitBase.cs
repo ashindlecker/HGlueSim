@@ -172,9 +172,9 @@ namespace Client.Entities
             CurrentAnimation = AnimationTypes.Moving;
         }
 
-        public override void OnMove()
+        public override void Move(float x, float y)
         {
-            base.OnMove();
+            base.Move(x, y);
             _moveXCompleted = false;
             _moveYCompleted = false;
         }

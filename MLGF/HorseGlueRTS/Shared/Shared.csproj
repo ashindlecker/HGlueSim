@@ -44,12 +44,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Algorithms\AuthorAttribute.cs" />
+    <Compile Include="Algorithms\HighResolutionTime.cs" />
+    <Compile Include="Algorithms\IPathFinder.cs" />
+    <Compile Include="Algorithms\PathFinder.cs" />
     <Compile Include="Algorithms\PriorityQueue.cs" />
+    <Compile Include="Algorithms\PriorityQueueB.cs" />
     <Compile Include="Algorithms\SpatialAStar.cs" />
     <Compile Include="BuildingData.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Gamemode.cs" />
     <Compile Include="Globals.cs" />
+    <Compile Include="Algorithms\PathFinderFast.cs" />
     <Compile Include="STileBase.cs" />
     <Compile Include="STileMap.cs" />
     <Compile Include="Player.cs" />

@@ -69,6 +69,7 @@ namespace Server.GameModes
             public LinkedList<PathNode> List;
             public Vector2i MapSize;
         }
+
         public abstract PathFindReturn PathFindNodes(float sx, float sy, float x, float y);
 
         public abstract void OnStatusChange(NetConnection connection, NetConnectionStatus status);

@@ -8,6 +8,7 @@ using Client.Entities;
 using Client.Level;
 using SFML.Graphics;
 using SFML.Window;
+using SettlersEngine;
 using Shared;
 
 namespace Client.GameModes
@@ -49,7 +50,6 @@ namespace Client.GameModes
         private Vector2f controlBoxP1;
         private Vector2f controlBoxP2;
 
-
         //HotKeys
         private const Keyboard.Key AttackHotkey = Keyboard.Key.A;
         private const Keyboard.Key NormalBuildingsHotkey = Keyboard.Key.B;
@@ -67,28 +67,24 @@ namespace Client.GameModes
             AdvancedBuildings,
             ReadyToPlace,
         }
+
         private WorkerUIStateTypes workerUIState;
         private byte buildingToPlace;
 
-
-
+        private SpatialAStar<PathNode, object> pathFinding; 
+ 
 
         //Drawables
         private Sprite bottomHUDGUI;
-
         private Sprite alertHUDAlert;
         private Sprite alertHUDUnitCreated;
         private Sprite alertHUDBuildingCreated;
-
         private Sprite avatarWorker;
-
         private Sprite hudBoxUnit;
         private Sprite hudBoxBuilding;
-
         private Sprite hudControlBox;
 
         protected Vector2f CameraPosition;
-
         private const float CAMERAMOVESPEED = .5f;
 
         private Vector2f _mousePosition;
@@ -147,7 +143,8 @@ namespace Client.GameModes
                 case StandardMeleeSignature.StatusChanged:
                     {
                         var status = memory.ReadByte();
-                        CurrentStatus = (StatusState) status;
+                        CurrentStatus = (StatusState)status;
+                        pathFinding = new SpatialAStar<PathNode, object>(map.GetPathNodeMap());
                     }
                     break;
                 case StandardMeleeSignature.PlayerSurrender:
@@ -170,6 +167,7 @@ namespace Client.GameModes
                         }
                     }
                     break;
+                    
                 default:
                     break;
             }
@@ -187,19 +185,22 @@ namespace Client.GameModes
             idSet = true;
         }
 
-        private void sendMoveCommand(float x, float y)
+        private void sendMoveCommand(float x, float y, bool reset = true)
         {
             if (selectedUnits != null)
             {
                 var idList = new List<ushort>();
+
                 foreach (var entityBase in selectedUnits)
                 {
                     idList.Add(entityBase.WorldId);
                 }
+
                 if (idList.Count > 0)
                 {
-                    InputHandler.SendMoveInput(x, y, idList.ToArray(), true, selectedAttackMove);
+                    InputHandler.SendMoveInput(x, y, idList.ToArray(), reset, selectedAttackMove);
                 }
+
             }
         }
 
@@ -302,8 +303,6 @@ namespace Client.GameModes
 
             }
         }
-
-        
 
         public override void KeyPress(KeyEventArgs keyEvent)
         {
@@ -548,6 +547,36 @@ namespace Client.GameModes
                     listArray.Add(list[i]);
                 }
             }
+        }
+
+        public override PathFindReturn PathFindNodes(float sx, float sy, float x, float y)
+        {
+            sx /= map.TileSize.X;
+            x /= map.TileSize.X;
+            sy /= map.TileSize.Y;
+            y /= map.TileSize.Y;
+
+            if (sx < 0 || sy < 0 || x < 0 || y < 0 || sx >= map.Tiles.GetLength(0) || x >= map.Tiles.GetLength(0) || sy >= map.Tiles.GetLength(1) || y >= map.Tiles.GetLength(1))
+            {
+                return new PathFindReturn()
+                {
+                    List = null,
+                    MapSize = map.TileSize,
+                };
+            }
+            var path =
+                pathFinding.Search(
+                    new System.Drawing.Point((int)sx,
+                              (int)sy),
+                    new System.Drawing.Point((int)x,
+                              (int)y), null);
+
+
+            return new PathFindReturn()
+            {
+                List = path,
+                MapSize = map.TileSize,
+            };
         }
 
         protected void onPlayerSurrender(Player player)

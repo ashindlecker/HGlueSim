@@ -17,10 +17,10 @@ namespace Server.Entities
 
             supportedBuilds.Add(new BuildProduceData()
                                     {
-                                        AppleCost = UnitData.WorkerAppleCost,
+                                        AppleCost = 0,
                                         WoodCost = 0,
                                         GlueCost = 0,
-                                        SupplyCost = UnitData.WorkerSupplyCost,
+                                        SupplyCost = 0,
                                         CreationTime = 1,
                                     });
         }

@@ -54,6 +54,7 @@ namespace Server.GameModes
 
             map = new TileMap();
             map.SetMap<TileBase>(50, 50);
+
             for (int i = 0; i < 20; i++)
             {
                 map.Tiles[i, i].Solid = true;
@@ -287,10 +288,15 @@ namespace Server.GameModes
                         var unitCount = reader.ReadByte();
 
 
-                        var writeRally = true;
                         var outmemory = new MemoryStream();
                         var outwriter = new BinaryWriter(outmemory);
 
+                        outwriter.Write(posX);
+                        outwriter.Write(posY);
+                        outwriter.Write(reset);
+                        outwriter.Write(attackMove);
+
+                        List<ushort> idsToWrite = new List<ushort>();
 
                         for (var i = 0; i < unitCount; i++)
                         {
@@ -298,13 +304,17 @@ namespace Server.GameModes
                             if (entities.ContainsKey(entityId) == false) continue;
                             if (entities[entityId].Team != player.Team) continue;
 
+                            idsToWrite.Add(entityId);
+
                             if (!attackMove)
                             {
-                                entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.StandardMove, reset, true);
+                                entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.StandardMove, reset,
+                                                        false);
                             }
                             else
                             {
-                                entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.AttackMove, reset, true);
+                                entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.AttackMove, reset,
+                                                        false);
                             }
 
                             entities[entityId].OnPlayerCustomMove();
@@ -322,24 +332,14 @@ namespace Server.GameModes
                                     unitCast.State = UnitBase.UnitState.Standard;
                                 }
                             }
-
-                            if(writeRally)
-                            {
-                                writeRally = false;
-
-                                outwriter.Write((byte)entities[entityId].rallyPoints.Count);
-                                foreach (var rallyPoint in entities[entityId].rallyPoints)
-                                {
-                                    outwriter.Write(rallyPoint.X);
-                                    outwriter.Write(rallyPoint.Y);
-                                }
-
-                                outwriter.Write(unitCount);
-                            }
-                            outwriter.Write(entityId);
                         }
 
-                        //SendData(outmemory.ToArray(), Gamemode.Signature.GroupMovement);
+                        outwriter.Write((byte)idsToWrite.Count);
+                        for (int i = 0; i < idsToWrite.Count; i++)
+                        {
+                            outwriter.Write(idsToWrite[i]);
+                        }
+                        SendData(outmemory.ToArray(), Gamemode.Signature.GroupMovement);
 
                         outmemory.Close();
                         outwriter.Close();
@@ -391,6 +391,11 @@ namespace Server.GameModes
                         var useEntity = reader.ReadUInt16();
 
                         var unitCount = reader.ReadByte();
+
+
+
+                        List<ushort> idsToWrite = new List<ushort>();
+
                         for (var i = 0; i < unitCount; i++)
                         {
                             var entityId = reader.ReadUInt16();
@@ -399,7 +404,33 @@ namespace Server.GameModes
                             if (entities[entityId].Team != player.Team) continue;
 
                             entities[entityId].SetEntityToUse(entities[useEntity]);
+                            entities[entityId].Move(entities[useEntity].Position.X, entities[useEntity].Position.Y,
+                                                    Entity.RallyPoint.RallyTypes.StandardMove, false, false);
+                            idsToWrite.Add(entityId);
                         }
+
+                        if (entities.ContainsKey(useEntity))
+                        {
+                            var outmemory = new MemoryStream();
+                            var outwriter = new BinaryWriter(outmemory);
+
+                            outwriter.Write(entities[useEntity].Position.X);
+                            outwriter.Write(entities[useEntity].Position.Y);
+                            outwriter.Write(false);
+                            outwriter.Write(false);
+                            outwriter.Write((byte)idsToWrite.Count);
+
+                            for (int i = 0; i < idsToWrite.Count; i++)
+                            {
+                                outwriter.Write(idsToWrite[i]);
+                            }
+                            SendData(outmemory.ToArray(), Gamemode.Signature.GroupMovement);
+
+                            outmemory.Close();
+                            outwriter.Close();
+
+                        }
+
                     }
                     break;
                 case InputSignature.SpellCast:
