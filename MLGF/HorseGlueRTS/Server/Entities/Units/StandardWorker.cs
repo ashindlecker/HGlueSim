@@ -16,6 +16,9 @@ namespace Server.Entities.Units
             spells.Add((byte)WorkerSpellIds.BuildHomeBase, new SpellData(0, BuildHomeBase));
             spells.Add((byte)WorkerSpellIds.BuildSupplyBuilding, new SpellData(0, BuildSupplyBuilding));
             spells.Add((byte)WorkerSpellIds.BuildGlueFactory, new SpellData(0, BuildGlueFactory));
+
+            Health = 50;
+            MaxHealth = 50;
         }
 
         private byte[] BuildSupplyBuilding(float x, float y)

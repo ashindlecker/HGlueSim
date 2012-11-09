@@ -260,6 +260,7 @@ namespace Server.Entities
             }
 
             writer.Write(Health);
+            writer.Write(MaxHealth);
             writer.Write((byte)State);
             writer.Write(Position.X);
             writer.Write(Position.Y);

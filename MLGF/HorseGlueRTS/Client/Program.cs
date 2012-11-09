@@ -24,10 +24,13 @@ namespace Client
             window.KeyPressed += WindowOnKeyPressed;
             window.KeyReleased += WindowOnKeyReleased;
             window.MouseButtonReleased += WindowOnMouseButtonReleased;
-            window.SetFramerateLimit(100);
+            window.SetFramerateLimit(60);
 
             client.GameMode = new StandardMelee(client.InputHandler);
-            client.Connect("localhost", 5555);
+
+            Console.WriteLine("Server IP (ip only no port): ");
+
+            client.Connect(Console.ReadLine(), 5555);
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Restart();

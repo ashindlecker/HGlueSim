@@ -20,11 +20,13 @@ namespace Server
         private GameModeBase gameMode;
 
         private Thread netThread;
+        private List<byte> sendBuffer;
 
         public GameServer(int port)
         {
             var configuration = new NetPeerConfiguration("HORSEGLUERTS");
             configuration.Port = port;
+            sendBuffer = new List<byte>();
             server = new NetServer(configuration);
         }
 
@@ -43,7 +45,7 @@ namespace Server
 
         private void netThreadLoop()
         {
-            while(true)
+            while (true)
             {
                 netUpdate();
                 Thread.Sleep(50);
@@ -126,6 +128,16 @@ namespace Server
                 }
                 server.Recycle(message);
             }
+
+            if (sendBuffer.Count > 0)
+            {
+                var outmessage = server.CreateMessage();
+
+                outmessage.Write(sendBuffer.ToArray());
+
+                server.SendToAll(outmessage, NetDeliveryMethod.ReliableOrdered);
+                sendBuffer.Clear();
+            }
         }
 
         public void Update(float ms)
@@ -149,7 +161,6 @@ namespace Server
 
         public void SendGameData(byte[] data)
         {
-            var message = server.CreateMessage();
 
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);
@@ -157,14 +168,17 @@ namespace Server
             writer.Write((byte)Protocol.GameData);
             writer.Write(data);
 
-            message.Write(memory.ToArray());
+            //var outMessage = server.CreateMessage();
+            //outMessage.Write(memory.ToArray());
+            //server.SendToAll(outMessage, NetDeliveryMethod.ReliableOrdered);
 
-            server.SendToAll(message, NetDeliveryMethod.ReliableOrdered);
+            sendBuffer.AddRange(memory.ToArray());
+
 
             memory.Close();
             writer.Close();
         }
-        
+
 
     }
 }

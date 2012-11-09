@@ -40,10 +40,10 @@ namespace Client
         public void Connect(string ip, int port)
         {
             var config = new NetPeerConfiguration("HORSEGLUERTS");
+            Console.WriteLine("PING:" + config.PingInterval);
             client = new NetClient(config);
             client.Start();
             client.Connect(ip, port);
-            client.Socket.Blocking = false;
             //networkThread = new Thread(new ThreadStart(netThreadLoop));
             //networkThread.Start();
         }
@@ -84,15 +84,18 @@ namespace Client
                             var memory = new MemoryStream(message.ReadBytes(message.LengthBytes));
                             var reader = new BinaryReader(memory);
 
-                            var protocol = (Protocol) reader.ReadByte();
-
-                            switch (protocol)
+                            while (memory.Position < memory.Length)
                             {
-                                case Protocol.GameData:
-                                    GameMode.ParseData(memory);
-                                    break;
-                                case Protocol.Chat:
-                                    break;
+                                var protocol = (Protocol) reader.ReadByte();
+
+                                switch (protocol)
+                                {
+                                    case Protocol.GameData:
+                                        GameMode.ParseData(memory);
+                                        break;
+                                    case Protocol.Chat:
+                                        break;
+                                }
                             }
                             memory.Close();
                             reader.Close();

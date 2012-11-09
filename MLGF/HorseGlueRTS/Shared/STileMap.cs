@@ -29,7 +29,7 @@ namespace Shared
 
             for (int x = 0; x < Tiles.GetLength(0); x++)
             {
-                for (int y = 0; y < Tiles.GetLength(0); y++)
+                for (int y = 0; y < Tiles.GetLength(1); y++)
                 {
                     Tiles[x, y] = new TYPE();
                 }

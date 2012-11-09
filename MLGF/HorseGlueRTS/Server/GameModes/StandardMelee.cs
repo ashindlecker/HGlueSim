@@ -53,7 +53,7 @@ namespace Server.GameModes
             idToGive = 0;
 
             map = new TileMap();
-            map.SetMap<TileBase>(50, 50);
+            map.SetMap<TileBase>(100, 100);
 
             for (int i = 0; i < 20; i++)
             {

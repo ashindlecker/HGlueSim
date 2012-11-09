@@ -50,10 +50,12 @@ namespace Client.Entities
 
         private bool _moveXCompleted, _moveYCompleted;
 
+        private Vector2f drawPosition;
 
 
         public UnitBase()
         {
+            drawPosition = new Vector2f();
             _moveXCompleted = false;
             _moveYCompleted = false;
 
@@ -93,6 +95,7 @@ namespace Client.Entities
                         var posX = reader.ReadSingle();
                         var posY = reader.ReadSingle();
 
+                        Console.WriteLine("DIFFERENCE: " + (Position - new Vector2f(posX, posY)));
                         Position = new Vector2f(posX, posY);
                         rallyPoints.Clear();
                     }
@@ -147,6 +150,7 @@ namespace Client.Entities
             }
 
             Health = reader.ReadSingle();
+            MaxHealth = reader.ReadSingle();
             State = (UnitState) reader.ReadByte();
             Position = new Vector2f(reader.ReadSingle(), reader.ReadSingle());
             Speed = reader.ReadSingle();
@@ -160,6 +164,8 @@ namespace Client.Entities
             {
                 rallyPoints.Add(new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
             }
+
+            drawPosition = Position;
         }
 
         protected virtual void onSetIdleAnimation()
@@ -188,11 +194,37 @@ namespace Client.Entities
 
             if(CurrentAnimation != AnimationTypes.SpellCast && (rallyPoints.Count == 0 || allowMovement == false)) onSetIdleAnimation();
 
+
+            #region CLIENT PREDICTION INTERPOLATION
+            Vector2f destination = Position;
+
+            if ((int)drawPosition.X < (int)destination.X)
+            {
+                drawPosition.X += Speed * ms;
+                if ((int)drawPosition.X >= (int)destination.X) drawPosition.X = destination.X;
+            }
+            if ((int)drawPosition.Y < (int)destination.Y)
+            {
+                drawPosition.Y += Speed * ms;
+                if ((int)drawPosition.Y >= (int)destination.Y) drawPosition.Y = destination.Y;
+            }
+            if ((int)drawPosition.X > destination.X)
+            {
+                drawPosition.X -= Speed * ms;
+                if ((int)drawPosition.X <= (int)destination.X) drawPosition.X = destination.X;
+            }
+            if ((int)drawPosition.Y > (int)destination.Y)
+            {
+                drawPosition.Y -= Speed * ms;
+                if ((int)drawPosition.Y <= (int)destination.Y) drawPosition.Y = destination.Y;
+            }
+            #endregion
+
             if (!allowMovement || rallyPoints.Count == 0) return;
             if(CurrentAnimation != AnimationTypes.SpellCast)
                 onSetMovingAnimation();
 
-            Vector2f destination = rallyPoints[0];
+            destination = rallyPoints[0];
 
             if ((int)Position.X < (int)destination.X)
             {
@@ -228,6 +260,7 @@ namespace Client.Entities
                     Position = destination;
                 rallyPoints.RemoveAt(0);
             }
+
         }
 
         public override void Render(RenderTarget target)
@@ -235,8 +268,8 @@ namespace Client.Entities
             if(Sprites.ContainsKey(CurrentAnimation) && Sprites[CurrentAnimation].Sprites.Count > 0)
             {
                 Sprite spr = Sprites[CurrentAnimation].CurrentSprite;
-                
-                spr.Position = Position;
+
+                spr.Position = drawPosition;
                 spr.Origin = new Vector2f(spr.TextureRect.Width/2, spr.TextureRect.Height/2);
                 target.Draw(spr);
             }
