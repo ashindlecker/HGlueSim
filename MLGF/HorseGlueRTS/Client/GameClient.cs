@@ -53,7 +53,7 @@ namespace Client
             while(true)
             {
                 updateNetwork();
-                Thread.Sleep(5);
+                Thread.Sleep(50);
             }
         }
 

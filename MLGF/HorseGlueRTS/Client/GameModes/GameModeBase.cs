@@ -146,12 +146,18 @@ namespace Client.GameModes
                                     entities[id].ClearRally();
 
                                 var path = PathFindNodes(entities[id].Position.X, entities[id].Position.Y, x, y);
-                                foreach (var pathNode in path.List)
+                                if (path.List != null)
                                 {
-                                    var pos =
-                                        new Vector2f(pathNode.X*path.MapSize.X + (path.MapSize.X/2),
-                                                     pathNode.Y*path.MapSize.Y + (path.MapSize.Y/2));
-                                    entities[id].Move(pos.X, pos.Y);
+                                    foreach (var pathNode in path.List)
+                                    {
+                                        if (pathNode != path.List.First.Value)
+                                        {
+                                            var pos =
+                                                new Vector2f(pathNode.X*path.MapSize.X + (path.MapSize.X/2),
+                                                             pathNode.Y*path.MapSize.Y + (path.MapSize.Y/2));
+                                            entities[id].Move(pos.X, pos.Y);
+                                        }
+                                    }
                                 }
                             }
                         }

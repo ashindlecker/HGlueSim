@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
+
 using Lidgren.Network;
 using Shared;
 using System.IO;
@@ -16,6 +18,8 @@ namespace Server
     {
         private NetServer server;
         private GameModeBase gameMode;
+
+        private Thread netThread;
 
         public GameServer(int port)
         {
@@ -33,23 +37,21 @@ namespace Server
         {
             server.Start();
             server.Socket.Blocking = false;
+            //netThread = new Thread(netThreadLoop);
+            //netThread.Start();
         }
 
-        public void Update(float ms)
+        private void netThreadLoop()
         {
-            while (ms > 0)
+            while(true)
             {
-                if (ms > Globals.MAXUPDATETIME)
-                {
-                    gameMode.Update(Globals.MAXUPDATETIME);
-                    ms -= Globals.MAXUPDATETIME;
-                }
-                else
-                {
-                    gameMode.Update(ms);
-                    ms = 0;
-                }
+                netUpdate();
+                Thread.Sleep(50);
             }
+        }
+
+        private void netUpdate()
+        {
 
             NetIncomingMessage message = null;
             while ((message = server.ReadMessage()) != null)
@@ -60,7 +62,7 @@ namespace Server
                         {
                             var memory = new MemoryStream(message.ReadBytes(message.LengthBytes));
                             var reader = new BinaryReader(memory);
-                            var protocol = (Shared.Protocol) reader.ReadByte();
+                            var protocol = (Shared.Protocol)reader.ReadByte();
 
                             switch (protocol)
                             {
@@ -86,8 +88,8 @@ namespace Server
                             var memory = new MemoryStream();
                             var writer = new BinaryWriter(memory);
 
-                            writer.Write((byte) Protocol.GameData);
-                            writer.Write((byte) Gamemode.Signature.Handshake);
+                            writer.Write((byte)Protocol.GameData);
+                            writer.Write((byte)Gamemode.Signature.Handshake);
                             writer.Write(data);
 
                             outmessage.Write(memory.ToArray());
@@ -124,6 +126,25 @@ namespace Server
                 }
                 server.Recycle(message);
             }
+        }
+
+        public void Update(float ms)
+        {
+            while (ms > 0)
+            {
+                if (ms > Globals.MAXUPDATETIME)
+                {
+                    gameMode.Update(Globals.MAXUPDATETIME);
+                    ms -= Globals.MAXUPDATETIME;
+                }
+                else
+                {
+                    gameMode.Update(ms);
+                    ms = 0;
+                }
+            }
+
+            netUpdate();
         }
 
         public void SendGameData(byte[] data)
