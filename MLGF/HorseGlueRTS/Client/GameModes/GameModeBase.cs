@@ -78,6 +78,7 @@ namespace Client.GameModes
                         entity.LoadFromBytes(stream);
                         entity.WorldId = id;
                         AddEntity(entity, id);
+                        entity.SetTeam(reader.ReadByte());
                     }
                     break;
                 case Gamemode.Signature.EntityLoad:
@@ -93,6 +94,7 @@ namespace Client.GameModes
                             entAdd.LoadFromBytes(stream);
                             entAdd.WorldId = entId;
                             AddEntity(entAdd, entId);
+                            entAdd.SetTeam(reader.ReadByte());
                         }
                     }
                     break;

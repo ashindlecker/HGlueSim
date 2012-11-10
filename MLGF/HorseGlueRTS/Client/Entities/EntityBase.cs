@@ -62,6 +62,10 @@ namespace Client.Entities
                                  BoundsSize.Y);
         }
 
+        public virtual void SetTeam(byte team)
+        {
+            
+        }
 
         public virtual void Use(EntityBase user)
         {

@@ -92,6 +92,7 @@ namespace Server.GameModes
             writer.Write(id);
             writer.Write((byte) entity.EntityType);
             writer.Write(entity.UpdateData());
+            writer.Write(entity.Team);
             SendData(memory.ToArray(), Gamemode.Signature.EntityAdd);
         }
 
@@ -112,6 +113,7 @@ namespace Server.GameModes
                 writer.Write((ushort) entity.WorldId);
                 writer.Write((byte) entity.EntityType);
                 writer.Write(entity.ToBytes());
+                writer.Write(entity.Team);
             }
 
             SendData(memory.ToArray(), Gamemode.Signature.EntityLoad);

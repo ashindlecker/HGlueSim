@@ -25,17 +25,23 @@ namespace Client.Entities
             ResourceCount = 0;
             HeldResource = 0;
 
-            var idleSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/Idle/");
+        }
+
+        public override void SetTeam(byte team)
+        {
+            base.SetTeam(team);
+
+            var idleSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/" +team.ToString() + "/" + "Idle/");
             Sprites[AnimationTypes.Idle].Sprites.AddRange(idleSprites);
 
 
-            var moveSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/Moving/");
+            var moveSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/" +team.ToString() + "/" + "Moving/");
             Sprites[AnimationTypes.Moving].Sprites.AddRange(moveSprites);
 
-            var resourceMoveSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/MovingWithResources/");
+            var resourceMoveSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/" +team.ToString() + "/" +  "MovingWithResources/");
             Sprites[AnimationTypes.MovingWithResources].Sprites.AddRange(resourceMoveSprites);
 
-            var resourceIdleSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/IdleWithResources/");
+            var resourceIdleSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/" +team.ToString() + "/" +  "IdleWithResources/");
             Sprites[AnimationTypes.IdleWithResources].Sprites.AddRange(resourceIdleSprites);
         }
 

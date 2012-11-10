@@ -12,10 +12,17 @@ namespace Client.Entities
         {
             BuildTime = 2000;
 
-            var standardSprites = ExternalResources.GetSprites("Resources/Sprites/HomeBase/Standard/");
+            SetSprites();
+        }
+
+        public override void SetTeam(byte team)
+        {
+            base.SetTeam(team);
+
+            var standardSprites = ExternalResources.GetSprites("Resources/Sprites/HomeBase/" + team.ToString() + "/" + "Standard/");
             Sprites[AnimationTypes.Standard].Sprites.AddRange(standardSprites);
 
-            var producingSprites = ExternalResources.GetSprites("Resources/Sprites/HomeBase/Producing/");
+            var producingSprites = ExternalResources.GetSprites("Resources/Sprites/HomeBase/" + team.ToString() + "/" + "Producing/");
             Sprites[AnimationTypes.Producing].Sprites.AddRange(producingSprites);
 
             SetSprites();
