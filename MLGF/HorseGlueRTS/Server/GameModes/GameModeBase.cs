@@ -9,6 +9,7 @@ using System.IO;
 using Lidgren.Network;
 using Server.Entities;
 using SFML.Window;
+using SFML.Graphics;
 
 namespace Server.GameModes
 {
@@ -51,8 +52,47 @@ namespace Server.GameModes
                     Remove(entityBase);
                 }
             }
+            SpaceUnits(ms);
         }
 
+        protected void SpaceUnits(float ms)
+        {
+            var readOnlyList = new Dictionary<ushort, EntityBase>(entities);
+
+            var spacedUnits = new List<ushort>();
+
+            
+            float spaceAngle = 0;
+
+            foreach (var entityBase in readOnlyList.Values)
+            {
+                //TODO: Add Unit Type Enum so we don't have to use an "is" check
+                //Workers have to be able to go through units because it disrupts mining
+                if (spacedUnits.Contains(entityBase.WorldId) || entityBase.rallyPoints.Count > 0 || !(entityBase is UnitBase)) continue;
+
+                var entRect = new FloatRect(entityBase.Position.X - (Shared.Globals.SPACE_BOUNDS / 2),
+                                            entityBase.Position.Y - (Shared.Globals.SPACE_BOUNDS / 2), Shared.Globals.SPACE_BOUNDS, Shared.Globals.SPACE_BOUNDS);
+
+                float cosine = (float)Math.Cos(spaceAngle);
+                float sine = (float) Math.Sin(spaceAngle);
+
+                foreach (var checkEntity in readOnlyList.Values)
+                {
+                    if (!spacedUnits.Contains(checkEntity.WorldId) && checkEntity != entityBase && checkEntity is UnitBase)
+                    {
+                        var checkRect = new FloatRect(checkEntity.Position.X - (Shared.Globals.SPACE_BOUNDS / 2),
+                                                      checkEntity.Position.Y - (Shared.Globals.SPACE_BOUNDS / 2), Shared.Globals.SPACE_BOUNDS,
+                                                      Shared.Globals.SPACE_BOUNDS);
+                        if(entRect.Intersects(checkRect))
+                        {
+                            entityBase.Position += new Vector2f((Shared.Globals.SPACING_SPEED * cosine) * ms, (Shared.Globals.SPACING_SPEED * sine) * ms);
+                            spacedUnits.Add(checkEntity.WorldId);
+                        }
+                    }
+                }
+                spaceAngle += Shared.Globals.SPACE_ANGLE_INCREASE;
+            }
+        }
         public void Remove(EntityBase entity)
         {
             entities.Remove(entity.WorldId);

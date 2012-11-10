@@ -83,6 +83,8 @@ namespace Client.GameModes
         private Sprite hudBoxUnit;
         private Sprite hudBoxBuilding;
         private Sprite hudControlBox;
+        private Sprite viewBounds;  //Darkness around edges
+
 
         protected Vector2f CameraPosition;
         private const float CAMERAMOVESPEED = .5f;
@@ -131,6 +133,8 @@ namespace Client.GameModes
 
             hudControlBox = new Sprite(ExternalResources.GTexture("Resources/Sprites/HUD/ControlGroupBox.png"));
             hudControlBox.Origin = new Vector2f(hudControlBox.TextureRect.Width/2, 0);
+
+            viewBounds = new Sprite(ExternalResources.GTexture("Resources/Sprites/Hud/ViewBounds.png"));
         }
 
         protected override void ParseCustom(MemoryStream memory)
@@ -470,6 +474,7 @@ namespace Client.GameModes
 
         public override void Update(float ms)
         {
+            
             FilterSelectedUnits(ref selectedUnits);
             foreach (var controlGroup in controlGroups.Values)
             {
@@ -488,6 +493,7 @@ namespace Client.GameModes
                     if (entityBase.Energy >= entityBase.MaxEnergy)
                         entityBase.Energy = entityBase.MaxEnergy;
                 }
+                SpaceUnits(ms);
             }
 
             const float CAMERA_LEFT_BOUNDS = 20;
@@ -853,6 +859,9 @@ namespace Client.GameModes
                 text.Color = new Color(255, 255, 255, 100);
                 target.Draw(text);
             }
+
+            viewBounds.Position = target.ConvertCoords(new Vector2i(0, 0));
+            target.Draw(viewBounds);
         }
     }
 }

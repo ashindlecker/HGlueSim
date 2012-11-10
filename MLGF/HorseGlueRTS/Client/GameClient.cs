@@ -43,6 +43,7 @@ namespace Client
             client = new NetClient(config);
             client.Start();
             client.Connect(ip, port);
+
             //networkThread = new Thread(netThreadLoop);
             //networkThread.Start();
         }

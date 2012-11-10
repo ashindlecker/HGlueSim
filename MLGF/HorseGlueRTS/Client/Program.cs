@@ -17,20 +17,19 @@ namespace Client
 
         static void Main(string[] args)
         {
-
             window.Closed += WindowOnClosed;
             window.MouseMoved += WindowOnMouseMoved;
             window.MouseButtonPressed += WindowOnMouseButtonPressed;
             window.KeyPressed += WindowOnKeyPressed;
             window.KeyReleased += WindowOnKeyReleased;
             window.MouseButtonReleased += WindowOnMouseButtonReleased;
-            window.SetFramerateLimit(60);
+            window.SetFramerateLimit(75);
 
             client.GameMode = new StandardMelee(client.InputHandler);
 
             Console.WriteLine("Server IP (ip only no port): ");
 
-            client.Connect(Console.ReadLine(), 5555);
+            client.Connect("localhost", 5555);
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Restart();

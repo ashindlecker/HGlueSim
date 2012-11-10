@@ -75,8 +75,8 @@ namespace Client.GameModes
                         EntityBase entity = EntityBase.EntityFactory(entityType);
                         entity.Type = (Entity.EntityType) entityType;
                         entity.WorldEntities = entities;
-                        entity.LoadFromBytes(stream);
                         entity.WorldId = id;
+                        entity.LoadFromBytes(stream);
                         AddEntity(entity, id);
                         entity.SetTeam(reader.ReadByte());
                     }
@@ -133,7 +133,6 @@ namespace Client.GameModes
                     break;
                 case Gamemode.Signature.GroupMovement:
                     {
-                        Console.WriteLine("REC " + DateTime.Now.Ticks);
                         var x = reader.ReadSingle();
                         var y = reader.ReadSingle();
                         var reset = reader.ReadBoolean();
@@ -218,6 +217,47 @@ namespace Client.GameModes
                 {
                     alerts.Remove(hudAlert);
                 }
+            }
+        }
+
+
+
+        protected void SpaceUnits(float ms)
+        {
+            var readOnlyList = new Dictionary<ushort, EntityBase>(entities);
+
+            var spacedUnits = new List<ushort>();
+
+
+            float spaceAngle = 0;
+
+            foreach (var entityBase in readOnlyList.Values)
+            {
+                //TODO: Add Unit Type Enum so we don't have to use an "is" check
+                //Workers have to be able to go through units because it disrupts mining
+                if (spacedUnits.Contains(entityBase.WorldId) || entityBase.rallyPoints.Count > 0 || !(entityBase is UnitBase)) continue;
+
+                var entRect = new FloatRect(entityBase.Position.X - (Shared.Globals.SPACE_BOUNDS / 2),
+                                            entityBase.Position.Y - (Shared.Globals.SPACE_BOUNDS / 2), Shared.Globals.SPACE_BOUNDS, Shared.Globals.SPACE_BOUNDS);
+
+                float cosine = (float)Math.Cos(spaceAngle);
+                float sine = (float)Math.Sin(spaceAngle);
+
+                foreach (var checkEntity in readOnlyList.Values)
+                {
+                    if (!spacedUnits.Contains(checkEntity.WorldId) && checkEntity != entityBase && checkEntity is UnitBase)
+                    {
+                        var checkRect = new FloatRect(checkEntity.Position.X - (Shared.Globals.SPACE_BOUNDS / 2),
+                                                      checkEntity.Position.Y - (Shared.Globals.SPACE_BOUNDS / 2), Shared.Globals.SPACE_BOUNDS,
+                                                      Shared.Globals.SPACE_BOUNDS);
+                        if (entRect.Intersects(checkRect))
+                        {
+                            entityBase.Position += new Vector2f((Shared.Globals.SPACING_SPEED * cosine) * ms, (Shared.Globals.SPACING_SPEED * sine) * ms);
+                            spacedUnits.Add(checkEntity.WorldId);
+                        }
+                    }
+                }
+                spaceAngle += Shared.Globals.SPACE_ANGLE_INCREASE;
             }
         }
 

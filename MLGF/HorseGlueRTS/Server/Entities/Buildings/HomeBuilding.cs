@@ -21,7 +21,7 @@ namespace Server.Entities
                                         WoodCost = 0,
                                         GlueCost = 0,
                                         SupplyCost = 0,
-                                        CreationTime = 1,
+                                        CreationTime = 10,
                                     });
         }
 
