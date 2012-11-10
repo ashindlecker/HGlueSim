@@ -48,7 +48,7 @@ namespace Server
             while (true)
             {
                 netUpdate();
-                Thread.Sleep(50);
+                Thread.Sleep(1);
             }
         }
 
@@ -159,7 +159,7 @@ namespace Server
             netUpdate();
         }
 
-        public void SendGameData(byte[] data)
+        public void SendGameData(byte[] data, bool directSend = false)
         {
 
             var memory = new MemoryStream();
@@ -168,12 +168,14 @@ namespace Server
             writer.Write((byte)Protocol.GameData);
             writer.Write(data);
 
-            //var outMessage = server.CreateMessage();
-            //outMessage.Write(memory.ToArray());
-            //server.SendToAll(outMessage, NetDeliveryMethod.ReliableOrdered);
-
+            if(!directSend)
             sendBuffer.AddRange(memory.ToArray());
-
+            else
+            {
+                var outMessage = server.CreateMessage();
+                outMessage.Write(memory.ToArray());
+                server.SendToAll(outMessage, NetDeliveryMethod.ReliableOrdered);
+            }
 
             memory.Close();
             writer.Close();

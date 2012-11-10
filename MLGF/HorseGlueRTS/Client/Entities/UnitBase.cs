@@ -95,7 +95,7 @@ namespace Client.Entities
                         var posX = reader.ReadSingle();
                         var posY = reader.ReadSingle();
 
-                        Console.WriteLine("DIFFERENCE: " + (Position - new Vector2f(posX, posY)));
+                        //Console.WriteLine("DIFFERENCE: " + (Position - new Vector2f(posX, posY)));
                         Position = new Vector2f(posX, posY);
                         rallyPoints.Clear();
                     }

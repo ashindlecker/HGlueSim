@@ -1,1 +1,2 @@
 E:\Users\Austech\Documents\Visual Studio 2012\Projects\HorseGlueRTS\Client\bin\Release\Client.exe.config
+E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Client\bin\Release\Client.exe.config

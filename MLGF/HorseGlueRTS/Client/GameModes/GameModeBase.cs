@@ -133,6 +133,7 @@ namespace Client.GameModes
                     break;
                 case Gamemode.Signature.GroupMovement:
                     {
+                        Console.WriteLine("REC " + DateTime.Now.Ticks);
                         var x = reader.ReadSingle();
                         var y = reader.ReadSingle();
                         var reset = reader.ReadBoolean();

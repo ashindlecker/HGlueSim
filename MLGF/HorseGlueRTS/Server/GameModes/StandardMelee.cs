@@ -305,6 +305,21 @@ namespace Server.GameModes
                             if (entities[entityId].Team != player.Team) continue;
 
                             idsToWrite.Add(entityId);
+                        }
+
+                        outwriter.Write((byte)idsToWrite.Count);
+                        for (int i = 0; i < idsToWrite.Count; i++)
+                        {
+                            outwriter.Write(idsToWrite[i]);
+                        }
+                        SendData(outmemory.ToArray(), Gamemode.Signature.GroupMovement,true);
+
+                        outmemory.Close();
+                        outwriter.Close();
+
+                        for (var i = 0; i < idsToWrite.Count; i++)
+                        {
+                            var entityId = idsToWrite[i];
 
                             if (!attackMove)
                             {
@@ -321,7 +336,7 @@ namespace Server.GameModes
 
                             if (entities[entityId] is UnitBase)
                             {
-                                var unitCast = (UnitBase) entities[entityId];
+                                var unitCast = (UnitBase)entities[entityId];
 
                                 if (attackMove)
                                 {
@@ -333,16 +348,6 @@ namespace Server.GameModes
                                 }
                             }
                         }
-
-                        outwriter.Write((byte)idsToWrite.Count);
-                        for (int i = 0; i < idsToWrite.Count; i++)
-                        {
-                            outwriter.Write(idsToWrite[i]);
-                        }
-                        SendData(outmemory.ToArray(), Gamemode.Signature.GroupMovement);
-
-                        outmemory.Close();
-                        outwriter.Close();
                     }
                     break;
                 case InputSignature.CreateUnit:

@@ -19,6 +19,7 @@ namespace Client
         //Reset determins whether it's a "shift move" or a move that replaces all other moves
         public void SendMoveInput(float x, float y, ushort[] entityIds, bool reset = false, bool attackMove = true)
         {
+            Console.WriteLine("SENT " + DateTime.Now.Ticks);
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);
 

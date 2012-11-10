@@ -141,7 +141,7 @@ namespace Server.GameModes
             memory.Close();
         }
 
-        protected void SendData(byte[] data, Gamemode.Signature signature)
+        protected void SendData(byte[] data, Gamemode.Signature signature, bool direct = false)
         {
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);
@@ -149,7 +149,7 @@ namespace Server.GameModes
             writer.Write((byte) signature);
             writer.Write(data);
 
-            Server.SendGameData(memory.ToArray());
+            Server.SendGameData(memory.ToArray(), direct);
 
             memory.Close();
             writer.Close();

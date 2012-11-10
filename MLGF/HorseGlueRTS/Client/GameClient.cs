@@ -40,11 +40,10 @@ namespace Client
         public void Connect(string ip, int port)
         {
             var config = new NetPeerConfiguration("HORSEGLUERTS");
-            Console.WriteLine("PING:" + config.PingInterval);
             client = new NetClient(config);
             client.Start();
             client.Connect(ip, port);
-            //networkThread = new Thread(new ThreadStart(netThreadLoop));
+            //networkThread = new Thread(netThreadLoop);
             //networkThread.Start();
         }
 
@@ -53,7 +52,7 @@ namespace Client
             while(true)
             {
                 updateNetwork();
-                Thread.Sleep(50);
+                Thread.Sleep(1);
             }
         }
 
@@ -141,6 +140,7 @@ namespace Client
                     ms = 0;
                 }
             }
+            
             updateNetwork();
 
             if(bitsPerSecondTimer.ElapsedMilliseconds >= 1000)
@@ -153,7 +153,7 @@ namespace Client
                 }
                 avg /= bitsPerSecondList.Count;
 
-                Console.WriteLine(bitsToAdd + ":" + avg);
+                //Console.WriteLine(bitsToAdd + ":" + avg);
 
                 bitsToAdd = 0;
                 bitsPerSecondTimer.Restart();

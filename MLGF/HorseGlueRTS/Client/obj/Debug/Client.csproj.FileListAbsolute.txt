@@ -25,3 +25,4 @@ E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Client\obj\Debug\Cl
 C:\Users\Ben\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Client\bin\Debug\Client.exe.config
 C:\Users\Ben\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Client\obj\Debug\Client.exe
 C:\Users\Ben\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Client\obj\Debug\Client.pdb
+E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Client\bin\Debug\Lidgren.Network.dll
