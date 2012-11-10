@@ -20,3 +20,6 @@ E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Server\bin\Debug\Se
 E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Server\bin\Debug\Shared.dll
 E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Server\bin\Debug\Shared.pdb
 E:\Users\Austech\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Server\obj\Debug\Server.csprojResolveAssemblyReference.cache
+C:\Users\Ben\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Server\bin\Debug\Server.exe.config
+C:\Users\Ben\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Server\obj\Debug\Server.exe
+C:\Users\Ben\Documents\GitHub\HGlueSim\MLGF\HorseGlueRTS\Server\obj\Debug\Server.pdb
