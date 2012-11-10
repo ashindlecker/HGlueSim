@@ -13,7 +13,7 @@ namespace Server
         static void Main(string[] args)
         {
             GameServer server = new GameServer(5555);
-            server.SetGame(new StandardMelee(server, 2));
+            server.SetGame(new StandardMelee(server, 1));
             server.Start();
 
             Stopwatch stopwatch = new Stopwatch();
