@@ -518,6 +518,19 @@ namespace Client.GameModes
                 CameraPosition.Y += CAMERAMOVESPEED * ms;
             }
 
+            const float CAMERABOUNDS = 0;
+            if(CameraPosition.X < CAMERABOUNDS)
+                CameraPosition.X = CAMERABOUNDS;
+            if(CameraPosition.Y < CAMERABOUNDS)
+                CameraPosition.Y = CAMERABOUNDS;
+            if(CameraPosition.X > map.TileSize.X * map.MapSize.X + CAMERABOUNDS)
+            {
+                CameraPosition.X = map.TileSize.X*map.MapSize.X + CAMERABOUNDS;
+            }
+            if (CameraPosition.Y > map.TileSize.Y * map.MapSize.Y + CAMERABOUNDS)
+            {
+                CameraPosition.Y = map.TileSize.Y * map.MapSize.Y + CAMERABOUNDS;
+            }
         }
 
         protected void FilterSelectedUnits(ref EntityBase[] listArray)
