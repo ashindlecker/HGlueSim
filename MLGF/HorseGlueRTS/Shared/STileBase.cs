@@ -19,12 +19,16 @@ namespace Shared
         public int GridX, GridY;
         public bool Solid;
 
+        //Changes typically from buildings
+        public bool DynamicSolid;
+
         public STileBase()
         {
             Type = TileType.Grass;
             GridX = 0;
             GridY = 0;
             Solid = false;
+            DynamicSolid = false;
         }
 
     }

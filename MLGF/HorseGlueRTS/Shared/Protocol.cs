@@ -20,6 +20,7 @@ namespace Shared
         PopFirstRally = 2,
         ClearRally = 3,
         ChangeMovementAllow = 4,
+        StartAttack = 5,
     }
 
     public enum BuildingSignature : byte

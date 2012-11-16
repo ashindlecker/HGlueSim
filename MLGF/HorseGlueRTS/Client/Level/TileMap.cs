@@ -32,6 +32,9 @@ namespace Client.Level
 
         public void Render(RenderTarget target)
         {
+            var spriteSheet =
+                TileSheet.GrabSprites(ExternalResources.GTexture("Resources/Sprites/Map/terrain_atlas.png"),
+                                      new Vector2i(32, 32), new Vector2i(0, 0)); 
             Sprite sprite = new Sprite();
             sprite.Texture = ExternalResources.GTexture("Resources/Sprites/TestTile.png");
 
@@ -43,13 +46,13 @@ namespace Client.Level
                     switch(tile.Type)
                     {
                         case STileBase.TileType.Grass:
-                            sprite.Color = new Color(100, 255, 100);
+                            sprite = spriteSheet[173];
                             break;
                         case STileBase.TileType.Water:
-                            sprite.Color = new Color(100, 100, 255);
+                            sprite = spriteSheet[178];
                             break;
                         case STileBase.TileType.Stone:
-                            sprite.Color = new Color(100, 100, 100);
+                            sprite = spriteSheet[50];
                             break;
                         default:
                             break;

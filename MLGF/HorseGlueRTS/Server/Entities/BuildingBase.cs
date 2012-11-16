@@ -16,15 +16,6 @@ namespace Server.Entities
     {
         protected List<byte> buildOrder;
         
-        protected class BuildProduceData
-        {
-            public byte id;
-            public ushort AppleCost;
-            public ushort WoodCost;
-            public ushort GlueCost;
-            public byte SupplyCost;
-            public ushort CreationTime;
-        }
 
         protected List<BuildProduceData> supportedBuilds;
  
@@ -155,7 +146,6 @@ namespace Server.Entities
                     {
                         if(buildProduceData.id == buildOrder[0] && stopwatch.ElapsedMilliseconds >= buildProduceData.CreationTime)
                         {
-
                             Complete();
                         }
                     }

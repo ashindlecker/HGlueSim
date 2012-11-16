@@ -28,6 +28,7 @@ namespace Client.Entities
 
 
         protected List<byte> buildOrder;
+        protected List<BuildProduceData> supportedBuilds;
 
         public ushort BuildTime //in milliseconds
         {
@@ -58,7 +59,14 @@ namespace Client.Entities
                 if (!IsProductingUnit)
                     return 0;
 
-                return ((float) stopwatch.ElapsedMilliseconds / (float) creationTime(buildOrder[0]))*100f;
+                foreach (var buildProduceData in supportedBuilds)
+                {
+                    if (buildProduceData.id == buildOrder[0] && stopwatch.ElapsedMilliseconds >= buildProduceData.CreationTime)
+                    {
+                        return ((float) stopwatch.ElapsedMilliseconds/((float) buildProduceData.CreationTime)*100f);
+                    }
+                }
+                return 0;
             }
         }
 
@@ -73,6 +81,7 @@ namespace Client.Entities
             BuildTime = 10000;
             elapsedBuildTime = 0;
             buildOrder = new List<byte>();
+            supportedBuilds = new List<BuildProduceData>();
             stopwatch = new Stopwatch();
 
             Health = 1;
@@ -167,24 +176,12 @@ namespace Client.Entities
             //play sound or add something to HUD
             MyGameMode.AddAlert(GameModeBase.HUDAlert.AlertTypes.UnitCreated);
         }
+
         protected virtual void onStartProduction(byte type)
         {
             //play sound or add something to HUD
         }
 
-        protected virtual uint creationTime(byte type)
-        {
-            //TODO:DEBUG UNITS FOR TESTING, REMOVE LATER
-
-            switch (type)
-            {
-                default:
-                case 0:
-                    return 1000;
-                    break;
-            }
-            return 0;
-        }
 
         public override void Update(float ms)
         {

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Server.Level;
 using SettlersEngine;
 using Shared;
 using System.IO;
@@ -18,6 +20,8 @@ namespace Server.GameModes
         public GameServer Server;
         protected Dictionary<ushort, EntityBase> entities;
         protected List<Player> players;
+        public SettlersEngine.SpatialAStar<PathNode, object> pathFinding;
+        public TileMap map;
 
         public Dictionary<ushort, EntityBase> WorldEntities
         {
@@ -28,6 +32,8 @@ namespace Server.GameModes
 
         protected GameModeBase(GameServer server)
         {
+            map = new TileMap();
+
             players = new List<Player>();
             entityWorldIdToGive = 0;
             Server = server;
@@ -110,7 +116,48 @@ namespace Server.GameModes
             public Vector2i MapSize;
         }
 
-        public abstract PathFindReturn PathFindNodes(float sx, float sy, float x, float y);
+        public PathFindReturn PathFindNodes(float sx, float sy, float x, float y, bool noclipLast = false)
+        {
+            sx /= map.TileSize.X;
+            x /= map.TileSize.X;
+            sy /= map.TileSize.Y;
+            y /= map.TileSize.Y;
+
+            if (sx < 0 || sy < 0 || x < 0 || y < 0 || sx >= map.Tiles.GetLength(0) || x >= map.Tiles.GetLength(0) || sy >= map.Tiles.GetLength(1) || y >= map.Tiles.GetLength(1))
+            {
+                return new PathFindReturn()
+                {
+                    List = null,
+                    MapSize = map.TileSize,
+                };
+            }
+            bool resetBack = false;
+            if(noclipLast)
+            {
+                if(pathFinding.SearchSpace[(int)x,(int)y].IsWall)
+                {
+                    pathFinding.SearchSpace[(int) x, (int) y].IsWall = false;
+                    resetBack = true;
+                }
+            }
+            var path =
+                pathFinding.Search(
+                    new Point((int)sx,
+                              (int)sy),
+                    new Point((int)x,
+                              (int)y), null);
+
+            if(resetBack)
+            {
+                pathFinding.SearchSpace[(int) x, (int) y].IsWall = true;
+            }
+
+            return new PathFindReturn()
+            {
+                List = path,
+                MapSize = map.TileSize,
+            };
+        }
 
         public abstract void OnStatusChange(NetConnection connection, NetConnectionStatus status);
         public abstract void ParseInput(MemoryStream memory, NetConnection client);

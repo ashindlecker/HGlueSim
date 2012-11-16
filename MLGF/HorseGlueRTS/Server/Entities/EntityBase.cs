@@ -162,7 +162,7 @@ namespace Server.Entities
             return memory.ToArray();
         }
 
-        public void Move(float x, float y, Entity.RallyPoint.RallyTypes type = Entity.RallyPoint.RallyTypes.StandardMove, bool reset = false,  bool send = true, byte buildData = 0)
+        public void Move(float x, float y, Entity.RallyPoint.RallyTypes type = Entity.RallyPoint.RallyTypes.StandardMove, bool reset = false,  bool send = true, byte buildData = 0, bool noclipLast = false)
         {
             if (reset)
                 rallyPoints.Clear();
@@ -173,7 +173,7 @@ namespace Server.Entities
                 searchStartPos = new Vector2f(rallyPoints[rallyPoints.Count - 1].X, rallyPoints[rallyPoints.Count - 1].Y);
             }
 
-            var nodes = MyGameMode.PathFindNodes(searchStartPos.X, searchStartPos.Y, x, y);
+            var nodes = MyGameMode.PathFindNodes(searchStartPos.X, searchStartPos.Y, x, y, noclipLast);
             if (nodes.List != null)
             {
                 foreach (var node in nodes.List)

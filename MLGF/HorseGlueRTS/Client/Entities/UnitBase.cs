@@ -24,7 +24,8 @@ namespace Client.Entities
         {
             Idle,
             Moving,
-            Attacking,
+            EndAttacking,
+            StartAttacking,
             SpellCast,
             IdleWithResources,
             MovingWithResources,
@@ -46,7 +47,25 @@ namespace Client.Entities
 
 
         protected Dictionary<AnimationTypes, AnimatedSprite> Sprites;
-        protected AnimationTypes CurrentAnimation;
+
+        private AnimationTypes _currentAnimation;
+
+        protected AnimationTypes CurrentAnimation
+        {
+            get { return _currentAnimation; }
+            set
+            {
+                if (CurrentAnimation == AnimationTypes.StartAttacking || CurrentAnimation == AnimationTypes.EndAttacking)
+                {
+                    if(Sprites[CurrentAnimation].AnimationCompleted)
+                        _currentAnimation = value;
+                }
+                else
+                {
+                    _currentAnimation = value;
+                }
+            }
+        }
 
         private bool _moveXCompleted, _moveYCompleted;
 
@@ -75,7 +94,7 @@ namespace Client.Entities
             CurrentAnimation = AnimationTypes.Idle;
             Sprites = new Dictionary<AnimationTypes, AnimatedSprite>();
 
-            const byte AnimationTypeCount = 6;
+            const byte AnimationTypeCount = 7;
             for (int i = 0; i < AnimationTypeCount; i++)
             {
                 Sprites.Add((AnimationTypes) i, new AnimatedSprite(100));
@@ -102,8 +121,10 @@ namespace Client.Entities
                 case UnitSignature.Attack:
                     {
                         ushort entityWorldId = reader.ReadUInt16();
-                        if(WorldEntities.ContainsKey(entityWorldId))
+                        if (WorldEntities.ContainsKey(entityWorldId))
                             onAttack(WorldEntities[entityWorldId]);
+
+                        CurrentAnimation = AnimationTypes.EndAttacking;
                     }
                     break;
                 case UnitSignature.PopFirstRally:
@@ -121,6 +142,11 @@ namespace Client.Entities
                     break;
                 case UnitSignature.ChangeMovementAllow:
                     allowMovement = reader.ReadBoolean();
+                    break;
+                case UnitSignature.StartAttack:
+                    {
+                        CurrentAnimation = AnimationTypes.StartAttacking;
+                    }
                     break;
                 default:
                     break;

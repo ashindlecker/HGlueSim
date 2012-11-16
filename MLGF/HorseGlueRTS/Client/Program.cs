@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Client.GameModes;
+using Client.GameStates;
 using SFML.Graphics;
 using SFML.Window;
 using System.Diagnostics;
@@ -13,7 +14,9 @@ namespace Client
     class Program
     {
         static GameClient client = new GameClient();
-        public static RenderWindow window = new RenderWindow(new VideoMode(1200, 720), "Game");
+
+        public static RenderWindow window = new RenderWindow(new VideoMode(1200, 720), "Game", Styles.Default,
+                                                             new ContextSettings(32, 32, 10, 0, 100));
 
         static void Main(string[] args)
         {
@@ -24,15 +27,18 @@ namespace Client
             window.KeyReleased += WindowOnKeyReleased;
             window.MouseButtonReleased += WindowOnMouseButtonReleased;
             window.SetFramerateLimit(75);
-
             client.GameMode = new StandardMelee(client.InputHandler);
 
             Console.WriteLine("Server IP (ip only no port): ");
-
             client.Connect("localhost", 5555);
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Restart();
+
+            GameStateManager manager = new GameStateManager();
+            manager.SwitchState(new MainMenuState(), null);
+
+
             while(window.IsOpen())
             {
 
@@ -41,8 +47,12 @@ namespace Client
 
                 var dt = (float)(stopwatch.Elapsed.TotalSeconds * 1000);
                 stopwatch.Restart();
+
                 client.Update(dt);
                 client.GameMode.Render(window);
+
+                //manager.Update(dt);
+                //manager.Render(window);
                 window.Display();
                 
             }

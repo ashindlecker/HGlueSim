@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SFML.Window;
 using SettlersEngine;
+using SFML.Graphics;
 
 namespace Shared
 {
@@ -27,13 +28,43 @@ namespace Shared
             MapSize = new Vector2i(sizeX, sizeY);
             Tiles = new STileBase[sizeX,sizeY];
 
-            for (int x = 0; x < Tiles.GetLength(0); x++)
+            for (var x = 0; x < Tiles.GetLength(0); x++)
             {
-                for (int y = 0; y < Tiles.GetLength(1); y++)
+                for (var y = 0; y < Tiles.GetLength(1); y++)
                 {
                     Tiles[x, y] = new TYPE();
+                    Tiles[x, y].GridX = x;
+                    Tiles[x, y].GridY = y;
                 }
             }
+        }
+
+        public Vector2f ConvertCoords(Vector2f pos)
+        {
+            return new Vector2f(pos.X/TileSize.X, pos.Y/TileSize.Y);
+        }
+
+        public Vector2f ConvertCoords(STileBase tile)
+        {
+            return new Vector2f(tile.GridX*TileSize.X, tile.GridY*TileSize.Y);
+        }
+
+        public List<STileBase> GetTiles(FloatRect rect)
+        {
+            var point1 = ConvertCoords(new Vector2f(rect.Left, rect.Top));
+            var point2 = ConvertCoords(new Vector2f(rect.Left + rect.Width, rect.Top + rect.Height));
+
+            var ret = new List<STileBase>();
+
+            for (var x = (int)point1.X; x < (int)point2.X; x++)
+            {
+                for (var y = (int) point1.Y; y < (int) point2.Y; y++)
+                {
+                    if (x >= 0 && x < Tiles.GetLength(0) && y >= 0 && y < Tiles.GetLength(1))
+                        ret.Add(Tiles[x, y]);
+                }
+            }
+            return ret;
         }
 
         public byte[,] GetPathMap()
@@ -45,6 +76,8 @@ namespace Shared
             {
                 for (int x = 0; x < Tiles.GetLength(0);x++)
                 {
+                    Tiles[x, y].GridX = x;
+                    Tiles[x, y].GridY = y;
                     ret[x, y] = 0;
                     if(Tiles[x,y].Solid)
                     {
@@ -64,6 +97,8 @@ namespace Shared
             {
                 for (int x = 0; x < Tiles.GetLength(0); x++)
                 {
+                    Tiles[x, y].GridX = x;
+                    Tiles[x, y].GridY = y;
                     ret[x, y] = new PathNode();
                     ret[x, y].X = x;
                     ret[x, y].Y = y;

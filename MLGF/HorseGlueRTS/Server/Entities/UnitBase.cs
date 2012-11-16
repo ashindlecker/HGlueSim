@@ -62,7 +62,9 @@ namespace Server.Entities
             _moveYCompleted = false;
 
             attackTimer = new Stopwatch();
-            attackTimer.Restart();
+            attackTimer.Reset();
+            attackTimer.Stop();
+
         }
 
         protected FloatRect RangeBounds()
@@ -108,20 +110,32 @@ namespace Server.Entities
                     }
                     else
                     {
-                        //If the entity to attack is not in range, allow movement
-                        if (!rangeBounds.Intersects(EntityToAttack.GetBounds()))
+                        if (attackTimer.IsRunning == false)
                         {
-                            attackTimer.Restart();
-                            EntityToAttack = null;
-                            setAllowMove(true);
-                        }
-                        else //Otherwize, try to attack and stop ability to move
-                        {
-                            if (rallyPoints.Count > 0)
+                            //If the entity to attack is not in range, allow movement
+                            if (!rangeBounds.Intersects(EntityToAttack.GetBounds()))
                             {
-                                setAllowMove(false);
+                                attackTimer.Reset();
+                                EntityToAttack = null;
+                                setAllowMove(true);
                             }
-                            Attack(EntityToAttack);
+                            else //Otherwize, try to attack and stop ability to move
+                            {
+                                if (rallyPoints.Count > 0)
+                                {
+                                    setAllowMove(false);
+                                }
+
+                                //start the attack
+                                StartAttack();
+                            }
+                        }
+                        else
+                        {
+                            if(attackTimer.ElapsedMilliseconds >= AttackDelay)
+                            {
+                                Attack(EntityToAttack);
+                            }
                         }
                     }
                 }
@@ -147,6 +161,7 @@ namespace Server.Entities
             if(rallyPoints.Count == 0)
                 State = UnitState.Agro;
             //Rallypoint movement
+
             if (allowMovement && rallyPoints.Count > 0)
             {
                 if (rallyPoints[0].RallyType == Entity.RallyPoint.RallyTypes.AttackMove)
@@ -215,12 +230,19 @@ namespace Server.Entities
             //Called when a rally is popped off
         }
 
+        public virtual void StartAttack()
+        {
+            attackTimer.Restart();
+            SendData(new byte[1]{(byte)UnitSignature.StartAttack}, Entity.Signature.Custom );
+        }
+
         public void Attack(EntityBase entity)
         {
             if (entity.Team == Team) return;
             if (attackTimer.ElapsedMilliseconds < AttackDelay) return;
 
-            attackTimer.Restart();
+            attackTimer.Reset();
+            attackTimer.Stop();
 
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);

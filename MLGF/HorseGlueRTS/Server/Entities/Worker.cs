@@ -80,7 +80,10 @@ namespace Server.Entities
         private void moveToUsedEntity(EntityBase toUse)
         {
             if (toUse != null)
-                Move(toUse.Position.X, toUse.Position.Y);
+            {
+                Move(toUse.Position.X, toUse.Position.Y,
+                     noclipLast: (toUse.EntityType == Entity.EntityType.HomeBuilding));
+            }
         }
 
         protected void AddBuildingToBuild(byte type, float x, float y)
@@ -111,9 +114,15 @@ namespace Server.Entities
                             EntityBase homeEntity = GetClosest<EntityBase>(Entity.EntityType.HomeBuilding);
                             if (homeEntity != null)
                                 SetEntityToUse(homeEntity);
+                            else
+                            {
+                                homeEntity = GetClosest<EntityBase>(Entity.EntityType.ResourceUnloadSpot);
+                                if (homeEntity != null)
+                                    SetEntityToUse(homeEntity);
+                            }
                         }
                     }
-                    else if(EntityToUse.EntityType == Entity.EntityType.HomeBuilding)
+                    else if(EntityToUse.EntityType == Entity.EntityType.HomeBuilding || EntityToUse.EntityType == Entity.EntityType.ResourceUnloadSpot)
                     {
                         if (EntityToUse.Team != Team)
                         {

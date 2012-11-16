@@ -24,12 +24,10 @@ namespace Server.GameModes
         }
 
 
-        private TileMap map;
 
         public byte MaxPlayers;
         public byte idToGive;
 
-        private SettlersEngine.SpatialAStar<PathNode, object> pathFinding; 
 
         private StatusState _gameStatus;
         public StatusState GameStatus
@@ -52,7 +50,6 @@ namespace Server.GameModes
             GameStatus = StatusState.WaitingForPlayers;
             idToGive = 0;
 
-            map = new TileMap();
             map.SetMap<TileBase>(100, 100);
 
             for (int i = 0; i < 20; i++)
@@ -62,17 +59,18 @@ namespace Server.GameModes
                 map.Tiles[i, i+1].Solid = true;
                 map.Tiles[i, i+1].Type = STileBase.TileType.Water;
             }
+            pathFinding = new SpatialAStar<PathNode, object>(map.GetPathNodeMap());
 
             var resources = new Resources(server, null);
             resources.Position = new Vector2f(400, 200);
             resources.ResourceType = ResourceTypes.Apple;
             AddEntity(resources);
 
-            pathFinding = new SpatialAStar<PathNode, object>(map.GetPathNodeMap());
         }
 
         public override void Update(float ms)
         {
+            UpdateTiles();
             //base.Update(ms);
             switch(GameStatus)
             {
@@ -142,39 +140,32 @@ namespace Server.GameModes
                 default:
                     break;
             }
-
-            
         }
 
-        public override PathFindReturn PathFindNodes(float sx, float sy, float x, float y)
+        public void UpdateTiles()
         {
-            sx /= map.TileSize.X;
-            x /= map.TileSize.X;
-            sy /= map.TileSize.Y;
-            y /= map.TileSize.Y;
-
-            if(sx < 0 || sy < 0 || x < 0 || y < 0 || sx >= map.Tiles.GetLength(0) || x >= map.Tiles.GetLength(0) ||  sy >= map.Tiles.GetLength(1) || y >= map.Tiles.GetLength(1))
+            if (pathFinding != null)
             {
-                return new PathFindReturn()
+                foreach (var sTileBase in map.Tiles)
                 {
-                    List = null,
-                    MapSize = map.TileSize,
-                };
-            }
-            var path =
-                pathFinding.Search(
-                    new Point((int)sx,
-                              (int)sy),
-                    new Point((int)x,
-                              (int)y), null);
+                    pathFinding.SearchSpace[sTileBase.GridX, sTileBase.GridY].IsWall = ( sTileBase.DynamicSolid ||
+                                                                                        sTileBase.Solid);
+                    sTileBase.DynamicSolid = false;
+                }
+                foreach (var entityBase in entities.Values)
+                {
+                    if (entityBase is BuildingBase == false) continue;
 
-            
-            return new PathFindReturn()
-                       {
-                           List = path,
-                           MapSize = map.TileSize,
-                       };
+                    var tilePosition = map.ConvertCoords(entityBase.Position);
+                    if (tilePosition.X >= 0 && tilePosition.Y >= 0 && tilePosition.X < map.MapSize.X && tilePosition.Y < map.MapSize.Y)
+                    {
+                        map.Tiles[(int)tilePosition.X, (int)tilePosition.Y].DynamicSolid = true;
+                    }
+                }
+
+            }
         }
+
 
         public override void UpdatePlayer(Player player)
         {
@@ -380,8 +371,6 @@ namespace Server.GameModes
                                     buildingToUse = building;
                                 }
                             }
-
-
                         }
 
                         if (buildingToUse != null)

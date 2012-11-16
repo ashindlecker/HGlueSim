@@ -407,7 +407,6 @@ namespace Client.GameModes
             _mousePosition = new Vector2f(x, y);
         }
 
-
         private void SetControlUnits(FloatRect floatRect)
         {
             List<EntityBase> controlList = new List<EntityBase>();
@@ -472,6 +471,28 @@ namespace Client.GameModes
             return new FloatRect(left, top, right - left, bottom - top);
         }
 
+        public void UpdateTiles()
+        {
+            if (pathFinding != null)
+            {
+                foreach (var sTileBase in map.Tiles)
+                {
+                    pathFinding.SearchSpace[sTileBase.GridX, sTileBase.GridY].IsWall = (sTileBase.DynamicSolid ||
+                                                                                        sTileBase.Solid);
+                }
+                foreach (var entityBase in entities.Values)
+                {
+                    if(entityBase is BuildingBase == false)continue;
+
+                    var tilePosition = map.ConvertCoords(entityBase.Position);
+                    if (tilePosition.X >= 0 && tilePosition.Y >= 0 && tilePosition.X < map.MapSize.X && tilePosition.Y < map.MapSize.Y)
+                    {
+                        map.Tiles[(int) tilePosition.X, (int) tilePosition.Y].DynamicSolid = true;
+                    }
+                }
+            }
+        }
+
         public override void Update(float ms)
         {
             
@@ -482,6 +503,7 @@ namespace Client.GameModes
             }
 
             UpdateAlerts(ms);
+            UpdateTiles();
             if(CurrentStatus == StatusState.InProgress || CurrentStatus == StatusState.Completed)
             {
                 var readOnly = new Dictionary<ushort, EntityBase>(entities);

@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="sfmlnet-graphics-2">
+      <HintPath>..\..\..\..\..\Visual Studio 2012\Libs\LaurentGomila-SFML.Net-85a5369\LaurentGomila-SFML.Net-85a5369\lib\x86\sfmlnet-graphics-2.dll</HintPath>
+    </Reference>
     <Reference Include="sfmlnet-window-2">
       <HintPath>..\..\..\Libs\LaurentGomila-SFML.Net-85a5369\LaurentGomila-SFML.Net-85a5369\lib\x86\sfmlnet-window-2.dll</HintPath>
     </Reference>
@@ -51,6 +54,7 @@
     <Compile Include="Algorithms\PriorityQueue.cs" />
     <Compile Include="Algorithms\PriorityQueueB.cs" />
     <Compile Include="Algorithms\SpatialAStar.cs" />
+    <Compile Include="BuildData.cs" />
     <Compile Include="BuildingData.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Gamemode.cs" />
