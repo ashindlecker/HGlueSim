@@ -46,10 +46,10 @@ namespace Client.Level
                     switch(tile.Type)
                     {
                         case STileBase.TileType.Grass:
-                            sprite = spriteSheet[173];
+                            sprite = spriteSheet[160];
                             break;
                         case STileBase.TileType.Water:
-                            sprite = spriteSheet[178];
+                            sprite = spriteSheet[179];
                             break;
                         case STileBase.TileType.Stone:
                             sprite = spriteSheet[50];

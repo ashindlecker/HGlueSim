@@ -45,7 +45,6 @@ namespace Client.Entities
 
         private bool allowMovement;
 
-
         protected Dictionary<AnimationTypes, AnimatedSprite> Sprites;
 
         private AnimationTypes _currentAnimation;
@@ -66,6 +65,8 @@ namespace Client.Entities
                 }
             }
         }
+
+        protected string SpriteFolder { get; set; }
 
         private bool _moveXCompleted, _moveYCompleted;
 
@@ -100,6 +101,31 @@ namespace Client.Entities
                 Sprites.Add((AnimationTypes) i, new AnimatedSprite(100));
             }
 
+            SpriteFolder = "";
+        }
+
+        public override void SetTeam(byte team)
+        {
+            base.SetTeam(team);
+
+            var idleSprites = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "Idle/");
+            Sprites[AnimationTypes.Idle].Sprites.AddRange(idleSprites);
+
+
+            var moveSprites = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "Moving/");
+            Sprites[AnimationTypes.Moving].Sprites.AddRange(moveSprites);
+
+            var resourceMoveSprites = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "MovingWithResources/");
+            Sprites[AnimationTypes.MovingWithResources].Sprites.AddRange(resourceMoveSprites);
+
+            var resourceIdleSprites = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "IdleWithResources/");
+            Sprites[AnimationTypes.IdleWithResources].Sprites.AddRange(resourceIdleSprites);
+
+            var beginAttack = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "BeginAttack/");
+            Sprites[AnimationTypes.StartAttacking].Sprites.AddRange(resourceIdleSprites);
+
+            var afterAttack = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "AfterAttack/");
+            Sprites[AnimationTypes.EndAttacking].Sprites.AddRange(resourceIdleSprites);
         }
 
         protected override void ParseCustom(MemoryStream memoryStream)
@@ -115,7 +141,7 @@ namespace Client.Entities
                         var posY = reader.ReadSingle();
 
                         Position = new Vector2f(posX, posY);
-                        rallyPoints.Clear();
+                        //rallyPoints.Clear();
                     }
                     break;
                 case UnitSignature.Attack:

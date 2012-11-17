@@ -303,7 +303,7 @@ namespace Server.GameModes
                         {
                             outwriter.Write(idsToWrite[i]);
                         }
-                        SendData(outmemory.ToArray(), Gamemode.Signature.GroupMovement,true);
+                        SendData(outmemory.ToArray(), Gamemode.Signature.GroupMovement, true);
 
                         outmemory.Close();
                         outwriter.Close();
@@ -312,31 +312,18 @@ namespace Server.GameModes
                         {
                             var entityId = idsToWrite[i];
 
-                            if (!attackMove)
-                            {
-                                entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.StandardMove, reset,
-                                                        false);
-                            }
-                            else
-                            {
-                                entities[entityId].Move(posX, posY, Entity.RallyPoint.RallyTypes.AttackMove, reset,
-                                                        false);
-                            }
+                            entities[entityId].Move(posX, posY,
+                                                    !attackMove
+                                                        ? Entity.RallyPoint.RallyTypes.StandardMove
+                                                        : Entity.RallyPoint.RallyTypes.AttackMove, reset,
+                                                    false);
 
                             entities[entityId].OnPlayerCustomMove();
 
-                            if (entities[entityId] is UnitBase)
+                            var unitCast = entities[entityId] as UnitBase;
+                            if (unitCast != null)
                             {
-                                var unitCast = (UnitBase)entities[entityId];
-
-                                if (attackMove)
-                                {
-                                    unitCast.State = UnitBase.UnitState.Agro;
-                                }
-                                else
-                                {
-                                    unitCast.State = UnitBase.UnitState.Standard;
-                                }
+                                unitCast.State = attackMove ? UnitBase.UnitState.Agro : UnitBase.UnitState.Standard;
                             }
                         }
                     }
@@ -422,9 +409,7 @@ namespace Server.GameModes
 
                             outmemory.Close();
                             outwriter.Close();
-
                         }
-
                     }
                     break;
                 case InputSignature.SpellCast:

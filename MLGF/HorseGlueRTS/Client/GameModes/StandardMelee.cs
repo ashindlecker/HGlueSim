@@ -148,7 +148,6 @@ namespace Client.GameModes
                     {
                         var status = memory.ReadByte();
                         CurrentStatus = (StatusState)status;
-                        pathFinding = new SpatialAStar<PathNode, object>(map.GetPathNodeMap());
                     }
                     break;
                 case StandardMeleeSignature.PlayerSurrender:
@@ -180,6 +179,7 @@ namespace Client.GameModes
         protected override void ParseMap(MemoryStream memory)
         {
             map.LoadFromBytes(memory);
+            pathFinding = new SpatialAStar<PathNode, object>(map.GetPathNodeMap());
         }
 
         protected override void ParseHandshake(MemoryStream memory)

@@ -20,6 +20,7 @@ namespace Client
         public void SendMoveInput(float x, float y, ushort[] entityIds, bool reset = false, bool attackMove = true)
         {
             Console.WriteLine("SENT " + DateTime.Now.Ticks);
+
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);
 

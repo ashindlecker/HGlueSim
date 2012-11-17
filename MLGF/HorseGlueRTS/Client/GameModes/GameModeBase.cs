@@ -139,34 +139,30 @@ namespace Client.GameModes
                         var attack = reader.ReadBoolean();
                         var count = reader.ReadByte();
 
-                        for (int i = 0; i < count; i++)
+                        for (var i = 0; i < count; i++)
                         {
                             var id = reader.ReadUInt16();
-                            if (entities.ContainsKey(id))
+                            if (!entities.ContainsKey(id)) continue;
+                            if (reset)
+                                entities[id].ClearRally();
+
+                            var startPos = entities[id].Position;
+                            if (!reset && entities[id].rallyPoints.Count > 0)
                             {
-                                if (reset)
-                                    entities[id].ClearRally();
+                                startPos = entities[id].rallyPoints[entities[id].rallyPoints.Count - 1];
+                            }
 
-                                var startPos = entities[id].Position;
-                                if (!reset && entities[id].rallyPoints.Count > 0)
-                                {
-                                    startPos = entities[id].rallyPoints[entities[id].rallyPoints.Count - 1];
-                                }
+                            var path = PathFindNodes(startPos.X, startPos.Y, x, y);
 
-                                var path = PathFindNodes(startPos.X, startPos.Y, x, y);
-                                if (path.List != null)
-                                {
-                                    foreach (var pathNode in path.List)
-                                    {
-                                        if (pathNode != path.List.First.Value)
-                                        {
-                                            var pos =
-                                                new Vector2f(pathNode.X * path.MapSize.X + (path.MapSize.X / 2),
-                                                             pathNode.Y * path.MapSize.Y + (path.MapSize.Y / 2));
-                                            entities[id].Move(pos.X, pos.Y);
-                                        }
-                                    }
-                                }
+                            if (path.List == null) continue;
+
+                            foreach (var pathNode in path.List)
+                            {
+                                if (pathNode == path.List.First.Value) continue;
+                                var pos =
+                                    new Vector2f(pathNode.X * path.MapSize.X + (path.MapSize.X / 2),
+                                                 pathNode.Y * path.MapSize.Y + (path.MapSize.Y / 2));
+                                entities[id].Move(pos.X, pos.Y);
                             }
                         }
                     }

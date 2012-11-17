@@ -25,24 +25,7 @@ namespace Client.Entities
             ResourceCount = 0;
             HeldResource = 0;
 
-        }
-
-        public override void SetTeam(byte team)
-        {
-            base.SetTeam(team);
-
-            var idleSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/" +team.ToString() + "/" + "Idle/");
-            Sprites[AnimationTypes.Idle].Sprites.AddRange(idleSprites);
-
-
-            var moveSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/" +team.ToString() + "/" + "Moving/");
-            Sprites[AnimationTypes.Moving].Sprites.AddRange(moveSprites);
-
-            var resourceMoveSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/" +team.ToString() + "/" +  "MovingWithResources/");
-            Sprites[AnimationTypes.MovingWithResources].Sprites.AddRange(resourceMoveSprites);
-
-            var resourceIdleSprites = ExternalResources.GetSprites("Resources/Sprites/Worker/" +team.ToString() + "/" +  "IdleWithResources/");
-            Sprites[AnimationTypes.IdleWithResources].Sprites.AddRange(resourceIdleSprites);
+            SpriteFolder = "Worker";
         }
 
         public void GiveResource(ResourceTypes type, byte amount)

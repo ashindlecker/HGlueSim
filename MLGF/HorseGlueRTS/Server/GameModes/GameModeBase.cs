@@ -99,6 +99,7 @@ namespace Server.GameModes
                 spaceAngle += Shared.Globals.SPACE_ANGLE_INCREASE;
             }
         }
+
         public void Remove(EntityBase entity)
         {
             entities.Remove(entity.WorldId);
