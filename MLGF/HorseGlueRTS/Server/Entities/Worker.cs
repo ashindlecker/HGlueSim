@@ -44,6 +44,7 @@ namespace Server.Entities
             MaxHealth = 50;
 
             updatedMovePositionTimer = new Stopwatch();
+            updatedMovePositionTimer.Start();
         }
 
         public override void OnPlayerCustomMove()
