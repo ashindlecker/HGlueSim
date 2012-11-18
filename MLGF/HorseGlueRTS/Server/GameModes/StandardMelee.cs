@@ -83,6 +83,7 @@ namespace Server.GameModes
                         var team1Count = 0;
                         var team1Id = 0;
                         var gameInProgress = false;
+
                         foreach(var player in players)
                         {
                             if(player.Status == Player.StatusTypes.InGame)

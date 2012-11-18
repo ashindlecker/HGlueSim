@@ -29,6 +29,7 @@ namespace Client.Entities
             SpellCast,
             IdleWithResources,
             MovingWithResources,
+            GrabbingResources,
         }
 
         public float StandardAttackDamage { get; protected set; }
@@ -54,14 +55,18 @@ namespace Client.Entities
             get { return _currentAnimation; }
             set
             {
-                if (CurrentAnimation == AnimationTypes.StartAttacking || CurrentAnimation == AnimationTypes.EndAttacking)
+                if (CurrentAnimation == AnimationTypes.StartAttacking || CurrentAnimation == AnimationTypes.EndAttacking || CurrentAnimation == AnimationTypes.SpellCast || CurrentAnimation == AnimationTypes.GrabbingResources)
                 {
-                    if(Sprites[CurrentAnimation].AnimationCompleted)
+                    if (Sprites[CurrentAnimation].AnimationCompleted)
+                    {
                         _currentAnimation = value;
+                        Sprites[CurrentAnimation].Reset();
+                    }
                 }
                 else
                 {
                     _currentAnimation = value;
+                    Sprites[CurrentAnimation].Reset();
                 }
             }
         }
@@ -92,15 +97,15 @@ namespace Client.Entities
             StandardAttackDamage = 1;
             StandardAttackElement = Entity.DamageElement.Normal;
 
-            CurrentAnimation = AnimationTypes.Idle;
             Sprites = new Dictionary<AnimationTypes, AnimatedSprite>();
 
-            const byte AnimationTypeCount = 7;
+            const byte AnimationTypeCount = 8;
             for (int i = 0; i < AnimationTypeCount; i++)
             {
                 Sprites.Add((AnimationTypes) i, new AnimatedSprite(100));
             }
 
+            CurrentAnimation = AnimationTypes.Idle;
             SpriteFolder = "";
         }
 
@@ -122,10 +127,16 @@ namespace Client.Entities
             Sprites[AnimationTypes.IdleWithResources].Sprites.AddRange(resourceIdleSprites);
 
             var beginAttack = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "BeginAttack/");
-            Sprites[AnimationTypes.StartAttacking].Sprites.AddRange(resourceIdleSprites);
+            Sprites[AnimationTypes.StartAttacking].Sprites.AddRange(beginAttack);
+            Sprites[AnimationTypes.StartAttacking].Loop = false;
 
             var afterAttack = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "AfterAttack/");
-            Sprites[AnimationTypes.EndAttacking].Sprites.AddRange(resourceIdleSprites);
+            Sprites[AnimationTypes.EndAttacking].Sprites.AddRange(afterAttack);
+            Sprites[AnimationTypes.EndAttacking].Loop = false;
+
+            var grabbingResources = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "GrabbingResources/");
+            Sprites[AnimationTypes.GrabbingResources].Sprites.AddRange(grabbingResources);
+            Sprites[AnimationTypes.GrabbingResources].Loop = false;
         }
 
         protected override void ParseCustom(MemoryStream memoryStream)
@@ -172,6 +183,11 @@ namespace Client.Entities
                 case UnitSignature.StartAttack:
                     {
                         CurrentAnimation = AnimationTypes.StartAttacking;
+                    }
+                    break;
+                case UnitSignature.GrabbingResources:
+                    {
+                        CurrentAnimation = AnimationTypes.GrabbingResources;
                     }
                     break;
                 default:
@@ -243,7 +259,7 @@ namespace Client.Entities
                 Sprites[CurrentAnimation].Update(ms);
             }
 
-            if(CurrentAnimation != AnimationTypes.SpellCast && (rallyPoints.Count == 0 || allowMovement == false)) onSetIdleAnimation();
+            if( (rallyPoints.Count == 0 || allowMovement == false)) onSetIdleAnimation();
 
 
             #region CLIENT PREDICTION INTERPOLATION

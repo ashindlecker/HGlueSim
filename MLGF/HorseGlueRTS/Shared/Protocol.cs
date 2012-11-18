@@ -21,6 +21,7 @@ namespace Shared
         ClearRally = 3,
         ChangeMovementAllow = 4,
         StartAttack = 5,
+        GrabbingResources = 6,
     }
 
     public enum BuildingSignature : byte

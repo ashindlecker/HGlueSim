@@ -23,6 +23,8 @@ namespace Server.Entities
         private Stopwatch updatedMovePositionTimer;
         private const float moveUpdateDelay = 3000; //3 seconds
 
+        
+
         public bool IsHoldingResources
         {
             get { return (resourceCount > 0); }
@@ -32,6 +34,8 @@ namespace Server.Entities
         {
             GatherResourceTime = 1000;
             passedGatherTime = new Stopwatch();
+            passedGatherTime.Reset();
+            passedGatherTime.Stop();
 
             EntityType = Entity.EntityType.Worker;
             Speed = .2f;
@@ -99,14 +103,19 @@ namespace Server.Entities
             {
                 if (RangeBounds().Contains(EntityToUse.Position.X, EntityToUse.Position.Y))
                 {
-                    updatedMovePositionTimer.Restart();
+
                     if(EntityToUse.EntityType == Entity.EntityType.Resources)
                     {
+                        if (passedGatherTime.IsRunning == false && IsHoldingResources == false)
+                        {
+                            StartGatheringResources();
+                        }
+
                         if (IsHoldingResources == false && passedGatherTime.ElapsedMilliseconds >= GatherResourceTime)
                         {
                             //Grab Resources
                             EntityToUse.Use(this);
-                            passedGatherTime.Restart();
+                            StopGatheringResources();
                         }
                         else if(IsHoldingResources == true)
                         {
@@ -149,7 +158,7 @@ namespace Server.Entities
                 {
                     if (EntityToUse.EntityType == Entity.EntityType.Resources)
                     {
-                        passedGatherTime.Restart();
+                        StopGatheringResources();
                     }
                 }
 
@@ -163,6 +172,18 @@ namespace Server.Entities
             {
                 updatedMovePositionTimer.Restart();
             }
+        }
+
+        private void StartGatheringResources()
+        {
+            passedGatherTime.Restart();
+            SendData(new byte[1]{(byte)UnitSignature.GrabbingResources}, Entity.Signature.Custom);
+        }
+
+        private void StopGatheringResources()
+        {
+            passedGatherTime.Reset();
+            passedGatherTime.Stop();
         }
 
         protected override void OnRallyPointCompleted(Entity.RallyPoint rally)

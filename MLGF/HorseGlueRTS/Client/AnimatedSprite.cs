@@ -21,7 +21,7 @@ namespace Client
 
         public bool AnimationCompleted
         {
-            get { return _currentSpriteId >= Sprites.Count - 1; }
+            get { return _currentSpriteId >= Sprites.Count; }
         }
 
         public AnimatedSprite(uint delay)
@@ -35,6 +35,15 @@ namespace Client
             Loop = true;
         }
 
+        public void Reset()
+        {
+            if(AnimationCompleted)
+            {
+                _currentSpriteId = 0;
+                _passedTime = 0;
+            }
+        }
+
         public void Update(float ms)
         {
             _passedTime += ms;
@@ -44,11 +53,9 @@ namespace Client
                 _currentSpriteId++;
                 if(_currentSpriteId >= Sprites.Count)
                 {
-                    if(Loop)
-                        _currentSpriteId = 0;
-                    else
+                    if (Loop)
                     {
-                        _currentSpriteId = Sprites.Count - 1;
+                        _currentSpriteId = 0;
                     }
                 }
                 _passedTime = 0;
@@ -57,7 +64,15 @@ namespace Client
 
         public Sprite CurrentSprite
         {
-            get { return Sprites[_currentSpriteId]; }
+            get
+            {
+                if(_currentSpriteId < Sprites.Count)
+                    return Sprites[_currentSpriteId];
+                else
+                {
+                    return Sprites[Sprites.Count - 1];
+                }
+            }
         }
 
     }

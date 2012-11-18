@@ -23,9 +23,18 @@ namespace Client
 
         public static Sprite[] GetSprites(string directory)
         {
-            string[] files = Directory.GetFiles(directory, "*.png");
             List<Sprite> ret = new List<Sprite>();
+            string[] files = Directory.GetFiles(directory, "*.png");
+           
             for(int i = 0; i < files.Count(); i++)
+            {
+                ret.Add(new Sprite(GTexture(files[i])));
+            } 
+            
+
+            files = Directory.GetFiles(directory, "*.bmp");
+
+            for (int i = 0; i < files.Count(); i++)
             {
                 ret.Add(new Sprite(GTexture(files[i])));
             }
