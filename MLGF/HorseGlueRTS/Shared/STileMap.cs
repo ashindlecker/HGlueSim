@@ -15,11 +15,14 @@ namespace Shared
         public Vector2i TileSize;
         public STileBase[,] Tiles;
 
+        public TiledMap MyMap { get; private set; }
+
         public STileMap()
         {
             MapSize = new Vector2i(0, 0);
             TileSize = new Vector2i(32, 32);
             Tiles = null;
+            MyMap = null;
         }
 
 
@@ -107,6 +110,38 @@ namespace Shared
             }
 
             return ret;
+        }
+
+        protected virtual STileBase GetTileFromGID(TiledMap.TileLayer layer, uint id)
+        {
+            return new STileBase();
+        }
+
+        public virtual void ApplyLevel(TiledMap level)
+        {
+            MyMap = level;
+
+            MapSize = new Vector2i(level.MapSize.X, level.MapSize.Y);
+            Tiles = new STileBase[MapSize.X,MapSize.Y];
+
+            foreach (var tileLayer in level.TileLayers)
+            {
+                for (var y = 0; y < tileLayer.GIds.GetLength(1); y++)
+                {
+                    for (var x = 0; x < tileLayer.GIds.GetLength(0); x++)
+                    {
+                        if (Tiles[x, y] == null)
+                        {
+                            Tiles[x, y] = GetTileFromGID(tileLayer, tileLayer.GIds[x, y]);
+                            Tiles[x, y].GridX = x;
+                            Tiles[x, y].GridY = y;
+                        }
+
+                        if(Tiles[x,y].Solid == false && tileLayer.GIds[x,y] != 0)
+                            Tiles[x, y].Solid = tileLayer.SolidLayer;
+                    }
+                }
+            }
         }
     }
 }

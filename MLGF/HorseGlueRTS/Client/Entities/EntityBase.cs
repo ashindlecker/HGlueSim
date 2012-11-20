@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using SFML.Audio;
 using Shared;
 using SFML.Graphics;
 using SFML.Window;
@@ -74,7 +75,7 @@ namespace Client.Entities
 
         public virtual void OnDeath()
         {
-            
+            MyGameMode.PlayDeathSound(ExternalResources.DeathSounds.CliffDeath);
         }
 
         public void ParseData(MemoryStream memory)
@@ -132,6 +133,7 @@ namespace Client.Entities
             }
         }
 
+
         private void ParseEntityToUseChange(MemoryStream memoryStream)
         {
             var reader = new BinaryReader(memoryStream);
@@ -144,12 +146,18 @@ namespace Client.Entities
                 if (WorldEntities.ContainsKey(id))
                 {
                     EntityToUse = WorldEntities[id];
+                    OnUseChange(EntityToUse);
                 }
             }
             else
             {
                 EntityToUse = null;
             }
+        }
+
+        public virtual void OnUseChange(EntityBase entity)
+        {
+            //Play a sound or something
         }
 
         private void ParseDamage(MemoryStream memoryStream)

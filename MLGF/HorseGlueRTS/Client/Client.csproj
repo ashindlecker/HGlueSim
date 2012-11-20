@@ -61,6 +61,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnimatedSprite.cs" />
+    <Compile Include="Effects\EffectBase.cs" />
+    <Compile Include="Effects\GlueParticle.cs" />
     <Compile Include="Entities\BuildingBase.cs" />
     <Compile Include="Entities\EntityBase.cs" />
     <Compile Include="Entities\GlueFactory.cs" />
@@ -82,6 +84,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ExternalResources.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="TileSheet.cs" />
   </ItemGroup>
   <ItemGroup>

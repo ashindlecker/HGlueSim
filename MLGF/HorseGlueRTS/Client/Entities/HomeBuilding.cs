@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Shared;
 
 namespace Client.Entities
 {
@@ -11,6 +12,16 @@ namespace Client.Entities
         public HomeBuilding()
         {
             BuildTime = 2000;
+
+            supportedBuilds.Add(new BuildProduceData()
+            {
+                id = 0,
+                AppleCost = 0,
+                WoodCost = 0,
+                GlueCost = 0,
+                SupplyCost = 0,
+                CreationTime = 10,
+            });
 
             SetSprites();
         }

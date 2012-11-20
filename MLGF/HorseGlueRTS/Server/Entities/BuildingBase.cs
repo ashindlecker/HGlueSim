@@ -56,6 +56,7 @@ namespace Server.Entities
         {
             if (buildOrder.Count >= 5) return;
             bool allow = false;
+
             foreach (var buildProduceData in supportedBuilds)
             {
                 if (buildProduceData.id == type)

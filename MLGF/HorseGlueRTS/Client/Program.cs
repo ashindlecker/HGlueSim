@@ -8,6 +8,7 @@ using Client.GameStates;
 using SFML.Graphics;
 using SFML.Window;
 using System.Diagnostics;
+using Shared;
 
 namespace Client
 {
@@ -18,8 +19,13 @@ namespace Client
         public static RenderWindow window = new RenderWindow(new VideoMode(1200, 720), "Game", Styles.Default,
                                                              new ContextSettings(32, 32, 10, 0, 100));
 
+        public static Random MRandom;
+
+
         static void Main(string[] args)
         {
+            MRandom = new Random();
+
             window.Closed += WindowOnClosed;
             window.MouseMoved += WindowOnMouseMoved;
             window.MouseButtonPressed += WindowOnMouseButtonPressed;
@@ -30,7 +36,7 @@ namespace Client
             client.GameMode = new StandardMelee(client.InputHandler);
 
             Console.WriteLine("Server IP (ip only no port): ");
-            client.Connect("localhost", 5555);
+            client.Connect(Console.ReadLine(), 5555);
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Restart();

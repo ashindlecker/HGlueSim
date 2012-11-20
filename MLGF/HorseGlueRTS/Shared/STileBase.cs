@@ -19,6 +19,7 @@ namespace Shared
         public int GridX, GridY;
         public bool Solid;
 
+
         //Changes typically from buildings
         public bool DynamicSolid;
 

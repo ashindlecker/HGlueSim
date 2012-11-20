@@ -14,5 +14,7 @@ namespace Shared
         public ushort GlueCost;
         public byte SupplyCost;
         public ushort CreationTime;
+        public Entity.EntityType Sound;
+
     }
 }

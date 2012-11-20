@@ -21,7 +21,11 @@ namespace Server.GameModes
         protected Dictionary<ushort, EntityBase> entities;
         protected List<Player> players;
         public SettlersEngine.SpatialAStar<PathNode, object> pathFinding;
+
+
         public TileMap map;
+        public TiledMap TiledMap; //Map Created from tiled level editor
+
 
         public Dictionary<ushort, EntityBase> WorldEntities
         {
@@ -33,6 +37,7 @@ namespace Server.GameModes
         protected GameModeBase(GameServer server)
         {
             map = new TileMap();
+            TiledMap = new TiledMap();
 
             players = new List<Player>();
             entityWorldIdToGive = 0;
@@ -161,7 +166,9 @@ namespace Server.GameModes
         }
 
         public abstract void OnStatusChange(NetConnection connection, NetConnectionStatus status);
+        
         public abstract void ParseInput(MemoryStream memory, NetConnection client);
+       
         public abstract byte[] HandShake();
 
         public abstract void UpdatePlayer(Player player);
@@ -190,6 +197,35 @@ namespace Server.GameModes
             entityWorldIdToGive++;
         }
 
+        protected void SendMap()
+        {
+            SendData(TiledMap.ToBytes(), Gamemode.Signature.TiledMapLoad);
+            //SendData(map.ToBytes(), Gamemode.Signature.MapLoad);
+        }
+
+        protected void SetMap(string file)
+        {
+            TiledMap.Load(file);
+            map.ApplyLevel(TiledMap);
+            pathFinding = new SpatialAStar<PathNode, object>(map.GetPathNodeMap());
+
+            foreach (var apples in TiledMap.AppleResources)
+            {
+                var resourceAdd = new Resources(Server, null);
+                resourceAdd.ResourceType = ResourceTypes.Apple;
+                resourceAdd.Position = apples;
+                AddEntity(resourceAdd);
+            }
+
+            foreach (var wood in TiledMap.WoodResources)
+            {
+                var resourceAdd = new Resources(Server, null);
+                resourceAdd.ResourceType = ResourceTypes.Tree;
+                resourceAdd.Position = wood;
+                AddEntity(resourceAdd);
+            }
+        }
+
         public void SendAllEntities()
         {
             var memory = new MemoryStream();
@@ -209,7 +245,7 @@ namespace Server.GameModes
             writer.Close();
             memory.Close();
         }
-
+        
         public void SendAllPlayers()
         {
 

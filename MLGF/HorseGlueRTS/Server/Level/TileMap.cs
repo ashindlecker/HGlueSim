@@ -29,5 +29,11 @@ namespace Server.Level
 
             return memory.ToArray();
         }
+
+        protected override STileBase GetTileFromGID(TiledMap.TileLayer layer, uint id)
+        {
+            return new TileBase();
+        }
+
     }
 }

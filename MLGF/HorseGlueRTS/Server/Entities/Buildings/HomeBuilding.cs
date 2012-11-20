@@ -17,10 +17,11 @@ namespace Server.Entities
 
             supportedBuilds.Add(new BuildProduceData()
                                     {
+                                        id = 0,
                                         AppleCost = 0,
                                         WoodCost = 0,
                                         GlueCost = 0,
-                                        SupplyCost = 0,
+                                        SupplyCost = 1,
                                         CreationTime = 10,
                                     });
         }

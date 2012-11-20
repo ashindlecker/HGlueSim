@@ -14,6 +14,7 @@ namespace Shared
             PlayerData,
             Entity,
             MapLoad,
+            TiledMapLoad,
             EntityLoad,
             Handshake,
             EntityAdd,

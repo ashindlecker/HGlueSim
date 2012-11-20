@@ -50,22 +50,8 @@ namespace Server.GameModes
             GameStatus = StatusState.WaitingForPlayers;
             idToGive = 0;
 
-            map.SetMap<TileBase>(100, 100);
 
-            for (int i = 0; i < 20; i++)
-            {
-                map.Tiles[i, i].Solid = true;
-                map.Tiles[i, i].Type = STileBase.TileType.Water;
-                map.Tiles[i, i+1].Solid = true;
-                map.Tiles[i, i+1].Type = STileBase.TileType.Water;
-            }
-            pathFinding = new SpatialAStar<PathNode, object>(map.GetPathNodeMap());
-
-            var resources = new Resources(server, null);
-            resources.Position = new Vector2f(400, 200);
-            resources.ResourceType = ResourceTypes.Apple;
-            AddEntity(resources);
-
+            SetMap("Resources/Maps/untitled.tmx");
         }
 
         public override void Update(float ms)
@@ -167,7 +153,6 @@ namespace Server.GameModes
             }
         }
 
-
         public override void UpdatePlayer(Player player)
         {
             var memory = new MemoryStream();
@@ -207,11 +192,16 @@ namespace Server.GameModes
 
                             HomeBuilding home = new HomeBuilding(Server, nPlayer);
                             home.Team = nPlayer.Team;
-                            home.Position = new Vector2f(100*players.Count, 500);
+
+                            if(TiledMap.SpawnPoints.Count > players.Count - 1)
+                            {
+                                home.Position = TiledMap.SpawnPoints[players.Count - 1];
+                            }
+
                             AddEntity(home);
 
                             SendAllPlayers();
-                            SendData(map.ToBytes(), Gamemode.Signature.MapLoad);
+                            SendMap();
                             SendAllEntities();
 
                             if (players.Count >= MaxPlayers)

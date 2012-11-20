@@ -170,11 +170,18 @@ namespace Client.Entities
             }
         }
 
-
         protected virtual void onCompleteProduction(byte type)
         {
             //play sound or add something to HUD
             MyGameMode.AddAlert(GameModeBase.HUDAlert.AlertTypes.UnitCreated);
+
+            foreach (var buildProduceData in supportedBuilds)
+            {
+                if (buildProduceData.id == type)
+                {
+                    MyGameMode.PlayUnitFinishedSound(buildProduceData.Sound);
+                }
+            }
         }
 
         protected virtual void onStartProduction(byte type)

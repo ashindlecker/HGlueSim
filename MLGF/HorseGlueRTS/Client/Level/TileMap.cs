@@ -12,6 +12,18 @@ namespace Client.Level
 {
     class TileMap : STileMap, ILoadable
     {
+        private List<Sprite> tiles = new List<Sprite>();
+
+        public override void ApplyLevel(TiledMap level)
+        {
+            base.ApplyLevel(level);
+            foreach (var tileSets in MyMap.TileSets)
+            {
+                var sprites = TileSheet.GrabSprites(ExternalResources.GTexture(tileSets.ImageSource), tileSets.TileSize, new Vector2i(0, 0));
+                tiles.AddRange(sprites);
+            }
+        }
+
         public void LoadFromBytes(MemoryStream data)
         {
             var reader = new BinaryReader(data);
@@ -32,6 +44,7 @@ namespace Client.Level
 
         public void Render(RenderTarget target)
         {
+            /*
             var spriteSheet =
                 TileSheet.GrabSprites(ExternalResources.GTexture("Resources/Sprites/Map/terrain_atlas.png"),
                                       new Vector2i(32, 32), new Vector2i(0, 0)); 
@@ -61,6 +74,23 @@ namespace Client.Level
                     target.Draw(sprite);
                 }
             }
+             * */
+
+            if(MyMap == null) return;
+            foreach (var layers in MyMap.TileLayers)
+            {
+                for(var y = 0; y < layers.GIds.GetLength(1); y++)
+                {
+                    for(var x = 0; x < layers.GIds.GetLength(0); x++)
+                    {
+                        if (layers.GIds[x,y] == 0 || layers.GIds[x, y] - 1 >= tiles.Count) continue;
+                        var sprite = tiles[(int) layers.GIds[x, y] - 1];
+                        sprite.Position = new Vector2f(x*TileSize.X, y*TileSize.Y);
+                        target.Draw(sprite);
+                    }
+                }
+            }
         }
+
     }
 }

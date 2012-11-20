@@ -55,6 +55,12 @@ namespace Client.Entities
             }
         }
 
+        public override void OnUseChange(EntityBase entity)
+        {
+            base.OnUseChange(entity);
+            MyGameMode.PlayUseSound(ExternalResources.UseSounds.CliffUsing);
+        }
+
         public override void Render(RenderTarget target)
         {
             base.Render(target);

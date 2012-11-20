@@ -10,6 +10,7 @@ using SFML.Graphics;
 using SFML.Window;
 using SettlersEngine;
 using Shared;
+using SFML.Audio;
 
 namespace Client.GameModes
 {
@@ -28,7 +29,6 @@ namespace Client.GameModes
             }
         }
 
-        private Level.TileMap map;
         public  InputHandler InputHandler;
 
         protected EntityBase[]selectedUnits;
@@ -71,8 +71,6 @@ namespace Client.GameModes
         private WorkerUIStateTypes workerUIState;
         private byte buildingToPlace;
 
-        private SpatialAStar<PathNode, object> pathFinding; 
- 
 
         //Drawables
         private Sprite bottomHUDGUI;
@@ -84,6 +82,12 @@ namespace Client.GameModes
         private Sprite hudBoxBuilding;
         private Sprite hudControlBox;
         private Sprite viewBounds;  //Darkness around edges
+
+        //Sounds
+        private Sound attackMoveSound;
+        private Sound moveSound;
+
+        private Music backgroundMusic;
 
 
         protected Vector2f CameraPosition;
@@ -113,7 +117,7 @@ namespace Client.GameModes
                 controlGroups.Add((Keyboard.Key) i, new List<EntityBase>());
             }
 
-                controlBoxP1 = new Vector2f(0, 0);
+            controlBoxP1 = new Vector2f(0, 0);
             controlBoxP2 = new Vector2f(0,0);
             selectedAttackMove = false;
             releaseSelect = false;
@@ -135,6 +139,15 @@ namespace Client.GameModes
             hudControlBox.Origin = new Vector2f(hudControlBox.TextureRect.Width/2, 0);
 
             viewBounds = new Sprite(ExternalResources.GTexture("Resources/Sprites/Hud/ViewBounds.png"));
+
+            //Load Sounds
+            moveSound = new Sound(ExternalResources.GSoundBuffer("Resources/Audio/MoveCommand/0.wav"));
+            attackMoveSound = new Sound(ExternalResources.GSoundBuffer("Resources/Audio/AttackCommand/0.wav"));
+
+            backgroundMusic = new Music("Resources/Audio/Music/In Game/mario.wav");
+            backgroundMusic.Loop = true;
+            backgroundMusic.Volume = Settings.MUSICVOLUME;
+            backgroundMusic.Play();
         }
 
         protected override void ParseCustom(MemoryStream memory)
@@ -176,12 +189,6 @@ namespace Client.GameModes
             }
         }
 
-        protected override void ParseMap(MemoryStream memory)
-        {
-            map.LoadFromBytes(memory);
-            pathFinding = new SpatialAStar<PathNode, object>(map.GetPathNodeMap());
-        }
-
         protected override void ParseHandshake(MemoryStream memory)
         {
             var reader = new BinaryReader(memory);
@@ -205,6 +212,10 @@ namespace Client.GameModes
                     InputHandler.SendMoveInput(x, y, idList.ToArray(), reset, selectedAttackMove);
                 }
 
+                if(!selectedAttackMove)
+                    PlaySound(moveSound);
+                else
+                    PlaySound(attackMoveSound);
             }
         }
 
@@ -221,6 +232,8 @@ namespace Client.GameModes
                 {
                     InputHandler.SendEntityUseChange(idList.ToArray(), entity.WorldId);
                 }
+
+                PlayUseSound(ExternalResources.UseSounds.CliffUsing);
             }
         }
 
@@ -238,7 +251,6 @@ namespace Client.GameModes
             }
         }
 
-
         public override void MouseClick(Mouse.Button button, int x, int y)
         {
             Vector2f convertedPos = Program.window.ConvertCoords(new Vector2i(x, y));
@@ -252,6 +264,7 @@ namespace Client.GameModes
                     {
                         InputHandler.SendSpellInput(convertedPos.X, convertedPos.Y, buildingToPlace,
                                                     new ushort[1] {prioritySelectedUnit().WorldId});
+
                     }
                 }
                 else if (!selectedAttackMove)
@@ -495,7 +508,8 @@ namespace Client.GameModes
 
         public override void Update(float ms)
         {
-            
+            backgroundMusic.Volume = Settings.MUSICVOLUME;
+
             FilterSelectedUnits(ref selectedUnits);
             foreach (var controlGroup in controlGroups.Values)
             {
@@ -516,6 +530,12 @@ namespace Client.GameModes
                         entityBase.Energy = entityBase.MaxEnergy;
                 }
                 SpaceUnits(ms);
+            }
+
+            var readOnlyEffect = new List<Effects.EffectBase>(Effects);
+            foreach (var effectBase in readOnlyEffect)
+            {
+                effectBase.Update(ms);
             }
 
             const float CAMERA_LEFT_BOUNDS = 20;
@@ -590,36 +610,6 @@ namespace Client.GameModes
             }
         }
 
-        public override PathFindReturn PathFindNodes(float sx, float sy, float x, float y)
-        {
-            sx /= map.TileSize.X;
-            x /= map.TileSize.X;
-            sy /= map.TileSize.Y;
-            y /= map.TileSize.Y;
-
-            if (sx < 0 || sy < 0 || x < 0 || y < 0 || sx >= map.Tiles.GetLength(0) || x >= map.Tiles.GetLength(0) || sy >= map.Tiles.GetLength(1) || y >= map.Tiles.GetLength(1))
-            {
-                return new PathFindReturn()
-                {
-                    List = null,
-                    MapSize = map.TileSize,
-                };
-            }
-            var path =
-                pathFinding.Search(
-                    new System.Drawing.Point((int)sx,
-                              (int)sy),
-                    new System.Drawing.Point((int)x,
-                              (int)y), null);
-
-
-            return new PathFindReturn()
-            {
-                List = path,
-                MapSize = map.TileSize,
-            };
-        }
-
         protected void onPlayerSurrender(Player player)
         {
             //rage quit banner popup or something
@@ -681,6 +671,12 @@ namespace Client.GameModes
                         target.Draw(debugHPText);
                     }
                 }
+            }
+
+            var readOnlyEffect = new List<Effects.EffectBase>(Effects);
+            foreach (var effectBase in readOnlyEffect)
+            {
+                effectBase.Render(target);
             }
 
             if(releaseSelect)

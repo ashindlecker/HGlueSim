@@ -23,7 +23,8 @@ namespace Server.Entities
         private Stopwatch updatedMovePositionTimer;
         private const float moveUpdateDelay = 3000; //3 seconds
 
-        
+        private ResourceTypes lastResourceHeld;
+
 
         public bool IsHoldingResources
         {
@@ -32,6 +33,8 @@ namespace Server.Entities
 
         public Worker(GameServer server, Player mPlayer) : base(server, mPlayer)
         {
+            lastResourceHeld = ResourceTypes.Tree;
+
             GatherResourceTime = 1000;
             passedGatherTime = new Stopwatch();
             passedGatherTime.Reset();
@@ -87,7 +90,7 @@ namespace Server.Entities
             if (toUse != null)
             {
                 Move(toUse.Position.X, toUse.Position.Y,
-                     noclipLast: (toUse.EntityType == Entity.EntityType.HomeBuilding));
+                     noclipLast: (toUse.EntityType == Entity.EntityType.HomeBuilding || toUse.EntityType == Entity.EntityType.GlueFactory));
             }
         }
 
@@ -120,6 +123,7 @@ namespace Server.Entities
                         }
                         else if(IsHoldingResources == true)
                         {
+                            lastResourceHeld = heldResource;
                             //Go to closest base if availible
                             EntityBase homeEntity = GetClosest<EntityBase>(Entity.EntityType.HomeBuilding);
                             if (homeEntity != null)
@@ -145,7 +149,7 @@ namespace Server.Entities
 
                             //Go back to closest resource field
 
-                            EntityBase resourceEntity = GetClosest<EntityBase>(Entity.EntityType.Resources);
+                            EntityBase resourceEntity = GetClosest<EntityBase>(Entity.EntityType.Resources, lastResourceHeld);
                             if (resourceEntity != null)
                                 SetEntityToUse(resourceEntity);
                         }
@@ -214,7 +218,7 @@ namespace Server.Entities
             return null;
         }
 
-        protected TYPE GetClosest<TYPE>(Entity.EntityType eType) where TYPE:EntityBase
+        protected TYPE GetClosest<TYPE>(Entity.EntityType eType, ResourceTypes rType = ResourceTypes.Apple) where TYPE:EntityBase
         {
             float shortest = 0;
             TYPE ret = null;
@@ -228,6 +232,7 @@ namespace Server.Entities
                     if(entity.Team != Team)
                     continue;
                 }
+                if(entity is Resources && ((Resources)entity).ResourceType != rType) continue;
 
                 float distance = Math.Abs(Position.X - entity.Position.X) + Math.Abs(Position.Y - entity.Position.Y);
                 if (ret == null || distance < shortest)

@@ -183,11 +183,13 @@ namespace Client.Entities
                 case UnitSignature.StartAttack:
                     {
                         CurrentAnimation = AnimationTypes.StartAttacking;
+                        MyGameMode.PlayAttackSound(ExternalResources.AttackSounds.CliffGetFucked);
                     }
                     break;
                 case UnitSignature.GrabbingResources:
                     {
                         CurrentAnimation = AnimationTypes.GrabbingResources;
+                        MyGameMode.PlayGatherResourcesSound(ExternalResources.ResourceSounds.CliffMining);
                     }
                     break;
                 default:
