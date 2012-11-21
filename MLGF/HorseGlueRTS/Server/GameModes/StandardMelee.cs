@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Lidgren.Network;
 using SFML.Window;
+using Server.Entities.Units;
 using SettlersEngine;
 using Shared;
 using Server.Entities;
@@ -50,6 +51,11 @@ namespace Server.GameModes
             idToGive = 0;
 
             SetMap("Resources/Maps/untitled.tmx");
+
+            Entities.Units.StandardWorker worker = new StandardWorker(server, null);
+            worker.Team = 1;
+            worker.Position = new Vector2f(100, 500);
+            AddEntity(worker);
         }
 
         public override void Update(float ms)

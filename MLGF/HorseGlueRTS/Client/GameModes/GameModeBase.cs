@@ -215,6 +215,18 @@ namespace Client.GameModes
                         SetCamera(reader.ReadByte(), new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
                     }
                     break;
+                    case Gamemode.Signature.UpdatePosition:
+                    {
+                        var unitId = reader.ReadUInt16();
+                        var posX = reader.ReadSingle();
+                        var posY = reader.ReadSingle();
+                        
+                        if(entities.ContainsKey(unitId))
+                        {
+                            entities[unitId].Position = new Vector2f(posX, posY);
+                        }
+                    }
+                    break;
             }
         }
 

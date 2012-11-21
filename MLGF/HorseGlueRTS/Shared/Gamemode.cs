@@ -24,6 +24,7 @@ namespace Shared
             GameEnded,
             GroupMovement,
             SetCamera,
+            UpdatePosition,
         }
     }
 }

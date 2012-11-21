@@ -42,6 +42,8 @@ namespace Server.Entities
         private bool _moveXCompleted, _moveYCompleted;
 
 
+
+
         public UnitBase(GameServer _server, Player player) : base(_server, player)
         {
             EntityType = Entity.EntityType.Unit;
@@ -72,6 +74,12 @@ namespace Server.Entities
             return new FloatRect(Position.X - (Range/2), Position.Y - (Range/2), Range, Range);
         }
 
+        private FloatRect SearchBounds()
+        {
+            const float SEARCHSIZE = 200;
+            return new FloatRect(Position.X - (SEARCHSIZE / 2), Position.Y - (SEARCHSIZE / 2), SEARCHSIZE, SEARCHSIZE);
+        }
+
         private void clearRally()
         {
             rallyPoints.Clear();
@@ -99,6 +107,7 @@ namespace Server.Entities
             if (State == UnitState.Agro)
             {
                 var rangeBounds = RangeBounds();
+                var searchBounds = SearchBounds();
 
                 //If the unit has something to attack
                 if (EntityToAttack != null)
@@ -107,6 +116,7 @@ namespace Server.Entities
                     if (EntityToAttack.Health <= 0)
                     {
                         EntityToAttack = null;
+                        StopAttack();
                     }
                     else
                     {
@@ -115,9 +125,17 @@ namespace Server.Entities
                             //If the entity to attack is not in range, allow movement
                             if (!rangeBounds.Intersects(EntityToAttack.GetBounds()))
                             {
-                                attackTimer.Reset();
-                                EntityToAttack = null;
+                                StopAttack();
                                 setAllowMove(true);
+
+                                if (!searchBounds.Intersects(EntityToAttack.GetBounds()))
+                                {
+                                    EntityToAttack = null;
+                                }
+                                else
+                                {
+                                    Move(EntityToAttack.Position.X, EntityToAttack.Position.Y, Entity.RallyPoint.RallyTypes.AttackMove, true);
+                                }
                             }
                             else //Otherwize, try to attack and stop ability to move
                             {
@@ -125,7 +143,6 @@ namespace Server.Entities
                                 {
                                     setAllowMove(false);
                                 }
-
                                 //start the attack
                                 StartAttack();
                             }
@@ -137,15 +154,17 @@ namespace Server.Entities
                                 Attack(EntityToAttack);
                             }
                         }
+
                     }
                 }
                 else //Otherwise look for something to attack
                 {
+                    StopAttack();
                     foreach (var entity in MyGameMode.WorldEntities.Values)
                     {
                         if (entity.Team == Team) continue;
 
-                        if (!entity.Neutral && entity.Health > 0 && rangeBounds.Intersects(entity.GetBounds()))
+                        if (!entity.Neutral && entity.Health > 0 && searchBounds.Intersects(entity.GetBounds()))
                         {
                             EntityToAttack = entity;
                             break;
@@ -154,7 +173,11 @@ namespace Server.Entities
                 }
             }
 
-            if (EntityToAttack == null || State == UnitState.Standard) setAllowMove(true);
+            if (EntityToAttack == null || State == UnitState.Standard)
+            {
+                StopAttack();
+                setAllowMove(true);
+            }
 
             if (State != UnitState.Agro)
                 attackTimer.Restart();
@@ -236,6 +259,12 @@ namespace Server.Entities
             SendData(new byte[1]{(byte)UnitSignature.StartAttack}, Entity.Signature.Custom );
         }
 
+        public virtual void StopAttack()
+        {
+            attackTimer.Reset();
+            attackTimer.Stop();
+        }
+
         public void Attack(EntityBase entity)
         {
             if (entity.Team == Team) return;
@@ -266,8 +295,11 @@ namespace Server.Entities
         public override void OnDeath()
         {
             base.OnDeath();
-            MyPlayer.UsedSupply -= UnitData.WorkerSupplyCost;
-            MyGameMode.UpdatePlayer(MyPlayer);
+            if (MyPlayer != null)
+            {
+                MyPlayer.UsedSupply -= UnitData.WorkerSupplyCost;
+                MyGameMode.UpdatePlayer(MyPlayer);
+            }
         }
 
         public override byte[] UpdateData()

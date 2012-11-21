@@ -158,7 +158,7 @@ namespace Client.Entities
                         var posY = reader.ReadSingle();
 
                         Position = new Vector2f(posX, posY);
-                        //rallyPoints.Clear();
+                        rallyPoints.Clear();
                     }
                     break;
                 case UnitSignature.Attack:

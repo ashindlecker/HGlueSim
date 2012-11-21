@@ -12,6 +12,7 @@ using Lidgren.Network;
 using Server.Entities;
 using SFML.Window;
 using SFML.Graphics;
+using System.Diagnostics;
 
 namespace Server.GameModes
 {
@@ -22,10 +23,8 @@ namespace Server.GameModes
         protected List<Player> players;
         public SettlersEngine.SpatialAStar<PathNode, object> pathFinding;
 
-
         public TileMap map;
         public TiledMap TiledMap; //Map Created from tiled level editor
-
 
         public Dictionary<ushort, EntityBase> WorldEntities
         {
@@ -33,6 +32,11 @@ namespace Server.GameModes
         }
 
         private ushort entityWorldIdToGive;
+
+        private ushort entityToUpdate;
+        private Stopwatch entityPositionUpdateTimer;
+
+
 
         protected GameModeBase(GameServer server)
         {
@@ -43,6 +47,10 @@ namespace Server.GameModes
             entityWorldIdToGive = 0;
             Server = server;
             entities = new Dictionary<ushort, EntityBase>();
+
+            entityToUpdate = 0;
+            entityPositionUpdateTimer = new Stopwatch();
+            entityPositionUpdateTimer.Restart();
         }
 
         public virtual void Update(float ms)
@@ -64,6 +72,27 @@ namespace Server.GameModes
                 }
             }
             SpaceUnits(ms);
+
+            if(entityPositionUpdateTimer.ElapsedMilliseconds >= 500)
+            {
+                if(entities.ContainsKey(entityToUpdate))
+                    SendEntityPosition(entities[entityToUpdate]);
+                entityToUpdate++;
+                if (entityToUpdate >= entities.Count)
+                    entityToUpdate = 0;
+            }
+        }
+
+        protected void SendEntityPosition(EntityBase entity)
+        {
+            var memory = new MemoryStream();
+            var writer = new BinaryWriter(memory);
+
+            writer.Write(entity.WorldId);
+            writer.Write(entity.Position.X);
+            writer.Write(entity.Position.Y);
+
+            SendData(memory.ToArray(), Gamemode.Signature.UpdatePosition);
         }
 
         protected void SpaceUnits(float ms)
