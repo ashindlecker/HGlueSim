@@ -41,7 +41,6 @@ namespace Server.GameModes
             }
         }
 
-
         public BuildingBase Building;
         
         public StandardMelee(GameServer server, byte mplayers) : base(server)
@@ -49,7 +48,6 @@ namespace Server.GameModes
             MaxPlayers = mplayers;
             GameStatus = StatusState.WaitingForPlayers;
             idToGive = 0;
-
 
             SetMap("Resources/Maps/untitled.tmx");
         }
@@ -203,6 +201,7 @@ namespace Server.GameModes
                             SendAllPlayers();
                             SendMap();
                             SendAllEntities();
+                            SetCamera(nPlayer, home.Position);
 
                             if (players.Count >= MaxPlayers)
                             {

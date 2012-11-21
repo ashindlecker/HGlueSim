@@ -197,6 +197,16 @@ namespace Server.GameModes
             entityWorldIdToGive++;
         }
 
+        public void SetCamera(Player player, Vector2f pos)
+        {
+            var memory = new MemoryStream();
+            var writer = new BinaryWriter(memory);
+            writer.Write(player.ClientId);
+            writer.Write(pos.X);
+            writer.Write(pos.Y);
+            SendData(memory.ToArray(), Gamemode.Signature.SetCamera);
+        }
+
         protected void SendMap()
         {
             SendData(TiledMap.ToBytes(), Gamemode.Signature.TiledMapLoad);

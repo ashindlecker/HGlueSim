@@ -210,8 +210,15 @@ namespace Client.GameModes
                         }
                     }
                     break;
+                    case Gamemode.Signature.SetCamera:
+                    {
+                        SetCamera(reader.ReadByte(), new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
+                    }
+                    break;
             }
         }
+
+        public abstract void SetCamera(byte id, Vector2f pos);
 
         private void AddEntity(EntityBase entity, ushort id)
         {

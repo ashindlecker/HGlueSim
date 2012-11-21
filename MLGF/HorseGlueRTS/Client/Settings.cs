@@ -8,7 +8,7 @@ namespace Client
 {
     public class Settings
     {
-        public static float SOUNDVOLUME = 50;
-        public static float MUSICVOLUME = 30;
+        public static float SOUNDVOLUME = 20;
+        public static float MUSICVOLUME = 10;
     }
 }

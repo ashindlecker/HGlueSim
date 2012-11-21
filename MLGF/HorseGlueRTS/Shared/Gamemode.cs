@@ -23,6 +23,7 @@ namespace Shared
             PlayerLeft,
             GameEnded,
             GroupMovement,
+            SetCamera,
         }
     }
 }

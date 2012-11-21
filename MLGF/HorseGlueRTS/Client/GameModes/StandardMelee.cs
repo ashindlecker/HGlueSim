@@ -150,6 +150,12 @@ namespace Client.GameModes
             backgroundMusic.Play();
         }
 
+        public override void SetCamera(byte id, Vector2f pos)
+        {
+            if(myPlayer != null && id == myPlayer.ClientId)
+                CameraPosition = pos;
+        }
+
         protected override void ParseCustom(MemoryStream memory)
         {
             var reader = new BinaryReader(memory);

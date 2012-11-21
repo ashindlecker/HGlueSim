@@ -35,6 +35,7 @@ namespace Client
         public static Sprite[] GetSprites(string directory)
         {
             List<Sprite> ret = new List<Sprite>();
+            if (Directory.Exists(directory) == false) return null;
             string[] files = Directory.GetFiles(directory, "*.png");
            
             for(int i = 0; i < files.Count(); i++)

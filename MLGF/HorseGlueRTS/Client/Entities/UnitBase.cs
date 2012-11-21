@@ -114,28 +114,34 @@ namespace Client.Entities
             base.SetTeam(team);
 
             var idleSprites = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "Idle/");
-            Sprites[AnimationTypes.Idle].Sprites.AddRange(idleSprites);
-
+            if(idleSprites != null)
+                Sprites[AnimationTypes.Idle].Sprites.AddRange(idleSprites);
 
             var moveSprites = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "Moving/");
-            Sprites[AnimationTypes.Moving].Sprites.AddRange(moveSprites);
+            if(moveSprites != null)
+                Sprites[AnimationTypes.Moving].Sprites.AddRange(moveSprites);
 
             var resourceMoveSprites = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "MovingWithResources/");
-            Sprites[AnimationTypes.MovingWithResources].Sprites.AddRange(resourceMoveSprites);
+            if(resourceMoveSprites != null)
+                Sprites[AnimationTypes.MovingWithResources].Sprites.AddRange(resourceMoveSprites);
 
             var resourceIdleSprites = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "IdleWithResources/");
+            if(resourceIdleSprites != null)
             Sprites[AnimationTypes.IdleWithResources].Sprites.AddRange(resourceIdleSprites);
 
             var beginAttack = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "BeginAttack/");
-            Sprites[AnimationTypes.StartAttacking].Sprites.AddRange(beginAttack);
+            if(beginAttack != null)
+                Sprites[AnimationTypes.StartAttacking].Sprites.AddRange(beginAttack);
             Sprites[AnimationTypes.StartAttacking].Loop = false;
 
             var afterAttack = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "AfterAttack/");
-            Sprites[AnimationTypes.EndAttacking].Sprites.AddRange(afterAttack);
+            if(afterAttack != null)
+                Sprites[AnimationTypes.EndAttacking].Sprites.AddRange(afterAttack);
             Sprites[AnimationTypes.EndAttacking].Loop = false;
 
             var grabbingResources = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "GrabbingResources/");
-            Sprites[AnimationTypes.GrabbingResources].Sprites.AddRange(grabbingResources);
+            if(grabbingResources != null)
+                Sprites[AnimationTypes.GrabbingResources].Sprites.AddRange(grabbingResources);
             Sprites[AnimationTypes.GrabbingResources].Loop = false;
         }
 
