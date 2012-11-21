@@ -36,8 +36,8 @@ namespace Client
             client.GameMode = new StandardMelee(client.InputHandler);
 
             Console.WriteLine("Server IP (ip only no port): ");
-            //client.Connect(Console.ReadLine(), 5555);
-            client.Connect("localhost", 5555);
+            client.Connect(Console.ReadLine(), 5555);
+            //client.Connect("localhost", 5555);
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Restart();
