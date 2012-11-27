@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Client.Effects;
 using Client.Entities;
@@ -65,6 +66,8 @@ namespace Client.GameModes
         private UIStateTypes uiState;
         private Hotkey currentHotkey;
         private HotkeySheet currentHotkeySheet;
+
+
 
         public StandardMelee(InputHandler handler)
         {
@@ -225,6 +228,7 @@ namespace Client.GameModes
 
             if(currentHotkeySheet != null)
             {
+                Console.WriteLine((int)currentHotkeySheet.Hotkeys[0].Key + " " + (int)Keyboard.Key.B);
                 currentHotkey = currentHotkeySheet.ProcessInput(keyEvent.Code);
                 if(currentHotkey != null && currentHotkey.RequiresClick == false)
                 {
@@ -239,6 +243,14 @@ namespace Client.GameModes
 
         public HotkeySheet GetHotkeySheet(EntityBase entity)
         {
+            if(entity.Type == Entity.EntityType.Worker)
+            {
+                return Settings.GetSheet("worker");
+            }
+            if (entity.Type == Entity.EntityType.HomeBuilding)
+            {
+                return Settings.GetSheet("base");
+            }
             return null;
         }
 
@@ -252,7 +264,8 @@ namespace Client.GameModes
                 {
                     EntityBase priorEntity = prioritySelectedUnit();
                     if (priorEntity != null)
-                        sendSpellCommand(x, y, priorEntity);
+                        sendSpellCommand(convertedPos.X, convertedPos.Y, priorEntity);
+                    uiState = UIStateTypes.Normal;
                 }
                 else if (!selectedAttackMove)
                 {

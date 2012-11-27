@@ -26,7 +26,6 @@ namespace Server.GameModes
 
         public byte MaxPlayers;
 
-
         private StatusState _gameStatus;
         public byte idToGive;
 

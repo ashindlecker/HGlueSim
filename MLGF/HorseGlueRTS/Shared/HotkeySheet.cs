@@ -49,8 +49,20 @@ namespace Shared
                 foreach (var keyElement in keyElements)
                 {
                     var addKey = new Hotkey();
-                    addKey.Key = (Keyboard.Key)Convert.ToInt32((int)keyElement.Attribute("key").Value[0]);
+                    var intKey = (int) keyElement.Attribute("key").Value.ToLower()[0];
+                    const int LETTERAOFFSET = 97;
+                    intKey -= LETTERAOFFSET;
+
+                    addKey.Key = (Keyboard.Key) intKey;
+                    Console.WriteLine(addKey.Key);
+                    addKey.RequiresClick = Convert.ToBoolean(keyElement.Attribute("usesClick").Value);
+                    if(addKey.RequiresClick)
                     addKey.SpellId = Convert.ToByte(keyElement.Attribute("spellType").Value);
+                    else
+                    {
+                        //hotkey SHOULD be for buildings
+                        addKey.SpellId = (byte) Factory.GetUnitBuildId(keyElement.Attribute("spellType").Value);
+                    }
                     add.Hotkeys.Add(addKey);
                 }
                 retList.Add(add);

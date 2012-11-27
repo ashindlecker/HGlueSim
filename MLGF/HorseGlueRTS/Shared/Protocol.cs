@@ -62,6 +62,8 @@
         Worker = 0,
     }
 
+    
+
     public enum WorkerSpellIds : byte
     {
         BuildHomeBase = 0,
@@ -74,5 +76,20 @@
         StatusChanged,
         PlayerSurrender,
         PlayerElimination,
+    }
+
+
+    public class Factory
+    {
+        public static  UnitBuildIds GetUnitBuildId(string str)
+        {
+            switch (str.ToLower())
+            {
+                default:
+                case "worker":
+                    return UnitBuildIds.Worker;
+                    break;
+            }
+        }
     }
 }

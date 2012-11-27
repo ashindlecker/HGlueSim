@@ -16,7 +16,7 @@ namespace Shared
             public ushort AppleCost;
             public ushort CreationTime;
             public byte SupplyCost;
-            public string Name;
+            public byte Type;
         }
         public string Name;
         public List<UnitXMLData> Units;
@@ -53,7 +53,7 @@ namespace Shared
                     var woodCost = (ushort)0;
                     var buildTime = (ushort)0;
                     var glueCost = (ushort)0;
-                    var unitid = "";
+                    var unitid = (byte) 0;
                     var supply = (byte)0;
 
                     if (unitElement.Attribute("glue") != null)
@@ -65,7 +65,7 @@ namespace Shared
                     if (unitElement.Attribute("buildtime") != null)
                         buildTime = Convert.ToUInt16(unitElement.Attribute("buildtime").Value);
                     if (unitElement.Attribute("unit") != null)
-                        unitid = unitElement.Attribute("unit").Value;
+                        unitid = (byte)(Factory.GetUnitBuildId(unitElement.Attribute("unit").Value));
                     if (unitElement.Attribute("supply") != null)
                         supply = Convert.ToByte(unitElement.Attribute("supply").Value);
 
@@ -77,9 +77,11 @@ namespace Shared
                         CreationTime = buildTime,
                         GlueCost = glueCost,
                         SupplyCost = supply,
-                        Name = unitid,
+                        Type = unitid,
                     });
                 }
+
+                retList.Add(addBuilding);
             }
 
             return retList;

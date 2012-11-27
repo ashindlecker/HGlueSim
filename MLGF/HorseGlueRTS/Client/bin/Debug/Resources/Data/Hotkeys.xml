@@ -1,7 +1,9 @@
 <hotkeysheets>
 
 	<sheet name="worker">
-		<key spellType="0" key="n"/>
+		<key spellType="0" key="n" usesClick="true"/>
 	</sheet>
-
+	<sheet name="base">
+		<key spellType="worker" key="e" usesClick="false"/>
+	</sheet>
 </hotkeysheets>

@@ -19,6 +19,8 @@ namespace Client
 
         private static void Main(string[] args)
         {
+            Settings.Init();
+
             MRandom = new Random();
 
             window.Closed += WindowOnClosed;

@@ -361,12 +361,45 @@ namespace Server.Entities
 
         public static UnitBase LoadUnitFromXML(string unit, GameServer server, Player player)
         {
+
+            var unitSetting = Settings.GetUnit(unit);
+            if(unitSetting == null) return new UnitBase(server, player);
+
+            UnitBase retUnit = null;
+            switch (unitSetting.Name)
+            {
+                default:
+                case "default":
+                    retUnit = new UnitBase(server, player);
+                    break;
+                case "worker":
+                    retUnit = new Worker(server, player);
+                    break;
+            }
+
+            retUnit.RangedUnit = unitSetting.RangedUnit;
+            retUnit.Range = unitSetting.Range;
+            retUnit.Speed = unitSetting.Speed;
+            retUnit.AttackDelay = unitSetting.AttackDelay;
+            retUnit.AttackRechargeTime = unitSetting.AttackRechargeTime;
+            retUnit.StandardAttackDamage = unitSetting.StandardAttackDamage;
+
+            foreach (var spellXmlData in unitSetting.Spells)
+            {
+                var spellData = new SpellData(spellXmlData.EnergyCost, null);
+                spellData.IsBuildSpell = spellXmlData.IsBuildSpell;
+                spellData.BuildType = spellXmlData.BuildType;
+                retUnit.spells.Add((byte)retUnit.spells.Count, spellData);
+            }
+
+            return retUnit;
+
             const string UNITFILE = "Resources/Data/Units.xml";
             var xElement = XDocument.Load(UNITFILE);
 
             var units = xElement.Elements("units").Elements("unit");
 
-            UnitBase retUnit = null;
+            retUnit = null;
 
             foreach (var element in units)
             {

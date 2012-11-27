@@ -230,79 +230,40 @@ namespace Server.Entities
 
         private static BuildingBase CreateBuildingFromXML(string building, GameServer server, Player player)
         {
-            const string BUILDINGSFILE = "Resources/Data/Buildings.xml";
-
-            BuildingBase retBuilding = null;
-
-            var xElement = XDocument.Load(BUILDINGSFILE);
-            var buildingElements = xElement.Element("buildings").Elements("building");
-
-            foreach (var buildingElement in buildingElements)
+            var buildingData = Settings.GetBuilding(building);
+            if(buildingData == null) return new BuildingBase(server, player);
+            BuildingBase ret = new BuildingBase(server, player);
+            switch (buildingData.Name.ToLower())
             {
-                if(buildingElement.Attribute("name").Value.ToLower() != building)
-                    continue;
-
-                switch (buildingElement.Attribute("name").Value.ToLower())
-                {
-                    default:
-                    case "base":
-                        retBuilding = new HomeBuilding(server, player);
-                        break;
-                    case "supply":
-                        {
-                            var supplyAttribute = buildingElement.Attribute("supply");
-                            if(supplyAttribute != null)
-                                retBuilding = new SupplyBuilding(server, player, Convert.ToByte(supplyAttribute.Value));
-                            else
-                            {
-                                retBuilding = new SupplyBuilding(server, player, 12);
-                            }
-                        }
-                        break;
-                    case "gluefactory":
-                        retBuilding = new GlueFactory(server, player);
-                        break;
-                }
-
-                var unitElements = buildingElement.Element("units").Elements("unit");
-
-                foreach (var unitElement in unitElements)
-                {
-                    var appleCost = (ushort)0;
-                    var woodCost = (ushort)0;
-                    var buildTime = (ushort)0;
-                    var glueCost = (ushort)0;
-                    var unitid = (byte)0;
-                    var supply = (byte) 0;
-
-                    if (unitElement.Attribute("glue") != null)
-                        glueCost = Convert.ToUInt16(unitElement.Attribute("glue").Value);
-                    if (unitElement.Attribute("apples") != null)
-                        appleCost = Convert.ToUInt16(unitElement.Attribute("apples").Value);
-                    if (unitElement.Attribute("wood") != null)
-                        woodCost = Convert.ToUInt16(unitElement.Attribute("wood").Value);
-                    if (unitElement.Attribute("buildtime") != null)
-                        buildTime = Convert.ToUInt16(unitElement.Attribute("buildtime").Value);
-                    if (unitElement.Attribute("unit") != null)
-                        unitid = Convert.ToByte(unitElement.Attribute("unit").Value);
-                    if (unitElement.Attribute("supply") != null)
-                        unitid = Convert.ToByte(unitElement.Attribute("supply").Value);
-
-
-                    retBuilding.spells.Add((byte)retBuilding.spells.Count, new SpellData(0,null)
-                                                        {
-                                                            AppleCost = appleCost,
-                                                            WoodCost = woodCost,
-                                                            CastTime= buildTime,
-                                                            GlueCost = glueCost,
-                                                            SupplyCost = supply,
-                                                            IsBuildSpell = true,
-                                                            BuildType = unitid,
-                                                        });
-                }
+                default:
+                    ret = new BuildingBase(server, player);
+                    break;
+                case "base":
+                    ret =  new HomeBuilding(server,player);
+                    break;
+                case "supply":
+                    ret = new SupplyBuilding(server, player, buildingData.SupplyAdd);
+                    break;
+                case "gluefactory":
+                    ret = new GlueFactory(server, player);
+                    break;
             }
 
-            return retBuilding;
+            foreach (var unitElement in buildingData.Units)
+            {
+                ret.spells.Add((byte)ret.spells.Count, new SpellData(0, null)
+                {
+                    AppleCost = unitElement.AppleCost,
+                    WoodCost = unitElement.WoodCost,
+                    CastTime = unitElement.CreationTime,
+                    GlueCost = unitElement.GlueCost,
+                    SupplyCost = unitElement.SupplyCost,
+                    IsBuildSpell = true,
+                    BuildType = unitElement.Type,
+                });
+            }
+
+            return ret;
         }
         public static BuildingBase CreateBuilding(BuildingTypes building, GameServer server, Player player)
         {

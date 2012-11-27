@@ -56,6 +56,7 @@
     <Compile Include="Algorithms\SpatialAStar.cs" />
     <Compile Include="BuildData.cs" />
     <Compile Include="BuildingData.cs" />
+    <Compile Include="BuildingXMLData.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Gamemode.cs" />
     <Compile Include="Globals.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="Protocol.cs" />
     <Compile Include="TiledMap.cs" />
     <Compile Include="UnitData.cs" />
+    <Compile Include="UnitXMLData.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Level\" />
