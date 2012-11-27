@@ -7,6 +7,14 @@
         Chat,
     }
 
+    public enum SpellTypes:byte
+    {
+        Normal,
+        Attack,
+        UnitCreation,
+        BuildingPlacement,
+    }
+
     public enum UnitSignature : byte
     {
         RallyCompleted = 0,
@@ -22,7 +30,6 @@
     {
         Default,
         Worker,
-        StandardWorker,
         Unicorn,
         //ToDo: Add stalkers and shit
     }
@@ -57,13 +64,6 @@
         Apple,
     }
 
-    public enum UnitBuildIds : byte
-    {
-        Worker = 0,
-    }
-
-    
-
     public enum WorkerSpellIds : byte
     {
         BuildHomeBase = 0,
@@ -81,13 +81,13 @@
 
     public class Factory
     {
-        public static  UnitBuildIds GetUnitBuildId(string str)
+        public static UnitTypes GetUnitId(string str)
         {
             switch (str.ToLower())
             {
                 default:
                 case "worker":
-                    return UnitBuildIds.Worker;
+                    return UnitTypes.Worker;
                     break;
             }
         }

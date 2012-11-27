@@ -366,7 +366,7 @@ namespace Server.Entities
             if(unitSetting == null) return new UnitBase(server, player);
 
             UnitBase retUnit = null;
-            switch (unitSetting.Name)
+            switch (unitSetting.Type)
             {
                 default:
                 case "default":
@@ -387,98 +387,10 @@ namespace Server.Entities
             foreach (var spellXmlData in unitSetting.Spells)
             {
                 var spellData = new SpellData(spellXmlData.EnergyCost, null);
-                spellData.IsBuildSpell = spellXmlData.IsBuildSpell;
+                spellData.SpellType = SpellTypes.BuildingPlacement;
                 spellData.BuildType = spellXmlData.BuildType;
-                retUnit.spells.Add((byte)retUnit.spells.Count, spellData);
-            }
-
-            return retUnit;
-
-            const string UNITFILE = "Resources/Data/Units.xml";
-            var xElement = XDocument.Load(UNITFILE);
-
-            var units = xElement.Elements("units").Elements("unit");
-
-            retUnit = null;
-
-            foreach (var element in units)
-            {
-                var unitName = element.Attribute("name").Value;
-
-                if (unitName.ToLower() != unit.ToLower()) continue;
-                var unitSpeed = Convert.ToSingle(element.Attribute("speed").Value);
-
-                var attackElement = element.Element("attack");
-                if(attackElement != null)
-                {
-
-                    var rangedUnit = false;
-                    var range = 0f;
-                    var damage = 0f;
-                    var rechargeTime = (ushort)0;
-                    var delayTime = (ushort)0;
-
-                    if(attackElement.Attribute("rangedUnit") != null)
-                        rangedUnit = Convert.ToBoolean(attackElement.Attribute("rangedUnit").Value);
-                    if (attackElement.Attribute("attackRange") != null)
-                        range = Convert.ToSingle(attackElement.Attribute("attackRange").Value);
-                    if (attackElement.Attribute("damage") != null)
-                        damage = Convert.ToSingle(attackElement.Attribute("damage").Value);
-                    if (attackElement.Attribute("rechargeTime") != null)
-                        rechargeTime = Convert.ToUInt16(attackElement.Attribute("rechargeTime").Value);
-                    if (attackElement.Attribute("delayTime") != null)
-                        delayTime = Convert.ToUInt16(attackElement.Attribute("delayTime").Value);
-
-                    switch (unitName.ToLower())
-                    {
-                        default:
-                        case "default":
-                            retUnit = new UnitBase(server, player);
-                            break;
-                        case "worker":
-                            retUnit = new Worker(server, player);
-                            break;
-                    }
-
-                    retUnit.RangedUnit = rangedUnit;
-                    retUnit.Range = range;
-                    retUnit.StandardAttackDamage = damage;
-                    retUnit.AttackRechargeTime = rechargeTime;
-                    retUnit.AttackDelay = delayTime;
-
-                    var spellElements = element.Elements("spells").Elements("spell");
-
-                    foreach (var spellElement in spellElements)
-                    {
-                        var isBuildSpell = false;
-                        var function = "";
-                        var energyCost = 0f;
-
-                        if(spellElement.Attribute("isBuildSpell") != null)
-                            isBuildSpell = Convert.ToBoolean(spellElement.Attribute("isBuildSpell").Value);
-                        if (spellElement.Attribute("function") != null)
-                            function = spellElement.Attribute("function").Value;
-                        if (spellElement.Attribute("energyCost") != null)
-                            energyCost = Convert.ToSingle(spellElement.Attribute("energyCost").Value);
-
-                        var spellData = new SpellData(energyCost, null);
-                        spellData.IsBuildSpell = isBuildSpell;
-                        spellData.EnergyCost = energyCost;
-
-                        switch (function.ToLower())
-                        {
-                            case "buildbase":
-                                spellData.BuildType = (byte)WorkerSpellIds.BuildHomeBase;
-                                break;
-                            case "buildsupply":
-                                spellData.BuildType = (byte) WorkerSpellIds.BuildSupplyBuilding;
-                                break;
-                            case "buildgluefactory":
-                                spellData.BuildType = (byte) WorkerSpellIds.BuildGlueFactory;
-                                break;
-                        }
-                    }
-                }
+                spellData.SpellDataString = spellXmlData.BuildString;
+                retUnit.spells.Add((byte)spellXmlData.BuildType, spellData);
             }
 
             return retUnit;

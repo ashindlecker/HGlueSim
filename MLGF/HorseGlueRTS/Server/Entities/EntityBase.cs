@@ -79,23 +79,30 @@ namespace Server.Entities
             var writer = new BinaryWriter(memory);
 
             writer.Write(spell);
-            if(!spells[spell].IsBuildSpell)
-                writer.Write(spells[spell].Function(x, y));
-            else
+            switch (spells[spell].SpellType)
             {
-                var worker = this as Worker;
-                if (worker != null)
-                {
-                    worker.AddBuildingToBuild(spells[spell].BuildType, x, y);
-                }
-                else
-                {
-                    var building = this as BuildingBase;
-                    if(building != null)
+                case SpellTypes.Normal:
+                    writer.Write(spells[spell].Function(x, y));
+                    break;
+                case SpellTypes.BuildingPlacement:
                     {
-                        building.StartProduce(spells[spell].BuildType);
+                        var worker = this as Worker;
+                        if (worker != null)
+                        {
+                            //worker.AddBuildingToBuild(spells[spell].BuildType, x, y);
+                            worker.AddBuildingToBuild(spells[spell].SpellDataString, x, y);
+                        }
                     }
-                }
+                    break;
+                case SpellTypes.UnitCreation:
+                    {
+                        var building = this as BuildingBase;
+                        if (building != null)
+                        {
+                            building.StartProduce(spells[spell].BuildType);
+                        }
+                    }
+                    break;
             }
 
             SendData(memory.ToArray(), Entity.Signature.Spell);
@@ -133,7 +140,7 @@ namespace Server.Entities
         }
 
         public void Move(float x, float y, Entity.RallyPoint.RallyTypes type = Entity.RallyPoint.RallyTypes.StandardMove,
-                         bool reset = false, bool send = true, byte buildData = 0, bool noclipLast = false)
+                         bool reset = false, bool send = true, byte buildData = 0, bool noclipLast = false, string extraData = "")
         {
             if (reset)
                 rallyPoints.Clear();
@@ -162,6 +169,7 @@ namespace Server.Entities
                                                 Y = node.Y*nodes.MapSize.Y + (nodes.MapSize.Y/2),
                                                 RallyType = rallyType,
                                                 BuildType = buildData,
+                                                RallyDataString = extraData,
                                             });
                     }
                 }
@@ -282,7 +290,10 @@ namespace Server.Entities
 
         public class SpellData
         {
-            public bool IsBuildSpell;
+            public SpellTypes SpellType;
+            //public bool IsBuildSpell;
+            public string SpellDataString;
+
             public byte BuildType;
 
             public ushort AppleCost;
@@ -295,7 +306,8 @@ namespace Server.Entities
 
             public SpellData(float engy, SpellResponseDelegate dDelegate)
             {
-                IsBuildSpell = false;
+                SpellDataString = "";
+                SpellType = SpellTypes.Normal;
                 BuildType = 0;
                 EnergyCost = engy;
                 Function = dDelegate;

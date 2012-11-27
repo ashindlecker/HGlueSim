@@ -210,17 +210,11 @@ namespace Server.Entities
 
         protected virtual BuildCompleteData onComplete(byte unit)
         {
-            switch ((UnitBuildIds)unit)
+            return new BuildCompleteData
             {
-                default:
-                case UnitBuildIds.Worker: //Worker
-                    return new BuildCompleteData
-                    {
-                        messageData = new byte[0],
-                        producedEntity = new StandardWorker(Server, MyPlayer)
-                    };
-                    break;
-            }
+                messageData = new byte[0],
+                producedEntity = UnitBase.CreateUnit((UnitTypes)unit, Server, MyPlayer)
+            };
         }
 
         protected virtual void onStartProduce(byte type)
@@ -233,7 +227,7 @@ namespace Server.Entities
             var buildingData = Settings.GetBuilding(building);
             if(buildingData == null) return new BuildingBase(server, player);
             BuildingBase ret = new BuildingBase(server, player);
-            switch (buildingData.Name.ToLower())
+            switch (buildingData.BuildingType.ToLower())
             {
                 default:
                     ret = new BuildingBase(server, player);
@@ -251,19 +245,23 @@ namespace Server.Entities
 
             foreach (var unitElement in buildingData.Units)
             {
-                ret.spells.Add((byte)ret.spells.Count, new SpellData(0, null)
+                ret.spells.Add((byte)unitElement.Type, new SpellData(0, null)
                 {
                     AppleCost = unitElement.AppleCost,
                     WoodCost = unitElement.WoodCost,
                     CastTime = unitElement.CreationTime,
                     GlueCost = unitElement.GlueCost,
                     SupplyCost = unitElement.SupplyCost,
-                    IsBuildSpell = true,
+                    SpellType = SpellTypes.UnitCreation,
                     BuildType = unitElement.Type,
                 });
             }
 
             return ret;
+        }
+        public static BuildingBase CreateBuilding(string building, GameServer server, Player player)
+        {
+            return CreateBuildingFromXML(building, server, player);
         }
         public static BuildingBase CreateBuilding(BuildingTypes building, GameServer server, Player player)
         {
@@ -271,13 +269,13 @@ namespace Server.Entities
             {
                     default:
                     case BuildingTypes.Base:
-                    return CreateBuildingFromXML("base", server, player);
+                    return CreateBuilding("base", server, player);
                     break;
                     case BuildingTypes.Supply:
-                    return CreateBuildingFromXML("supply", server, player);
+                    return CreateBuilding("supply", server, player);
                     break;
                     case BuildingTypes.GlueFactory:
-                    return CreateBuildingFromXML("gluefactory", server, player);
+                    return CreateBuilding("gluefactory", server, player);
                     break;
             }
 
