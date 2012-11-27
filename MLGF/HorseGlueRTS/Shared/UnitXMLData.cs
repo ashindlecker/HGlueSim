@@ -28,7 +28,8 @@ namespace Shared
         public ushort AttackRechargeTime;
         public ushort AttackDelay;
         public string Type; //Is this a worker, attacking unit, etc
-
+        public float Health;
+        public float MaxHealth;
         public List<SpellXMLData> Spells; 
 
         public UnitXMLData()
@@ -37,6 +38,8 @@ namespace Shared
             Speed = 0;
             Name = "";
             Type = "worker";
+            Health = 1;
+            MaxHealth = 0;
         }
 
         public static List<UnitXMLData> Load(string file)
@@ -57,6 +60,16 @@ namespace Shared
                 var typeAttribute = element.Attribute("type");
                 if(typeAttribute != null)
                     unitAdd.Type = typeAttribute.Value;
+
+
+                var health = element.Attribute("hp");
+                if (health != null)
+                    unitAdd.Health = Convert.ToSingle(health.Value);
+
+                var maxhealth = element.Attribute("maxhp");
+                if (maxhealth != null)
+                    unitAdd.MaxHealth = Convert.ToSingle(maxhealth.Value);
+
 
                 unitAdd.Name = unitName;
                 unitAdd.Speed = unitSpeed;

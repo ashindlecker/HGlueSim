@@ -14,7 +14,7 @@ namespace Server.Entities
     internal class BuildingBase : EntityBase
     {
         private readonly Stopwatch stopwatch;
-        protected List<byte> buildOrder;
+        protected List<string> buildOrder;
         private float elapsedBuildTime;
 
 
@@ -24,7 +24,7 @@ namespace Server.Entities
             BuildTime = 1000;
             elapsedBuildTime = 0;
 
-            buildOrder = new List<byte>();
+            buildOrder = new List<string>();
 
             EntityType = Entity.EntityType.Building;
             stopwatch = new Stopwatch();
@@ -85,14 +85,14 @@ namespace Server.Entities
             EntityToUse = null;
         }
 
-        public void StartProduce(byte type)
+        public void StartProduce(string type)
         {
             if (buildOrder.Count >= 5) return;
             bool allow = false;
 
             foreach (var spellData in spells)
             {
-                if (spellData.Value.BuildType == type)
+                if (spellData.Value.SpellDataString == type)
                 {
                     var buildProduceData = spellData.Value;
                     if (MyPlayer.Apples >= buildProduceData.AppleCost && MyPlayer.Glue >= buildProduceData.GlueCost &&
@@ -113,7 +113,7 @@ namespace Server.Entities
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);
 
-            writer.Write((byte) BuildingSignature.StartProduction);
+            writer.Write((byte)BuildingSignature.StartProduction);
             writer.Write(type);
 
             SendData(memory.ToArray(), Entity.Signature.Custom);
@@ -164,10 +164,11 @@ namespace Server.Entities
                     foreach (var spellData in spells)
                     {
                         
-                        if (spellData.Value.BuildType == buildOrder[0] &&
+                        if (spellData.Value.SpellDataString == buildOrder[0] &&
                             stopwatch.ElapsedMilliseconds >= spellData.Value.CastTime)
                         {
                             Complete();
+                            break;
                         }
                     }
                 }
@@ -208,16 +209,16 @@ namespace Server.Entities
         {
         }
 
-        protected virtual BuildCompleteData onComplete(byte unit)
+        protected virtual BuildCompleteData onComplete(string unit)
         {
             return new BuildCompleteData
             {
                 messageData = new byte[0],
-                producedEntity = UnitBase.CreateUnit((UnitTypes)unit, Server, MyPlayer)
+                producedEntity = UnitBase.CreateUnit(unit, Server, MyPlayer)
             };
         }
 
-        protected virtual void onStartProduce(byte type)
+        protected virtual void onStartProduce(string type)
         {
             //Usually blank
         }
@@ -245,7 +246,7 @@ namespace Server.Entities
 
             foreach (var unitElement in buildingData.Units)
             {
-                ret.spells.Add((byte)unitElement.Type, new SpellData(0, null)
+                ret.spells.Add((byte)ret.spells.Count, new SpellData(0, null)
                 {
                     AppleCost = unitElement.AppleCost,
                     WoodCost = unitElement.WoodCost,
@@ -253,10 +254,13 @@ namespace Server.Entities
                     GlueCost = unitElement.GlueCost,
                     SupplyCost = unitElement.SupplyCost,
                     SpellType = SpellTypes.UnitCreation,
-                    BuildType = unitElement.Type,
+                    //BuildType = unitElement.Type,
+                    SpellDataString = unitElement.UnitTypeString,
                 });
             }
-
+            ret.Health = buildingData.Health;
+            ret.MaxHealth = buildingData.MaxHealth;
+            ret.BuildTime = buildingData.BuildTime;
             return ret;
         }
         public static BuildingBase CreateBuilding(string building, GameServer server, Player player)

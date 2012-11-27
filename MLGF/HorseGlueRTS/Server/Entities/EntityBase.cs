@@ -99,7 +99,7 @@ namespace Server.Entities
                         var building = this as BuildingBase;
                         if (building != null)
                         {
-                            building.StartProduce(spells[spell].BuildType);
+                            building.StartProduce(spells[spell].SpellDataString);
                         }
                     }
                     break;

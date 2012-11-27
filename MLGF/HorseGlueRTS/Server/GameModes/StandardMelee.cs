@@ -91,7 +91,7 @@ namespace Server.GameModes
                             connection.Tag = nPlayer;
 
                             var home =// new HomeBuilding(Server, nPlayer);
-                            BuildingBase.CreateBuilding(BuildingTypes.Base, Server, nPlayer);
+                            BuildingBase.CreateBuilding("standardBase", Server, nPlayer);
                             home.Team = nPlayer.Team;
 
                             if (TiledMap.SpawnPoints.Count > players.Count - 1)
@@ -222,6 +222,7 @@ namespace Server.GameModes
                     }
                     break;
                 case InputSignature.CreateUnit:
+                    /*OBSOLETE
                     {
                         byte unitToCreate = reader.ReadByte();
                         byte unitCount = reader.ReadByte();
@@ -233,7 +234,6 @@ namespace Server.GameModes
                         /// We want to find the building that has the least producing units to make production faster and easier
                         /// For example, if the client has 2 buildings, and want to produce a zealot
                         /// If building 1 has a zealot in production, but building 2 is not in use, it'll choose building 2 to producte
-                        */
 
                         for (int i = 0; i < unitCount; i++)
                         {
@@ -259,6 +259,7 @@ namespace Server.GameModes
                         }
                     }
                     break;
+                    */
                 case InputSignature.ChangeUseEntity:
                     {
                         var player = (Player) client.Tag;

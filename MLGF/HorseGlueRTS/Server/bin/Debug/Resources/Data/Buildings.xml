@@ -1,16 +1,16 @@
 <buildings>
-	<building name="standardBase" type="base">
+	<building health="100" maxhp="100" name="standardBase" type="base" buildTime="1000">
 		<units>
 			<unit name="worker" wood="40" buildtime="1000"/>
 		</units>
 	</building>
 	
-	<building name="standardGrinder" type="gluefactory">
+	<building maxhp="100" name="standardGrinder" type="gluefactory" buildTime="1000">
 		<units>
 		</units>
 	</building>
 	
-	<building name="standardSupply" type="supply">
+	<building maxhp="100" name="standardSupply" type="supply" buildTime="1000">
 		<units>
 		</units>
 	</building>

@@ -18,7 +18,11 @@ namespace Shared
             public byte SupplyCost;
             public string UnitTypeString;
         }
-        
+
+        public float Health;
+        public float MaxHealth;
+        public ushort BuildTime;
+
         public string Name; //identifier for building
         public List<UnitXMLData> Units;
         public byte SupplyAdd;  //amount to add to player's max supply (usually for supply depos)
@@ -26,6 +30,9 @@ namespace Shared
 
         public BuildingXMLData()
         {
+            Health = 1;
+            MaxHealth = 0;
+            BuildTime = 0;
             BuildingType = "default";
             SupplyAdd = 0;
             Name = "";
@@ -42,13 +49,28 @@ namespace Shared
             foreach (var buildingElement in buildingElements)
             {
                 var addBuilding = new BuildingXMLData();
+
                 addBuilding.Name = buildingElement.Attribute("name").Value;
+
                 var supplyAttribute = buildingElement.Attribute("supply");
                 if (supplyAttribute != null)
                     addBuilding.SupplyAdd = Convert.ToByte(supplyAttribute.Value);
+
                 var type = buildingElement.Attribute("type");
                 if(type != null)
                     addBuilding.BuildingType = type.Value;
+
+                var health = buildingElement.Attribute("hp");
+                if (health != null)
+                    addBuilding.Health = Convert.ToSingle(health.Value);
+
+                var maxhealth = buildingElement.Attribute("maxhp");
+                if (maxhealth != null)
+                    addBuilding.MaxHealth = Convert.ToSingle(maxhealth.Value);
+
+                var buildingTime = buildingElement.Attribute("buildTime");
+                if (buildingTime != null)
+                    addBuilding.BuildTime= Convert.ToUInt16(buildingTime.Value);
 
                 var unitElements = buildingElement.Element("units").Elements("unit");
 

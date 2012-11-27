@@ -387,12 +387,20 @@ namespace Server.Entities
             foreach (var spellXmlData in unitSetting.Spells)
             {
                 var spellData = new SpellData(spellXmlData.EnergyCost, null);
-                spellData.SpellType = SpellTypes.BuildingPlacement;
-                spellData.BuildType = spellXmlData.BuildType;
+                spellData.SpellType = SpellTypes.Normal;
+                if(spellXmlData.IsBuildSpell)
+                    spellData.SpellType = SpellTypes.BuildingPlacement;
+
                 spellData.SpellDataString = spellXmlData.BuildString;
-                retUnit.spells.Add((byte)spellXmlData.BuildType, spellData);
+                spellData.WoodCost = spellXmlData.WoodCost;
+                spellData.EnergyCost = spellXmlData.EnergyCost;
+                spellData.AppleCost = spellXmlData.AppleCost;
+                spellData.GlueCost = spellXmlData.GlueCost;
+                retUnit.spells.Add((byte)retUnit.spells.Count, spellData);
             }
 
+            retUnit.Health = unitSetting.Health;
+            retUnit.MaxHealth = unitSetting.MaxHealth;
             return retUnit;
         }
 
@@ -415,6 +423,10 @@ namespace Server.Entities
             }
 
             return retUnit;
+        }
+        public static UnitBase CreateUnit(string unit, GameServer server, Player player)
+        {
+            return LoadUnitFromXML(unit, server, player);
         }
     }
 }
