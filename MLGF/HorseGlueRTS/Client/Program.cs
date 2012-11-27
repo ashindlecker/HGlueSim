@@ -1,20 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using Client.GameModes;
 using Client.GameStates;
 using SFML.Graphics;
 using SFML.Window;
-using System.Diagnostics;
-using Shared;
 
 namespace Client
 {
-    class Program
+    internal class Program
     {
-        static GameClient client = new GameClient();
+        private static readonly GameClient client = new GameClient();
 
         public static RenderWindow window = new RenderWindow(new VideoMode(1200, 720), "Game", Styles.Default,
                                                              new ContextSettings(32, 32, 10, 0, 100));
@@ -22,7 +17,7 @@ namespace Client
         public static Random MRandom;
 
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             MRandom = new Random();
 
@@ -39,20 +34,19 @@ namespace Client
             //client.Connect(Console.ReadLine(), 5555);
             client.Connect("localhost", 5555);
 
-            Stopwatch stopwatch = new Stopwatch();
+            var stopwatch = new Stopwatch();
             stopwatch.Restart();
 
-            GameStateManager manager = new GameStateManager();
+            var manager = new GameStateManager();
             manager.SwitchState(new MainMenuState(), null);
 
 
-            while(window.IsOpen())
+            while (window.IsOpen())
             {
-
                 window.DispatchEvents();
                 window.Clear(new Color(100, 100, 200));
 
-                var dt = (float)(stopwatch.Elapsed.TotalSeconds * 1000);
+                var dt = (float) (stopwatch.Elapsed.TotalSeconds*1000);
                 stopwatch.Restart();
 
                 client.Update(dt);
@@ -61,18 +55,12 @@ namespace Client
                 //manager.Update(dt);
                 //manager.Render(window);
                 window.Display();
-                
             }
         }
 
-        private static void WindowOnMouseButtonReleased(object sender, MouseButtonEventArgs mouseButtonEventArgs)
+        private static void WindowOnClosed(object sender, EventArgs eventArgs)
         {
-            client.GameMode.MouseRelease(mouseButtonEventArgs.Button, mouseButtonEventArgs.X, mouseButtonEventArgs.Y);
-        }
-
-        private static void WindowOnKeyReleased(object sender, KeyEventArgs keyEventArgs)
-        {
-            client.GameMode.KeyRelease(keyEventArgs);
+            ((Window) sender).Close();
         }
 
         private static void WindowOnKeyPressed(object sender, KeyEventArgs keyEventArgs)
@@ -80,20 +68,24 @@ namespace Client
             client.GameMode.KeyPress(keyEventArgs);
         }
 
+        private static void WindowOnKeyReleased(object sender, KeyEventArgs keyEventArgs)
+        {
+            client.GameMode.KeyRelease(keyEventArgs);
+        }
+
         private static void WindowOnMouseButtonPressed(object sender, MouseButtonEventArgs mouseButtonEventArgs)
         {
             client.GameMode.MouseClick(mouseButtonEventArgs.Button, mouseButtonEventArgs.X, mouseButtonEventArgs.Y);
         }
 
+        private static void WindowOnMouseButtonReleased(object sender, MouseButtonEventArgs mouseButtonEventArgs)
+        {
+            client.GameMode.MouseRelease(mouseButtonEventArgs.Button, mouseButtonEventArgs.X, mouseButtonEventArgs.Y);
+        }
+
         private static void WindowOnMouseMoved(object sender, MouseMoveEventArgs mouseMoveEventArgs)
         {
             client.GameMode.MouseMoved(mouseMoveEventArgs.X, mouseMoveEventArgs.Y);
-        }
-
-
-        private static void WindowOnClosed(object sender, EventArgs eventArgs)
-        {
-            ((Window)sender).Close();
         }
     }
 }

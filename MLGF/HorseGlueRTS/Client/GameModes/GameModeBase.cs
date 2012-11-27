@@ -1,54 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Drawing;
 using System.IO;
 using Client.Effects;
 using Client.Entities;
 using Client.Level;
-using SettlersEngine;
-using Shared;
+using SFML.Audio;
 using SFML.Graphics;
 using SFML.Window;
-using System.Threading;
-using SFML.Audio;
+using SettlersEngine;
+using Shared;
 
 namespace Client.GameModes
 {
     internal abstract class GameModeBase
     {
-        public class HUDAlert
-        {
-            public enum AlertTypes : byte
-            {
-                CreatedUnit,
-                UnitUnderAttack,
-                UnitCreated,
-                BuildingCompleted
-            }
-
-            public AlertTypes Type;
-            public float Alpha;
-        }
-
-        protected Level.TileMap map;
-        protected SpatialAStar<PathNode, object> pathFinding; 
-
-        protected Dictionary<ushort, EntityBase> entities;
-        protected Dictionary<byte, Player> players;
-
-        protected List<Effects.EffectBase> Effects; 
-
         protected const float ALERTFADESPEED = .05f;
+        protected List<EffectBase> Effects;
         protected List<HUDAlert> alerts;
+        protected Sound attackSound_Cliff;
 
         protected Sound deathSound_Cliff;
+        protected Dictionary<ushort, EntityBase> entities;
+        protected Sound gatherResourceSound_Cliff;
+        protected TileMap map;
+        protected SpatialAStar<PathNode, object> pathFinding;
+        protected Dictionary<byte, Player> players;
         protected Sound unitCompleteSound_Worker;
         protected Sound useSound_Cliff;
-        protected Sound gatherResourceSound_Cliff;
-        protected Sound attackSound_Cliff;
-        
+
+        public Dictionary<ushort, EntityBase> EntityBases
+        {
+            get { return entities; }
+        }
+
         public GameModeBase()
         {
             map = new TileMap();
@@ -68,17 +53,49 @@ namespace Client.GameModes
             attackSound_Cliff = new Sound(ExternalResources.GSoundBuffer("Resources/Audio/OnAttack/0.wav"));
         }
 
+        public void AddAlert(HUDAlert.AlertTypes type)
+        {
+            alerts.Add(new HUDAlert {Alpha = 255, Type = type});
+        }
 
-        public void AddEffect(Effects.EffectBase effect)
+
+        public void AddEffect(EffectBase effect)
         {
             effect.MyGamemode = this;
             Effects.Add(effect);
         }
 
-        public void RemoveEffect(Effects.EffectBase effect)
+        private void AddEntity(EntityBase entity, ushort id)
         {
-            Effects.Remove(effect);
+            if (entities.ContainsKey(id) == false)
+            {
+                entity.MyGameMode = this;
+                entity.WorldId = id;
+                entities.Add(id, entity);
+            }
         }
+
+        public virtual void KeyPress(KeyEventArgs keyEvent)
+        {
+        }
+
+        public virtual void KeyRelease(KeyEventArgs keyEvent)
+        {
+        }
+
+        public virtual void MouseClick(Mouse.Button button, int x, int y)
+        {
+        }
+
+        public virtual void MouseMoved(int x, int y)
+        {
+        }
+
+        public virtual void MouseRelease(Mouse.Button button, int x, int y)
+        {
+        }
+
+        protected abstract void ParseCustom(MemoryStream memory);
 
         public void ParseData(MemoryStream stream)
         {
@@ -92,7 +109,7 @@ namespace Client.GameModes
                     break;
                 case Gamemode.Signature.Entity:
                     {
-                        var id = reader.ReadUInt16();
+                        ushort id = reader.ReadUInt16();
                         if (entities.ContainsKey(id))
                             entities[id].ParseData(stream);
                     }
@@ -100,7 +117,7 @@ namespace Client.GameModes
                 case Gamemode.Signature.MapLoad:
                     ParseMap(stream);
                     break;
-                    case Gamemode.Signature.TiledMapLoad:
+                case Gamemode.Signature.TiledMapLoad:
                     {
                         var tiledMap = new TiledMap();
                         tiledMap.Load(stream);
@@ -113,12 +130,13 @@ namespace Client.GameModes
                     break;
                 case Gamemode.Signature.EntityAdd:
                     {
-                        var id = reader.ReadUInt16();
-                        var entityType = reader.ReadByte();
+                        ushort id = reader.ReadUInt16();
+                        byte entityType = reader.ReadByte();
                         EntityBase entity = EntityBase.EntityFactory(entityType);
                         entity.Type = (Entity.EntityType) entityType;
                         entity.WorldEntities = entities;
                         entity.WorldId = id;
+                        entity.MyGameMode = this;
                         entity.LoadFromBytes(stream);
                         AddEntity(entity, id);
                         entity.SetTeam(reader.ReadByte());
@@ -126,16 +144,17 @@ namespace Client.GameModes
                     break;
                 case Gamemode.Signature.EntityLoad:
                     {
-                        var count = reader.ReadUInt16();
-                        for (var i = 0; i < count; i++)
+                        ushort count = reader.ReadUInt16();
+                        for (int i = 0; i < count; i++)
                         {
-                            var entId = reader.ReadUInt16();
-                            var entType = reader.ReadByte();
-                            var entAdd = EntityBase.EntityFactory(entType);
-                            entAdd.Type = (Entity.EntityType)entType;
+                            ushort entId = reader.ReadUInt16();
+                            byte entType = reader.ReadByte();
+                            EntityBase entAdd = EntityBase.EntityFactory(entType);
+                            entAdd.Type = (Entity.EntityType) entType;
                             entAdd.WorldEntities = entities;
                             entAdd.LoadFromBytes(stream);
                             entAdd.WorldId = entId;
+                            entAdd.MyGameMode = this;
                             AddEntity(entAdd, entId);
                             entAdd.SetTeam(reader.ReadByte());
                         }
@@ -143,7 +162,7 @@ namespace Client.GameModes
                     break;
                 case Gamemode.Signature.PlayerData:
                     {
-                        var playerId = reader.ReadByte();
+                        byte playerId = reader.ReadByte();
                         if (players.ContainsKey(playerId))
                         {
                             players[playerId].Load(stream);
@@ -152,8 +171,8 @@ namespace Client.GameModes
                     break;
                 case Gamemode.Signature.PlayersLoad:
                     {
-                        var count = reader.ReadByte();
-                        for (var i = 0; i < count; i++)
+                        byte count = reader.ReadByte();
+                        for (int i = 0; i < count; i++)
                         {
                             var playerAdd = new Player();
                             playerAdd.Load(stream);
@@ -166,7 +185,7 @@ namespace Client.GameModes
                     break;
                 case Gamemode.Signature.RemoveEntity:
                     {
-                        var id = reader.ReadUInt16();
+                        ushort id = reader.ReadUInt16();
                         if (entities.ContainsKey(id))
                         {
                             entities[id].OnDeath();
@@ -176,52 +195,52 @@ namespace Client.GameModes
                     break;
                 case Gamemode.Signature.GroupMovement:
                     {
-                        var x = reader.ReadSingle();
-                        var y = reader.ReadSingle();
-                        var reset = reader.ReadBoolean();
-                        var attack = reader.ReadBoolean();
-                        var count = reader.ReadByte();
+                        float x = reader.ReadSingle();
+                        float y = reader.ReadSingle();
+                        bool reset = reader.ReadBoolean();
+                        bool attack = reader.ReadBoolean();
+                        byte count = reader.ReadByte();
 
-                        for (var i = 0; i < count; i++)
+                        for (int i = 0; i < count; i++)
                         {
-                            var id = reader.ReadUInt16();
+                            ushort id = reader.ReadUInt16();
                             if (!entities.ContainsKey(id)) continue;
                             if (reset)
                                 entities[id].ClearRally();
 
-                            var startPos = entities[id].Position;
+                            Vector2f startPos = entities[id].Position;
                             if (!reset && entities[id].rallyPoints.Count > 0)
                             {
                                 startPos = entities[id].rallyPoints[entities[id].rallyPoints.Count - 1];
                             }
 
-                            var path = PathFindNodes(startPos.X, startPos.Y, x, y);
+                            PathFindReturn path = PathFindNodes(startPos.X, startPos.Y, x, y);
 
                             if (path.List == null) continue;
 
-                            foreach (var pathNode in path.List)
+                            foreach (PathNode pathNode in path.List)
                             {
                                 if (pathNode == path.List.First.Value) continue;
                                 var pos =
-                                    new Vector2f(pathNode.X * path.MapSize.X + (path.MapSize.X / 2),
-                                                 pathNode.Y * path.MapSize.Y + (path.MapSize.Y / 2));
+                                    new Vector2f(pathNode.X*path.MapSize.X + (path.MapSize.X/2),
+                                                 pathNode.Y*path.MapSize.Y + (path.MapSize.Y/2));
                                 entities[id].Move(pos.X, pos.Y);
                             }
                         }
                     }
                     break;
-                    case Gamemode.Signature.SetCamera:
+                case Gamemode.Signature.SetCamera:
                     {
                         SetCamera(reader.ReadByte(), new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
                     }
                     break;
-                    case Gamemode.Signature.UpdatePosition:
+                case Gamemode.Signature.UpdatePosition:
                     {
-                        var unitId = reader.ReadUInt16();
-                        var posX = reader.ReadSingle();
-                        var posY = reader.ReadSingle();
-                        
-                        if(entities.ContainsKey(unitId))
+                        ushort unitId = reader.ReadUInt16();
+                        float posX = reader.ReadSingle();
+                        float posY = reader.ReadSingle();
+
+                        if (entities.ContainsKey(unitId))
                         {
                             entities[unitId].Position = new Vector2f(posX, posY);
                         }
@@ -230,38 +249,12 @@ namespace Client.GameModes
             }
         }
 
-        public abstract void SetCamera(byte id, Vector2f pos);
+        protected abstract void ParseHandshake(MemoryStream memory);
 
-        private void AddEntity(EntityBase entity, ushort id)
-        {
-            if (entities.ContainsKey(id) == false)
-            {
-                entity.MyGameMode = this;
-                entity.WorldId = id;
-                entities.Add(id, entity);
-            }
-        }
-
-        public void AddAlert(HUDAlert.AlertTypes type)
-        {
-            alerts.Add(new HUDAlert() { Alpha = 255, Type = type });
-        }
-
-        protected abstract void ParseCustom(MemoryStream memory);
         protected virtual void ParseMap(MemoryStream memory)
         {
             map.LoadFromBytes(memory);
             pathFinding = new SpatialAStar<PathNode, object>(map.GetPathNodeMap());
-        }
-        protected abstract void ParseHandshake(MemoryStream memory);
-
-        public abstract void Update(float ms);
-        public abstract void Render(RenderTarget target);
-
-        public class PathFindReturn
-        {
-            public LinkedList<PathNode> List;
-            public Vector2i MapSize;
         }
 
         public virtual PathFindReturn PathFindNodes(float sx, float sy, float x, float y)
@@ -271,44 +264,37 @@ namespace Client.GameModes
             sy /= map.TileSize.Y;
             y /= map.TileSize.Y;
 
-            if (sx < 0 || sy < 0 || x < 0 || y < 0 || sx >= map.Tiles.GetLength(0) || x >= map.Tiles.GetLength(0) || sy >= map.Tiles.GetLength(1) || y >= map.Tiles.GetLength(1))
+            if (sx < 0 || sy < 0 || x < 0 || y < 0 || sx >= map.Tiles.GetLength(0) || x >= map.Tiles.GetLength(0) ||
+                sy >= map.Tiles.GetLength(1) || y >= map.Tiles.GetLength(1))
             {
-                return new PathFindReturn()
-                {
-                    List = null,
-                    MapSize = map.TileSize,
-                };
+                return new PathFindReturn
+                           {
+                               List = null,
+                               MapSize = map.TileSize,
+                           };
             }
-            var path =
+            LinkedList<PathNode> path =
                 pathFinding.Search(
-                    new System.Drawing.Point((int)sx,
-                              (int)sy),
-                    new System.Drawing.Point((int)x,
-                              (int)y), null);
+                    new Point((int) sx,
+                              (int) sy),
+                    new Point((int) x,
+                              (int) y), null);
 
 
-            return new PathFindReturn()
-            {
-                List = path,
-                MapSize = map.TileSize,
-            };
+            return new PathFindReturn
+                       {
+                           List = path,
+                           MapSize = map.TileSize,
+                       };
         }
 
-        protected virtual void PlaySound(Sound sound)
+        public virtual void PlayAttackSound(ExternalResources.AttackSounds sounds)
         {
-            //TODO: Set sound properties based on player's camera 
-            sound.Volume = Settings.SOUNDVOLUME;
-            if(sound.Status != SoundStatus.Playing)
-                sound.Play();
-        }
-
-        public virtual void PlayUnitFinishedSound(Entity.EntityType type)
-        {
-            switch (type)
+            switch (sounds)
             {
                 default:
-                case Entity.EntityType.Worker:
-                    PlaySound(unitCompleteSound_Worker);
+                case ExternalResources.AttackSounds.CliffGetFucked:
+                    PlaySound(attackSound_Cliff);
                     break;
             }
         }
@@ -324,17 +310,6 @@ namespace Client.GameModes
             }
         }
 
-        public virtual void PlayUseSound(ExternalResources.UseSounds sounds)
-        {
-            switch (sounds)
-            {
-                default:
-                case ExternalResources.UseSounds.CliffUsing:
-                    PlaySound(useSound_Cliff);
-                    break;
-            }
-        }
-
         public virtual void PlayGatherResourcesSound(ExternalResources.ResourceSounds sounds)
         {
             switch (sounds)
@@ -346,30 +321,43 @@ namespace Client.GameModes
             }
         }
 
-        public virtual void PlayAttackSound(ExternalResources.AttackSounds sounds)
+        protected virtual void PlaySound(Sound sound)
         {
-            switch(sounds)
+            //TODO: Set sound properties based on player's camera 
+            sound.Volume = Settings.SOUNDVOLUME;
+            if (sound.Status != SoundStatus.Playing)
+                sound.Play();
+        }
+
+        public virtual void PlayUnitFinishedSound(Entity.EntityType type)
+        {
+            switch (type)
             {
                 default:
-                    case ExternalResources.AttackSounds.CliffGetFucked:
-                    PlaySound(attackSound_Cliff);
+                case Entity.EntityType.Worker:
+                    PlaySound(unitCompleteSound_Worker);
                     break;
             }
         }
 
-        protected void UpdateAlerts(float ms)
+        public virtual void PlayUseSound(ExternalResources.UseSounds sounds)
         {
-            var readonlyAlerts = new List<HUDAlert>(alerts);
-
-            foreach (var hudAlert in readonlyAlerts)
+            switch (sounds)
             {
-                hudAlert.Alpha -= ALERTFADESPEED*ms;
-                if(hudAlert.Alpha <= 0)
-                {
-                    alerts.Remove(hudAlert);
-                }
+                default:
+                case ExternalResources.UseSounds.CliffUsing:
+                    PlaySound(useSound_Cliff);
+                    break;
             }
         }
+
+        public void RemoveEffect(EffectBase effect)
+        {
+            Effects.Remove(effect);
+        }
+
+        public abstract void Render(RenderTarget target);
+        public abstract void SetCamera(byte id, Vector2f pos);
 
         protected void SpaceUnits(float ms)
         {
@@ -380,58 +368,87 @@ namespace Client.GameModes
 
             float spaceAngle = 0;
 
-            foreach (var entityBase in readOnlyList.Values)
+            foreach (EntityBase entityBase in readOnlyList.Values)
             {
                 //TODO: Add Unit Type Enum so we don't have to use an "is" check
                 //Workers have to be able to go through units because it disrupts mining
-                if (spacedUnits.Contains(entityBase.WorldId) || entityBase.rallyPoints.Count > 0 || !(entityBase is UnitBase)) continue;
+                if (spacedUnits.Contains(entityBase.WorldId) || entityBase.rallyPoints.Count > 0 ||
+                    !(entityBase is UnitBase)) continue;
 
-                var entRect = new FloatRect(entityBase.Position.X - (Shared.Globals.SPACE_BOUNDS / 2),
-                                            entityBase.Position.Y - (Shared.Globals.SPACE_BOUNDS / 2), Shared.Globals.SPACE_BOUNDS, Shared.Globals.SPACE_BOUNDS);
+                var entRect = new FloatRect(entityBase.Position.X - (Globals.SPACE_BOUNDS/2),
+                                            entityBase.Position.Y - (Globals.SPACE_BOUNDS/2), Globals.SPACE_BOUNDS,
+                                            Globals.SPACE_BOUNDS);
 
-                float cosine = (float)Math.Cos(spaceAngle);
-                float sine = (float)Math.Sin(spaceAngle);
+                var cosine = (float) Math.Cos(spaceAngle);
+                var sine = (float) Math.Sin(spaceAngle);
 
-                foreach (var checkEntity in readOnlyList.Values)
+                foreach (EntityBase checkEntity in readOnlyList.Values)
                 {
-                    if (!spacedUnits.Contains(checkEntity.WorldId) && checkEntity != entityBase && checkEntity is UnitBase)
+                    if (!spacedUnits.Contains(checkEntity.WorldId) && checkEntity != entityBase &&
+                        checkEntity is UnitBase)
                     {
-                        var checkRect = new FloatRect(checkEntity.Position.X - (Shared.Globals.SPACE_BOUNDS / 2),
-                                                      checkEntity.Position.Y - (Shared.Globals.SPACE_BOUNDS / 2), Shared.Globals.SPACE_BOUNDS,
-                                                      Shared.Globals.SPACE_BOUNDS);
+                        var checkRect = new FloatRect(checkEntity.Position.X - (Globals.SPACE_BOUNDS/2),
+                                                      checkEntity.Position.Y - (Globals.SPACE_BOUNDS/2),
+                                                      Globals.SPACE_BOUNDS,
+                                                      Globals.SPACE_BOUNDS);
                         if (entRect.Intersects(checkRect))
                         {
-                            entityBase.Position += new Vector2f((Shared.Globals.SPACING_SPEED * cosine) * ms, (Shared.Globals.SPACING_SPEED * sine) * ms);
+                            entityBase.Position += new Vector2f((Globals.SPACING_SPEED*cosine)*ms,
+                                                                (Globals.SPACING_SPEED*sine)*ms);
                             spacedUnits.Add(checkEntity.WorldId);
                         }
                     }
                 }
-                spaceAngle += Shared.Globals.SPACE_ANGLE_INCREASE;
+                spaceAngle += Globals.SPACE_ANGLE_INCREASE;
             }
         }
 
-        public virtual void MouseMoved(int x, int y)
+        public abstract void Update(float ms);
+
+        protected void UpdateAlerts(float ms)
         {
+            var readonlyAlerts = new List<HUDAlert>(alerts);
+
+            foreach (HUDAlert hudAlert in readonlyAlerts)
+            {
+                hudAlert.Alpha -= ALERTFADESPEED*ms;
+                if (hudAlert.Alpha <= 0)
+                {
+                    alerts.Remove(hudAlert);
+                }
+            }
         }
 
-        public virtual void MouseClick(Mouse.Button button, int x, int y)
+        #region Nested type: HUDAlert
+
+        public class HUDAlert
         {
-            
+            #region AlertTypes enum
+
+            public enum AlertTypes : byte
+            {
+                CreatedUnit,
+                UnitUnderAttack,
+                UnitCreated,
+                BuildingCompleted
+            }
+
+            #endregion
+
+            public float Alpha;
+            public AlertTypes Type;
         }
 
-        public virtual void MouseRelease(Mouse.Button button, int x, int y)
-        {
+        #endregion
 
+        #region Nested type: PathFindReturn
+
+        public class PathFindReturn
+        {
+            public LinkedList<PathNode> List;
+            public Vector2i MapSize;
         }
 
-        public virtual void KeyPress(KeyEventArgs keyEvent)
-        {
-            
-        }
-
-        public virtual void KeyRelease(KeyEventArgs keyEvent)
-        {
-
-        }
+        #endregion
     }
 }

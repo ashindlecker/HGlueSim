@@ -1,28 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SFML.Graphics;
 using SFML.Window;
 using Shared;
-using SFML.Graphics;
 
 namespace Client.Level
 {
-    class TileMap : STileMap, ILoadable
+    internal class TileMap : STileMap, ILoadable
     {
-        private List<Sprite> tiles = new List<Sprite>();
+        private readonly List<Sprite> tiles = new List<Sprite>();
 
-        public override void ApplyLevel(TiledMap level)
-        {
-            base.ApplyLevel(level);
-            foreach (var tileSets in MyMap.TileSets)
-            {
-                var sprites = TileSheet.GrabSprites(ExternalResources.GTexture(tileSets.ImageSource), tileSets.TileSize, new Vector2i(0, 0));
-                tiles.AddRange(sprites);
-            }
-        }
+        #region ILoadable Members
 
         public void LoadFromBytes(MemoryStream data)
         {
@@ -42,7 +31,20 @@ namespace Client.Level
             }
         }
 
-        public void Render(RenderTarget target)
+        #endregion
+
+        public override void ApplyLevel(TiledMap level)
+        {
+            base.ApplyLevel(level);
+            foreach (TiledMap.TileSet tileSets in MyMap.TileSets)
+            {
+                List<Sprite> sprites = TileSheet.GrabSprites(ExternalResources.GTexture(tileSets.ImageSource),
+                                                             tileSets.TileSize, new Vector2i(0, 0));
+                tiles.AddRange(sprites);
+            }
+        }
+
+        public void Render(RenderTarget target, FloatRect screenBounds)
         {
             /*
             var spriteSheet =
@@ -76,21 +78,34 @@ namespace Client.Level
             }
              * */
 
-            if(MyMap == null) return;
-            foreach (var layers in MyMap.TileLayers)
+            if (MyMap == null) return;
+
+            int startX = (int)(screenBounds.Left/TileSize.X);
+            int startY = (int)(screenBounds.Top/TileSize.Y);
+            int endX = (int)((screenBounds.Left + screenBounds.Width) / TileSize.X);
+            int endY = (int)((screenBounds.Top + screenBounds.Height) / TileSize.Y);
+            endX++;
+            endY++;
+
+            startX = Math.Max(startX, 0);
+            startY = Math.Max(startY, 0);
+            endX = Math.Min(endX, Tiles.GetLength(0));
+            endY = Math.Min(endY, Tiles.GetLength(1));
+
+            foreach (TiledMap.TileLayer layers in MyMap.TileLayers)
             {
-                for(var y = 0; y < layers.GIds.GetLength(1); y++)
+                for (int y = startY; y < endY; y++)
                 {
-                    for(var x = 0; x < layers.GIds.GetLength(0); x++)
+                    for (int x = startX; x < endX; x++)
                     {
-                        if (layers.GIds[x,y] == 0 || layers.GIds[x, y] - 1 >= tiles.Count) continue;
-                        var sprite = tiles[(int) layers.GIds[x, y] - 1];
+                        if (layers.GIds[x, y] == 0 || layers.GIds[x, y] - 1 >= tiles.Count) continue;
+
+                        Sprite sprite = tiles[(int) layers.GIds[x, y] - 1];
                         sprite.Position = new Vector2f(x*TileSize.X, y*TileSize.Y);
                         target.Draw(sprite);
                     }
                 }
             }
         }
-
     }
 }

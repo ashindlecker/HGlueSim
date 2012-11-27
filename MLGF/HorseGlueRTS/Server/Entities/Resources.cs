@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using Shared;
-using System.IO;
 
 namespace Server.Entities
 {
-    class Resources : EntityBase
+    internal class Resources : EntityBase
     {
-
         public ushort RemainingResources;
-        protected byte resourcesPerTrip;
         public ResourceTypes ResourceType;
+        protected byte resourcesPerTrip;
 
 
         public Resources(GameServer _server, Player player) : base(_server, player)
@@ -27,28 +21,9 @@ namespace Server.Entities
             RemoveOnNoHealth = false;
         }
 
-        protected override byte[] UseResponse(EntityBase user)
-        {
-            if(user.EntityType == Entity.EntityType.Worker)
-            {
-                var toGive = resourcesPerTrip;
-                if(RemainingResources < resourcesPerTrip)
-                {
-                    toGive = (byte)RemainingResources;
-                }
-                RemainingResources -= toGive;
-
-                var workerCast = (Worker) user;
-                workerCast.GiveResource(ResourceType, toGive);
-            }
-
-            return base.UseResponse(user);
-        }
-
 
         public override void Update(float ms)
         {
-
         }
 
         public override byte[] UpdateData()
@@ -65,5 +40,22 @@ namespace Server.Entities
             return memory.ToArray();
         }
 
+        protected override byte[] UseResponse(EntityBase user)
+        {
+            if (user.EntityType == Entity.EntityType.Worker)
+            {
+                byte toGive = resourcesPerTrip;
+                if (RemainingResources < resourcesPerTrip)
+                {
+                    toGive = (byte) RemainingResources;
+                }
+                RemainingResources -= toGive;
+
+                var workerCast = (Worker) user;
+                workerCast.GiveResource(ResourceType, toGive);
+            }
+
+            return base.UseResponse(user);
+        }
     }
 }

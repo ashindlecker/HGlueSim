@@ -1,24 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using SFML.Graphics;
-using SFML.Window;
 using Shared;
 
 namespace Client.Entities
 {
-    class Worker : UnitBase
+    internal class Worker : UnitBase
     {
         public ResourceTypes HeldResource;
         public byte ResourceCount;
-
-        public bool IsHoldingResources
-        {
-            get { return ResourceCount > 0; }
-        }
 
         public Worker()
         {
@@ -28,6 +17,11 @@ namespace Client.Entities
             SpriteFolder = "Worker";
         }
 
+        public bool IsHoldingResources
+        {
+            get { return ResourceCount > 0; }
+        }
+
         public void GiveResource(ResourceTypes type, byte amount)
         {
             if (!IsHoldingResources)
@@ -35,6 +29,26 @@ namespace Client.Entities
                 HeldResource = type;
                 ResourceCount = amount;
             }
+        }
+
+        public override void OnUseChange(EntityBase entity)
+        {
+            base.OnUseChange(entity);
+            MyGameMode.PlayUseSound(ExternalResources.UseSounds.CliffUsing);
+        }
+
+        protected override void ParseUpdate(MemoryStream memoryStream)
+        {
+            base.ParseUpdate(memoryStream);
+
+            var reader = new BinaryReader(memoryStream);
+            HeldResource = (ResourceTypes) reader.ReadByte();
+            ResourceCount = reader.ReadByte();
+        }
+
+        public override void Render(RenderTarget target)
+        {
+            base.Render(target);
         }
 
         protected override void onSetIdleAnimation()
@@ -53,26 +67,6 @@ namespace Client.Entities
             {
                 CurrentAnimation = AnimationTypes.MovingWithResources;
             }
-        }
-
-        public override void OnUseChange(EntityBase entity)
-        {
-            base.OnUseChange(entity);
-            MyGameMode.PlayUseSound(ExternalResources.UseSounds.CliffUsing);
-        }
-
-        public override void Render(RenderTarget target)
-        {
-            base.Render(target);
-        }
-
-        protected override void ParseUpdate(MemoryStream memoryStream)
-        {
-            base.ParseUpdate(memoryStream);
-
-            var reader = new BinaryReader(memoryStream);
-            HeldResource = (ResourceTypes)reader.ReadByte();
-            ResourceCount = reader.ReadByte();
         }
     }
 }

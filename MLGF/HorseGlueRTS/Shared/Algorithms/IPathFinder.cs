@@ -1,89 +1,48 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
-using Algorithms;
 using System.Drawing;
 
 namespace Algorithms
 {
     [Author("Franco, Gustavo")]
-    interface IPathFinder
+    internal interface IPathFinder
     {
         #region Events
+
         event PathFinderDebugHandler PathFinderDebug;
+
         #endregion
 
         #region Properties
-        bool Stopped
-        {
-            get;
-        }
 
-        HeuristicFormula Formula
-        {
-            get;
-            set;
-        }
+        bool Stopped { get; }
 
-        bool Diagonals
-        {
-            get;
-            set;
-        }
+        HeuristicFormula Formula { get; set; }
 
-        bool HeavyDiagonals
-        {
-            get;
-            set;
-        }
+        bool Diagonals { get; set; }
 
-        int HeuristicEstimate
-        {
-            get;
-            set;
-        }
+        bool HeavyDiagonals { get; set; }
 
-        bool PunishChangeDirection
-        {
-            get;
-            set;
-        }
+        int HeuristicEstimate { get; set; }
 
-        bool TieBreaker
-        {
-            get;
-            set;
-        }
+        bool PunishChangeDirection { get; set; }
 
-        int SearchLimit
-        {
-            get;
-            set;
-        }
+        bool TieBreaker { get; set; }
 
-        double CompletedTime
-        {
-            get;
-            set;
-        }
+        int SearchLimit { get; set; }
 
-        bool DebugProgress
-        {
-            get;
-            set;
-        }
+        double CompletedTime { get; set; }
 
-        bool DebugFoundPath
-        {
-            get;
-            set;
-        }
+        bool DebugProgress { get; set; }
+
+        bool DebugFoundPath { get; set; }
+
         #endregion
 
         #region Methods
-        void FindPathStop();
-        List<PathFinderNode> FindPath(Point start, Point end);
-        #endregion
 
+        List<PathFinderNode> FindPath(Point start, Point end);
+        void FindPathStop();
+
+        #endregion
     }
 }

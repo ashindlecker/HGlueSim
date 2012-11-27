@@ -1,29 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SFML.Graphics;
+﻿using SFML.Graphics;
 using SFML.Window;
 
 namespace Client.Effects
 {
-    class GlueParticle : EffectBase
+    internal class GlueParticle : EffectBase
     {
-        private float fadeSpeed;
-
         private static Texture[] glueSprites;
+        private readonly Vector2f Position;
+        private readonly float fadeSpeed;
 
-        private Sprite mySprite;
+        private readonly Sprite mySprite;
 
         private float alpha;
 
-        private Vector2f Position;
-        
 
         public GlueParticle(Vector2f Pos)
         {
-            if(glueSprites == null)
+            if (glueSprites == null)
             {
                 glueSprites = new Texture[3];
                 glueSprites[0] = ExternalResources.GTexture("Resources/Sprites/GlueParticles/0.png");
@@ -31,7 +24,7 @@ namespace Client.Effects
                 glueSprites[2] = ExternalResources.GTexture("Resources/Sprites/GlueParticles/2.png");
             }
 
-            fadeSpeed = (float)Program.MRandom.NextDouble();
+            fadeSpeed = (float) Program.MRandom.NextDouble();
             fadeSpeed += .01f;
             fadeSpeed /= 2;
             mySprite = new Sprite(glueSprites[Program.MRandom.Next(0, glueSprites.Length)]);
@@ -45,20 +38,20 @@ namespace Client.Effects
             Position.Y += Program.MRandom.Next(-SPACING, SPACING);
         }
 
+        public override void Render(RenderTarget target)
+        {
+            mySprite.Color = new Color(255, 255, 255, (byte) alpha);
+            mySprite.Position = Position;
+            target.Draw(mySprite);
+        }
+
         public override void Update(float ms)
         {
             alpha -= ms*fadeSpeed;
-            if(alpha <= 0)
+            if (alpha <= 0)
             {
                 MyGamemode.RemoveEffect(this);
             }
-        }
-
-        public override void Render(SFML.Graphics.RenderTarget target)
-        {
-            mySprite.Color = new Color(255,255,255,(byte)alpha);
-            mySprite.Position = Position;
-            target.Draw(mySprite);
         }
     }
 }

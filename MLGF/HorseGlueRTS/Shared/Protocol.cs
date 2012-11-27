@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Shared
+﻿namespace Shared
 {
     public enum Protocol : byte
     {
@@ -22,6 +16,22 @@ namespace Shared
         ChangeMovementAllow = 4,
         StartAttack = 5,
         GrabbingResources = 6,
+    }
+
+    public enum UnitTypes : byte
+    {
+        Default,
+        Worker,
+        StandardWorker,
+        Unicorn,
+        //ToDo: Add stalkers and shit
+    }
+
+    public enum BuildingTypes : byte
+    {
+        Base,
+        Supply,
+        GlueFactory,
     }
 
     public enum BuildingSignature : byte

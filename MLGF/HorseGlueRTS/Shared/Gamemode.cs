@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Shared
+﻿namespace Shared
 {
     public class Gamemode
     {
+        #region Signature enum
+
         public enum Signature : byte
         {
             Custom,
@@ -26,5 +22,7 @@ namespace Shared
             SetCamera,
             UpdatePosition,
         }
+
+        #endregion
     }
 }

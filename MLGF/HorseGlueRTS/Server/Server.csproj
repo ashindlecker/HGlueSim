@@ -61,6 +61,7 @@
     <Compile Include="Entities\Buildings\SupplyBuilding.cs" />
     <Compile Include="Entities\EntityBase.cs" />
     <Compile Include="Entities\Buildings\HomeBuilding.cs" />
+    <Compile Include="Entities\Projectiles\ProjectileBase.cs" />
     <Compile Include="Entities\Resources.cs" />
     <Compile Include="Entities\ResourceUnloadArea.cs" />
     <Compile Include="Entities\UnitBase.cs" />

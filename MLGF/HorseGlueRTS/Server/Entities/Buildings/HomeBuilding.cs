@@ -1,50 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Server.Entities.Units;
 using Shared;
 
 namespace Server.Entities
 {
-    class HomeBuilding : BuildingBase
+    internal class HomeBuilding : BuildingBase
     {
-
         public HomeBuilding(GameServer server, Player plr) : base(server, plr)
         {
             BuildTime = 2000;
             EntityType = Entity.EntityType.HomeBuilding;
 
-            supportedBuilds.Add(new BuildProduceData()
+            /*
+            supportedBuilds.Add(new BuildProduceData
                                     {
                                         id = 0,
                                         AppleCost = 0,
-                                        WoodCost = 0,
+                                        WoodCost = 50,
                                         GlueCost = 0,
                                         SupplyCost = 1,
-                                        CreationTime = 10,
+                                        CreationTime = 7000,
                                     });
+             */
         }
 
-
-        protected override BuildingBase.BuildCompleteData onComplete(byte unit)
-        {
-            switch ((UnitBuildIds)unit)
-            {
-                default:
-                case UnitBuildIds.Worker: //Worker
-                    return new BuildCompleteData()
-                    {
-                        messageData = new byte[0],
-                        producedEntity = new Units.StandardWorker(Server, MyPlayer)
-                    };
-                    break;
-            }
-        }
 
         protected override byte[] UseResponse(EntityBase user)
         {
-            if(user.Team == Team && user.EntityType == Entity.EntityType.Worker)
+            if (user.Team == Team && user.EntityType == Entity.EntityType.Worker)
             {
                 var workerCast = (Worker) user;
 
@@ -71,5 +53,6 @@ namespace Server.Entities
             }
             return base.UseResponse(user);
         }
+
     }
 }

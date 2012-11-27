@@ -1,21 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
+﻿using System.IO;
 
 namespace Shared
 {
     public class Player
     {
-        public ushort Glue;
-        public ushort Wood;
-        public ushort Apples;
-        public byte Supply;
-        public byte UsedSupply;
-        public byte ClientId;
-        public byte Team;
+        #region StatusTypes enum
 
         public enum StatusTypes
         {
@@ -23,12 +12,17 @@ namespace Shared
             Left,
         }
 
-        public StatusTypes Status;
+        #endregion
 
-        public int FreeSupply
-        {
-            get { return Supply - UsedSupply; }
-        }
+        public ushort Apples;
+        public byte ClientId;
+        public ushort Glue;
+
+        public StatusTypes Status;
+        public byte Supply;
+        public byte Team;
+        public byte UsedSupply;
+        public ushort Wood;
 
         public Player()
         {
@@ -42,6 +36,11 @@ namespace Shared
             Status = StatusTypes.InGame;
         }
 
+        public int FreeSupply
+        {
+            get { return Supply - UsedSupply; }
+        }
+
         public void Load(MemoryStream memory)
         {
             var reader = new BinaryReader(memory);
@@ -53,7 +52,7 @@ namespace Shared
             ClientId = reader.ReadByte();
             Team = reader.ReadByte();
             UsedSupply = reader.ReadByte();
-            Status = (StatusTypes)reader.ReadByte();
+            Status = (StatusTypes) reader.ReadByte();
         }
 
         public byte[] ToBytes()

@@ -24,8 +24,7 @@ THE SOFTWARE.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Drawing;
 
 namespace SettlersEngine
 {
@@ -40,10 +39,14 @@ namespace SettlersEngine
         public Int32 Y { get; set; }
         public Boolean IsWall { get; set; }
 
+        #region IPathNode<object> Members
+
         public bool IsWalkable(Object unused)
         {
             return !IsWall;
         }
+
+        #endregion
     }
 
     public interface IIndexedObject
@@ -56,62 +59,23 @@ namespace SettlersEngine
     /// </summary>
     public class SpatialAStar<TPathNode, TUserContext> where TPathNode : IPathNode<TUserContext>
     {
-        private OpenCloseMap m_ClosedSet;
-        private OpenCloseMap m_OpenSet;
-        private PriorityQueue<PathNode> m_OrderedOpenSet;
-        private PathNode[,] m_CameFrom;
-        private OpenCloseMap m_RuntimeGrid;
-        private PathNode[,] m_SearchSpace;
-
-        public TPathNode[,] SearchSpace { get; private set; }
-        public int Width { get; private set; }
-        public int Height { get; private set; }
-
-        protected class PathNode : IPathNode<TUserContext>, IComparer<PathNode>, IIndexedObject
-        {
-            public static readonly PathNode Comparer = new PathNode(0, 0, default(TPathNode));
-
-            public TPathNode UserContext { get; internal set; }
-            public Double G { get; internal set; }
-            public Double H { get; internal set; }
-            public Double F { get; internal set; }
-            public int Index { get; set; }
-
-            public Boolean IsWalkable(TUserContext inContext)
-            {
-                return UserContext.IsWalkable(inContext);
-            }
-
-            public int X { get; internal set; }
-            public int Y { get; internal set; }
-
-            public int Compare(PathNode x, PathNode y)
-            {
-                if (x.F < y.F)
-                    return -1;
-                else if (x.F > y.F)
-                    return 1;
-
-                return 0;
-            }
-
-            public PathNode(int inX, int inY, TPathNode inUserContext)
-            {
-                X = inX;
-                Y = inY;
-                UserContext = inUserContext;
-            }
-        }
+        private static readonly Double SQRT_2 = Math.Sqrt(2);
+        private readonly PathNode[,] m_CameFrom;
+        private readonly OpenCloseMap m_ClosedSet;
+        private readonly OpenCloseMap m_OpenSet;
+        private readonly PriorityQueue<PathNode> m_OrderedOpenSet;
+        private readonly OpenCloseMap m_RuntimeGrid;
+        private readonly PathNode[,] m_SearchSpace;
 
         public SpatialAStar(TPathNode[,] inGrid)
         {
             SearchSpace = inGrid;
             Width = inGrid.GetLength(0);
             Height = inGrid.GetLength(1);
-            m_SearchSpace = new PathNode[Width, Height];
+            m_SearchSpace = new PathNode[Width,Height];
             m_ClosedSet = new OpenCloseMap(Width, Height);
             m_OpenSet = new OpenCloseMap(Width, Height);
-            m_CameFrom = new PathNode[Width, Height];
+            m_CameFrom = new PathNode[Width,Height];
             m_RuntimeGrid = new OpenCloseMap(Width, Height);
             m_OrderedOpenSet = new PriorityQueue<PathNode>(PathNode.Comparer);
 
@@ -127,12 +91,14 @@ namespace SettlersEngine
             }
         }
 
+        public TPathNode[,] SearchSpace { get; private set; }
+        public int Width { get; private set; }
+        public int Height { get; private set; }
+
         protected virtual Double Heuristic(PathNode inStart, PathNode inEnd)
         {
-            return Math.Sqrt((inStart.X - inEnd.X) * (inStart.X - inEnd.X) + (inStart.Y - inEnd.Y) * (inStart.Y - inEnd.Y));
+            return Math.Sqrt((inStart.X - inEnd.X)*(inStart.X - inEnd.X) + (inStart.Y - inEnd.Y)*(inStart.Y - inEnd.Y));
         }
-
-        private static readonly Double SQRT_2 = Math.Sqrt(2);
 
         protected virtual Double NeighborDistance(PathNode inStart, PathNode inEnd)
         {
@@ -141,9 +107,12 @@ namespace SettlersEngine
 
             switch (diffX + diffY)
             {
-                case 1: return 1;
-                case 2: return SQRT_2;
-                case 0: return 0;
+                case 1:
+                    return 1;
+                case 2:
+                    return SQRT_2;
+                case 0:
+                    return 0;
                 default:
                     throw new ApplicationException();
             }
@@ -151,11 +120,34 @@ namespace SettlersEngine
 
         //private List<Int64> elapsed = new List<long>();
 
+        private LinkedList<TPathNode> ReconstructPath(PathNode[,] came_from, PathNode current_node)
+        {
+            var result = new LinkedList<TPathNode>();
+
+            ReconstructPathRecursive(came_from, current_node, result);
+
+            return result;
+        }
+
+        private void ReconstructPathRecursive(PathNode[,] came_from, PathNode current_node, LinkedList<TPathNode> result)
+        {
+            PathNode item = came_from[current_node.X, current_node.Y];
+
+            if (item != null)
+            {
+                ReconstructPathRecursive(came_from, item, result);
+
+                result.AddLast(current_node.UserContext);
+            }
+            else
+                result.AddLast(current_node.UserContext);
+        }
+
         /// <summary>
         /// Returns null, if no path is found. Start- and End-Node are included in returned path. The user context
         /// is passed to IsWalkable().
         /// </summary>
-        public LinkedList<TPathNode> Search(System.Drawing.Point inStartNode, System.Drawing.Point inEndNode, TUserContext inUserContext)
+        public LinkedList<TPathNode> Search(Point inStartNode, Point inEndNode, TUserContext inUserContext)
         {
             PathNode startNode = m_SearchSpace[inStartNode.X, inStartNode.Y];
             PathNode endNode = m_SearchSpace[inEndNode.X, inEndNode.Y];
@@ -164,9 +156,9 @@ namespace SettlersEngine
             //watch.Start();
 
             if (startNode == endNode)
-                return new LinkedList<TPathNode>(new TPathNode[] { startNode.UserContext });
+                return new LinkedList<TPathNode>(new[] {startNode.UserContext});
 
-            PathNode[] neighborNodes = new PathNode[8];
+            var neighborNodes = new PathNode[8];
 
             m_ClosedSet.Clear();
             m_OpenSet.Clear();
@@ -199,7 +191,7 @@ namespace SettlersEngine
 
                 if (x == endNode)
                 {
-                   // watch.Stop();
+                    // watch.Stop();
 
                     //elapsed.Add(watch.ElapsedMilliseconds);
 
@@ -271,29 +263,6 @@ namespace SettlersEngine
             return null;
         }
 
-        private LinkedList<TPathNode> ReconstructPath(PathNode[,] came_from, PathNode current_node)
-        {
-            LinkedList<TPathNode> result = new LinkedList<TPathNode>();
-
-            ReconstructPathRecursive(came_from, current_node, result);
-
-            return result;
-        }
-
-        private void ReconstructPathRecursive(PathNode[,] came_from, PathNode current_node, LinkedList<TPathNode> result)
-        {
-            PathNode item = came_from[current_node.X, current_node.Y];
-
-            if (item != null)
-            {
-                ReconstructPathRecursive(came_from, item, result);
-
-                result.AddLast(current_node.UserContext);
-            }
-            else
-                result.AddLast(current_node.UserContext);
-        }
-
         private void StoreNeighborNodes(PathNode inAround, PathNode[] inNeighbors)
         {
             int x = inAround.X;
@@ -340,43 +309,36 @@ namespace SettlersEngine
                 inNeighbors[7] = null;
         }
 
+        #region Nested type: OpenCloseMap
+
         private class OpenCloseMap
         {
-            private PathNode[,] m_Map;
+            private readonly PathNode[,] m_Map;
+
+            public OpenCloseMap(int inWidth, int inHeight)
+            {
+                m_Map = new PathNode[inWidth,inHeight];
+                Width = inWidth;
+                Height = inHeight;
+            }
+
             public int Width { get; private set; }
             public int Height { get; private set; }
             public int Count { get; private set; }
 
             public PathNode this[Int32 x, Int32 y]
             {
-                get
-                {
-                    return m_Map[x, y];
-                }
+                get { return m_Map[x, y]; }
             }
 
             public PathNode this[PathNode Node]
             {
-                get
-                {
-                    return m_Map[Node.X, Node.Y];
-                }
-
+                get { return m_Map[Node.X, Node.Y]; }
             }
 
             public bool IsEmpty
             {
-                get
-                {
-                    return Count == 0;
-                }
-            }
-
-            public OpenCloseMap(int inWidth, int inHeight)
-            {
-                m_Map = new PathNode[inWidth, inHeight];
-                Width = inWidth;
-                Height = inHeight;
+                get { return Count == 0; }
             }
 
             public void Add(PathNode inValue)
@@ -390,6 +352,19 @@ namespace SettlersEngine
 
                 Count++;
                 m_Map[inValue.X, inValue.Y] = inValue;
+            }
+
+            public void Clear()
+            {
+                Count = 0;
+
+                for (int x = 0; x < Width; x++)
+                {
+                    for (int y = 0; y < Height; y++)
+                    {
+                        m_Map[x, y] = null;
+                    }
+                }
             }
 
             public bool Contains(PathNode inValue)
@@ -419,19 +394,61 @@ namespace SettlersEngine
                 Count--;
                 m_Map[inValue.X, inValue.Y] = null;
             }
-
-            public void Clear()
-            {
-                Count = 0;
-
-                for (int x = 0; x < Width; x++)
-                {
-                    for (int y = 0; y < Height; y++)
-                    {
-                        m_Map[x, y] = null;
-                    }
-                }
-            }
         }
+
+        #endregion
+
+        #region Nested type: PathNode
+
+        protected class PathNode : IPathNode<TUserContext>, IComparer<PathNode>, IIndexedObject
+        {
+            public static readonly PathNode Comparer = new PathNode(0, 0, default(TPathNode));
+
+            public PathNode(int inX, int inY, TPathNode inUserContext)
+            {
+                X = inX;
+                Y = inY;
+                UserContext = inUserContext;
+            }
+
+            public TPathNode UserContext { get; internal set; }
+            public Double G { get; internal set; }
+            public Double H { get; internal set; }
+            public Double F { get; internal set; }
+
+            public int X { get; internal set; }
+            public int Y { get; internal set; }
+
+            #region IComparer<SpatialAStar<TPathNode,TUserContext>.PathNode> Members
+
+            public int Compare(PathNode x, PathNode y)
+            {
+                if (x.F < y.F)
+                    return -1;
+                else if (x.F > y.F)
+                    return 1;
+
+                return 0;
+            }
+
+            #endregion
+
+            #region IIndexedObject Members
+
+            public int Index { get; set; }
+
+            #endregion
+
+            #region IPathNode<TUserContext> Members
+
+            public Boolean IsWalkable(TUserContext inContext)
+            {
+                return UserContext.IsWalkable(inContext);
+            }
+
+            #endregion
+        }
+
+        #endregion
     }
 }

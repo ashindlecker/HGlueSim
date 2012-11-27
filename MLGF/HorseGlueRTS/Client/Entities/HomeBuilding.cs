@@ -1,27 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SFML.Graphics;
 using Shared;
 
 namespace Client.Entities
 {
-    class HomeBuilding : BuildingBase
+    internal class HomeBuilding : BuildingBase
     {
         public HomeBuilding()
         {
             BuildTime = 2000;
 
-            supportedBuilds.Add(new BuildProduceData()
-            {
-                id = 0,
-                AppleCost = 0,
-                WoodCost = 0,
-                GlueCost = 0,
-                SupplyCost = 0,
-                CreationTime = 10,
-            });
+            supportedBuilds.Add(new BuildProduceData
+                                    {
+                                        id = 0,
+                                        AppleCost = 0,
+                                        WoodCost = 0,
+                                        GlueCost = 0,
+                                        SupplyCost = 0,
+                                        CreationTime = 7000,
+                                    });
 
             SetSprites();
         }
@@ -30,10 +26,12 @@ namespace Client.Entities
         {
             base.SetTeam(team);
 
-            var standardSprites = ExternalResources.GetSprites("Resources/Sprites/HomeBase/" + team.ToString() + "/" + "Standard/");
+            Sprite[] standardSprites =
+                ExternalResources.GetSprites("Resources/Sprites/HomeBase/" + team.ToString() + "/" + "Standard/");
             Sprites[AnimationTypes.Standard].Sprites.AddRange(standardSprites);
 
-            var producingSprites = ExternalResources.GetSprites("Resources/Sprites/HomeBase/" + team.ToString() + "/" + "Producing/");
+            Sprite[] producingSprites =
+                ExternalResources.GetSprites("Resources/Sprites/HomeBase/" + team.ToString() + "/" + "Producing/");
             Sprites[AnimationTypes.Producing].Sprites.AddRange(producingSprites);
 
             SetSprites();
@@ -42,13 +40,11 @@ namespace Client.Entities
         public override void Use(EntityBase user)
         {
             base.Use(user);
-            if(user is Worker)
+            if (user is Worker)
             {
                 var workerCast = (Worker) user;
                 workerCast.ResourceCount = 0;
             }
         }
-
-
     }
 }

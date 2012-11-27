@@ -1,27 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Shared
+﻿namespace Shared
 {
     public class STileBase
     {
-        public enum TileType:byte
+        #region TileType enum
+
+        public enum TileType : byte
         {
             Grass,
             Water,
             Stone,
         }
 
-        public TileType Type;
+        #endregion
+
+        public bool DynamicSolid;
+
         public int GridX, GridY;
         public bool Solid;
+        public TileType Type;
 
 
         //Changes typically from buildings
-        public bool DynamicSolid;
 
         public STileBase()
         {
@@ -31,6 +30,5 @@ namespace Shared
             Solid = false;
             DynamicSolid = false;
         }
-
     }
 }

@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Shared;
-using System.IO;
+﻿using Shared;
 
 namespace Server.Entities.Buildings
 {
-    class SupplyBuilding : BuildingBase
+    internal class SupplyBuilding : BuildingBase
     {
         public byte SupplyAdd;
 

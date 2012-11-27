@@ -1,35 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Shared;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using SFML.Window;
+using Server.Entities.Buildings;
+using Shared;
 
 namespace Server.Entities
 {
-    class Worker : UnitBase
+    internal class Worker : UnitBase
     {
-        public ResourceTypes heldResource;
-        public byte resourceCount;
-
-        public ushort GatherResourceTime; //How long it takes to gather a resource in milliseconds
-
-        private Stopwatch passedGatherTime;
+        private const float moveUpdateDelay = 3000; //3 seconds
+        private readonly Stopwatch passedGatherTime;
 
         //The worker should constantly move towards it's target, but not flood the client
-        private Stopwatch updatedMovePositionTimer;
-        private const float moveUpdateDelay = 3000; //3 seconds
+        private readonly Stopwatch updatedMovePositionTimer;
+        public ushort GatherResourceTime; //How long it takes to gather a resource in milliseconds
+        public ResourceTypes heldResource;
 
         private ResourceTypes lastResourceHeld;
+        public byte resourceCount;
 
-
-        public bool IsHoldingResources
-        {
-            get { return (resourceCount > 0); }
-        }
 
         public Worker(GameServer server, Player mPlayer) : base(server, mPlayer)
         {
@@ -50,10 +40,41 @@ namespace Server.Entities
             updatedMovePositionTimer.Start();
         }
 
-        public override void OnPlayerCustomMove()
+        public bool IsHoldingResources
         {
-            base.OnPlayerCustomMove();
-            EntityToUse = null;
+            get { return (resourceCount > 0); }
+        }
+
+        public void AddBuildingToBuild(byte type, float x, float y)
+        {
+            Move(x, y, Entity.RallyPoint.RallyTypes.Build, false, true, type);
+        }
+
+        protected TYPE GetClosest<TYPE>(Entity.EntityType eType, ResourceTypes rType = ResourceTypes.Apple)
+            where TYPE : EntityBase
+        {
+            float shortest = 0;
+            TYPE ret = null;
+
+            foreach (EntityBase entity in MyGameMode.WorldEntities.Values)
+            {
+                if (entity.EntityType != eType)
+                    continue;
+                if (entity.Neutral == false)
+                {
+                    if (entity.Team != Team)
+                        continue;
+                }
+                if (entity is Resources && (((Resources) entity).ResourceType != rType || entity.UseCount > 3)) continue;
+
+                float distance = Math.Abs(Position.X - entity.Position.X) + Math.Abs(Position.Y - entity.Position.Y);
+                if (ret == null || distance < shortest)
+                {
+                    shortest = distance;
+                    ret = (TYPE) entity;
+                }
+            }
+            return ret;
         }
 
         public void GiveResource(ResourceTypes type, byte amount)
@@ -65,16 +86,52 @@ namespace Server.Entities
             }
         }
 
-        public override byte[] UpdateData()
+
+        protected virtual EntityBase OnPlaceBuilding(byte type, float x, float y)
         {
-            var memory = new MemoryStream();
-            var writer = new BinaryWriter(memory);
+            switch (type)
+            {
+                case (byte) WorkerSpellIds.BuildSupplyBuilding: //Supply building
+                    return new SupplyBuilding(Server, MyPlayer, 12);
+                    break;
+                case (byte) WorkerSpellIds.BuildHomeBase: //Home base
+                    return new HomeBuilding(Server, MyPlayer);
+                    break;
+                case (byte) WorkerSpellIds.BuildGlueFactory: //Glue Factory
+                    return new GlueFactory(Server, MyPlayer);
+                    break;
+            }
+            return null;
+        }
 
-            writer.Write(base.UpdateData());
-            writer.Write((byte)heldResource);
-            writer.Write(resourceCount);
+        public override void OnPlayerCustomMove()
+        {
+            base.OnPlayerCustomMove();
+            EntityToUse = null;
+        }
 
-            return memory.ToArray();
+        protected override void OnRallyPointCompleted(Entity.RallyPoint rally)
+        {
+            base.OnRallyPointCompleted(rally);
+            if (rally.RallyType == Entity.RallyPoint.RallyTypes.Build)
+            {
+                if (spells.ContainsKey(rally.BuildType))
+                {
+                    if (spells[rally.BuildType].AppleCost <= MyPlayer.Apples &&
+                        spells[rally.BuildType].GlueCost <= MyPlayer.Glue &&
+                        spells[rally.BuildType].WoodCost <= MyPlayer.Wood)
+                    {
+                        MyPlayer.Apples -= spells[rally.BuildType].AppleCost;
+                        MyPlayer.Glue -= spells[rally.BuildType].GlueCost;
+                        MyPlayer.Wood -= spells[rally.BuildType].WoodCost;
+                    }
+                }
+                EntityBase ent = OnPlaceBuilding(rally.BuildType, rally.X, rally.Y);
+                ent.Position = new Vector2f(rally.X, rally.Y);
+                ent.Team = Team;
+                MyGameMode.AddEntity(ent);
+                MyGameMode.UpdatePlayer(MyPlayer);
+            }
         }
 
         protected override byte[] SetEntityToUseResponse(EntityBase toUse)
@@ -85,30 +142,27 @@ namespace Server.Entities
             return base.SetEntityToUseResponse(toUse);
         }
 
-        private void moveToUsedEntity(EntityBase toUse)
+        private void StartGatheringResources()
         {
-            if (toUse != null)
-            {
-                Move(toUse.Position.X, toUse.Position.Y,
-                     noclipLast: (toUse.EntityType == Entity.EntityType.HomeBuilding || toUse.EntityType == Entity.EntityType.GlueFactory));
-            }
+            passedGatherTime.Restart();
+            SendData(new byte[1] {(byte) UnitSignature.GrabbingResources}, Entity.Signature.Custom);
         }
 
-        protected void AddBuildingToBuild(byte type, float x, float y)
+        private void StopGatheringResources()
         {
-            Move(x, y, Entity.RallyPoint.RallyTypes.Build, false, true, type);
+            passedGatherTime.Reset();
+            passedGatherTime.Stop();
         }
 
         public override void Update(float ms)
         {
             base.Update(ms);
 
-            if(EntityToUse != null)
+            if (EntityToUse != null)
             {
                 if (RangeBounds().Contains(EntityToUse.Position.X, EntityToUse.Position.Y))
                 {
-
-                    if(EntityToUse.EntityType == Entity.EntityType.Resources)
+                    if (EntityToUse.EntityType == Entity.EntityType.Resources)
                     {
                         if (passedGatherTime.IsRunning == false && IsHoldingResources == false)
                         {
@@ -121,11 +175,11 @@ namespace Server.Entities
                             EntityToUse.Use(this);
                             StopGatheringResources();
                         }
-                        else if(IsHoldingResources == true)
+                        else if (IsHoldingResources)
                         {
                             lastResourceHeld = heldResource;
                             //Go to closest base if availible
-                            EntityBase homeEntity = GetClosest<EntityBase>(Entity.EntityType.HomeBuilding);
+                            var homeEntity = GetClosest<EntityBase>(Entity.EntityType.HomeBuilding);
                             if (homeEntity != null)
                                 SetEntityToUse(homeEntity);
                             else
@@ -136,7 +190,8 @@ namespace Server.Entities
                             }
                         }
                     }
-                    else if(EntityToUse.EntityType == Entity.EntityType.HomeBuilding || EntityToUse.EntityType == Entity.EntityType.ResourceUnloadSpot)
+                    else if (EntityToUse.EntityType == Entity.EntityType.HomeBuilding ||
+                             EntityToUse.EntityType == Entity.EntityType.ResourceUnloadSpot)
                     {
                         if (EntityToUse.Team != Team)
                         {
@@ -149,7 +204,8 @@ namespace Server.Entities
 
                             //Go back to closest resource field
 
-                            EntityBase resourceEntity = GetClosest<EntityBase>(Entity.EntityType.Resources, lastResourceHeld);
+                            var resourceEntity = GetClosest<EntityBase>(Entity.EntityType.Resources,
+                                                                        lastResourceHeld);
                             if (resourceEntity != null)
                                 SetEntityToUse(resourceEntity);
                         }
@@ -179,69 +235,27 @@ namespace Server.Entities
             }
         }
 
-        private void StartGatheringResources()
+        public override byte[] UpdateData()
         {
-            passedGatherTime.Restart();
-            SendData(new byte[1]{(byte)UnitSignature.GrabbingResources}, Entity.Signature.Custom);
+            var memory = new MemoryStream();
+            var writer = new BinaryWriter(memory);
+
+            writer.Write(base.UpdateData());
+            writer.Write((byte) heldResource);
+            writer.Write(resourceCount);
+
+            return memory.ToArray();
         }
 
-        private void StopGatheringResources()
+        private void moveToUsedEntity(EntityBase toUse)
         {
-            passedGatherTime.Reset();
-            passedGatherTime.Stop();
-        }
-
-        protected override void OnRallyPointCompleted(Entity.RallyPoint rally)
-        {
-            base.OnRallyPointCompleted(rally);
-            if(rally.RallyType == Entity.RallyPoint.RallyTypes.Build)
+            if (toUse != null)
             {
-                if(spells.ContainsKey(rally.BuildType))
-                {
-                    if(spells[rally.BuildType].AppleCost <= MyPlayer.Apples && spells[rally.BuildType].GlueCost <= MyPlayer.Glue && spells[rally.BuildType].WoodCost <= MyPlayer.Wood)
-                    {
-                        MyPlayer.Apples -= spells[rally.BuildType].AppleCost;
-                        MyPlayer.Glue -= spells[rally.BuildType].GlueCost;
-                        MyPlayer.Wood -= spells[rally.BuildType].WoodCost;
-                    }
-                }
-                var ent = OnPlaceBuilding(rally.BuildType, rally.X, rally.Y);
-                ent.Position = new Vector2f(rally.X, rally.Y);
-                ent.Team = Team;
-                MyGameMode.AddEntity(ent);
-                MyGameMode.UpdatePlayer(MyPlayer);
+                Move(toUse.Position.X, toUse.Position.Y,
+                     noclipLast:
+                         (toUse.EntityType == Entity.EntityType.HomeBuilding ||
+                          toUse.EntityType == Entity.EntityType.GlueFactory));
             }
-        }
-
-        protected virtual EntityBase OnPlaceBuilding(byte type, float x, float y)
-        {
-            return null;
-        }
-
-        protected TYPE GetClosest<TYPE>(Entity.EntityType eType, ResourceTypes rType = ResourceTypes.Apple) where TYPE:EntityBase
-        {
-            float shortest = 0;
-            TYPE ret = null;
-
-            foreach (var entity in MyGameMode.WorldEntities.Values)
-            {
-                if (entity.EntityType != eType)
-                    continue;
-                if(entity.Neutral == false)
-                {
-                    if(entity.Team != Team)
-                    continue;
-                }
-                if(entity is Resources && ((Resources)entity).ResourceType != rType) continue;
-
-                float distance = Math.Abs(Position.X - entity.Position.X) + Math.Abs(Position.Y - entity.Position.Y);
-                if (ret == null || distance < shortest)
-                {
-                    shortest = distance;
-                    ret = (TYPE)entity;
-                }
-            }
-            return ret;
         }
     }
 }

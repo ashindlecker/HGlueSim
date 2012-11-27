@@ -1,0 +1,7 @@
+<buildings>
+	<building name="Base">
+		<units>
+			<unit name="worker" wood="50" buildtime="5000"/>
+		</units>
+	</building>
+</buildings>

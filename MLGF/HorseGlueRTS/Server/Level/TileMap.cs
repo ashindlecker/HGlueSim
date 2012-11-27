@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SFML.Window;
-using System.IO;
+﻿using System.IO;
 using Shared;
 
 namespace Server.Level
 {
-    class TileMap : Shared.STileMap, ISavable
+    internal class TileMap : STileMap, ISavable
     {
+        #region ISavable Members
+
         public byte[] ToBytes()
         {
             var memory = new MemoryStream();
@@ -18,7 +14,7 @@ namespace Server.Level
 
             writer.Write(MapSize.X);
             writer.Write(MapSize.Y);
-            
+
             for (int x = 0; x < MapSize.X; x++)
             {
                 for (int y = 0; y < MapSize.Y; y++)
@@ -30,10 +26,11 @@ namespace Server.Level
             return memory.ToArray();
         }
 
+        #endregion
+
         protected override STileBase GetTileFromGID(TiledMap.TileLayer layer, uint id)
         {
             return new TileBase();
         }
-
     }
 }

@@ -67,6 +67,7 @@
     <Compile Include="Entities\EntityBase.cs" />
     <Compile Include="Entities\GlueFactory.cs" />
     <Compile Include="Entities\HomeBuilding.cs" />
+    <Compile Include="Entities\Projectile.cs" />
     <Compile Include="Entities\Resources.cs" />
     <Compile Include="Entities\SupplyBuilding.cs" />
     <Compile Include="Entities\UnitBase.cs" />

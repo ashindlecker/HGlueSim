@@ -1,0 +1,8 @@
+<units>
+	<unit name="worker" speed="100">
+		<attack rangedUnit="true" attackRange="100000" damage="10" delayTime="100" rechargeTime="1000" />
+		<spells>
+			<spell isBuildSpell="true" function="buildBase" energyCost="0"/>
+		</spells>
+	</unit>
+</units>

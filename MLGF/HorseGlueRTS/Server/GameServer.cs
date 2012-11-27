@@ -1,26 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-
-using Lidgren.Network;
-using Shared;
 using System.IO;
+using System.Threading;
+using Lidgren.Network;
 using Server.GameModes;
-using System.Diagnostics;
-
+using Shared;
 
 namespace Server
 {
-    class GameServer
+    internal class GameServer
     {
-        private NetServer server;
+        private readonly List<byte> sendBuffer;
+        private readonly NetServer server;
         private GameModeBase gameMode;
 
         private Thread netThread;
-        private List<byte> sendBuffer;
 
         public GameServer(int port)
         {
@@ -28,6 +22,27 @@ namespace Server
             configuration.Port = port;
             sendBuffer = new List<byte>();
             server = new NetServer(configuration);
+        }
+
+        public void SendGameData(byte[] data, bool directSend = false)
+        {
+            var memory = new MemoryStream();
+            var writer = new BinaryWriter(memory);
+
+            writer.Write((byte) Protocol.GameData);
+            writer.Write(data);
+
+            if (!directSend)
+                sendBuffer.AddRange(memory.ToArray());
+            else
+            {
+                NetOutgoingMessage outMessage = server.CreateMessage();
+                outMessage.Write(memory.ToArray());
+                server.SendToAll(outMessage, NetDeliveryMethod.ReliableOrdered);
+            }
+
+            memory.Close();
+            writer.Close();
         }
 
         public void SetGame(GameModeBase game)
@@ -43,6 +58,25 @@ namespace Server
             //netThread.Start();
         }
 
+        public void Update(float ms)
+        {
+            while (ms > 0)
+            {
+                if (ms > Globals.MAXUPDATETIME)
+                {
+                    gameMode.Update(Globals.MAXUPDATETIME);
+                    ms -= Globals.MAXUPDATETIME;
+                }
+                else
+                {
+                    gameMode.Update(ms);
+                    ms = 0;
+                }
+            }
+
+            netUpdate();
+        }
+
         private void netThreadLoop()
         {
             while (true)
@@ -54,7 +88,6 @@ namespace Server
 
         private void netUpdate()
         {
-
             NetIncomingMessage message = null;
             while ((message = server.ReadMessage()) != null)
             {
@@ -64,7 +97,7 @@ namespace Server
                         {
                             var memory = new MemoryStream(message.ReadBytes(message.LengthBytes));
                             var reader = new BinaryReader(memory);
-                            var protocol = (Shared.Protocol)reader.ReadByte();
+                            var protocol = (Protocol) reader.ReadByte();
 
                             switch (protocol)
                             {
@@ -83,15 +116,15 @@ namespace Server
                         gameMode.OnStatusChange(message.SenderConnection, message.SenderConnection.Status);
                         if (message.SenderConnection.Status == NetConnectionStatus.Connected)
                         {
-                            var data = gameMode.HandShake();
+                            byte[] data = gameMode.HandShake();
 
-                            var outmessage = server.CreateMessage();
+                            NetOutgoingMessage outmessage = server.CreateMessage();
 
                             var memory = new MemoryStream();
                             var writer = new BinaryWriter(memory);
 
-                            writer.Write((byte)Protocol.GameData);
-                            writer.Write((byte)Gamemode.Signature.Handshake);
+                            writer.Write((byte) Protocol.GameData);
+                            writer.Write((byte) Gamemode.Signature.Handshake);
                             writer.Write(data);
 
                             outmessage.Write(memory.ToArray());
@@ -131,7 +164,7 @@ namespace Server
 
             if (sendBuffer.Count > 0)
             {
-                var outmessage = server.CreateMessage();
+                NetOutgoingMessage outmessage = server.CreateMessage();
 
                 outmessage.Write(sendBuffer.ToArray());
 
@@ -139,48 +172,5 @@ namespace Server
                 sendBuffer.Clear();
             }
         }
-
-        public void Update(float ms)
-        {
-            while (ms > 0)
-            {
-                if (ms > Globals.MAXUPDATETIME)
-                {
-                    gameMode.Update(Globals.MAXUPDATETIME);
-                    ms -= Globals.MAXUPDATETIME;
-                }
-                else
-                {
-                    gameMode.Update(ms);
-                    ms = 0;
-                }
-            }
-
-            netUpdate();
-        }
-
-        public void SendGameData(byte[] data, bool directSend = false)
-        {
-
-            var memory = new MemoryStream();
-            var writer = new BinaryWriter(memory);
-
-            writer.Write((byte)Protocol.GameData);
-            writer.Write(data);
-
-            if(!directSend)
-            sendBuffer.AddRange(memory.ToArray());
-            else
-            {
-                var outMessage = server.CreateMessage();
-                outMessage.Write(memory.ToArray());
-                server.SendToAll(outMessage, NetDeliveryMethod.ReliableOrdered);
-            }
-
-            memory.Close();
-            writer.Close();
-        }
-
-
     }
 }

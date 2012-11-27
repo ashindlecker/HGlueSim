@@ -1,28 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using SFML.Graphics;
-
 
 namespace Client
 {
-    class AnimatedSprite
+    internal class AnimatedSprite
     {
         public uint Delay;
+        public bool Loop;
 
         public List<Sprite> Sprites;
 
         private int _currentSpriteId;
         private float _passedTime;
-
-        public bool Loop;
-
-        public bool AnimationCompleted
-        {
-            get { return _currentSpriteId >= Sprites.Count; }
-        }
 
         public AnimatedSprite(uint delay)
         {
@@ -35,9 +24,27 @@ namespace Client
             Loop = true;
         }
 
+        public bool AnimationCompleted
+        {
+            get { return _currentSpriteId >= Sprites.Count; }
+        }
+
+        public Sprite CurrentSprite
+        {
+            get
+            {
+                if (_currentSpriteId < Sprites.Count)
+                    return Sprites[_currentSpriteId];
+                else
+                {
+                    return Sprites[Sprites.Count - 1];
+                }
+            }
+        }
+
         public void Reset()
         {
-            if(AnimationCompleted)
+            if (AnimationCompleted)
             {
                 _currentSpriteId = 0;
                 _passedTime = 0;
@@ -48,10 +55,10 @@ namespace Client
         {
             _passedTime += ms;
 
-            if(_passedTime >= Delay)
+            if (_passedTime >= Delay)
             {
                 _currentSpriteId++;
-                if(_currentSpriteId >= Sprites.Count)
+                if (_currentSpriteId >= Sprites.Count)
                 {
                     if (Loop)
                     {
@@ -61,19 +68,5 @@ namespace Client
                 _passedTime = 0;
             }
         }
-
-        public Sprite CurrentSprite
-        {
-            get
-            {
-                if(_currentSpriteId < Sprites.Count)
-                    return Sprites[_currentSpriteId];
-                else
-                {
-                    return Sprites[Sprites.Count - 1];
-                }
-            }
-        }
-
     }
 }

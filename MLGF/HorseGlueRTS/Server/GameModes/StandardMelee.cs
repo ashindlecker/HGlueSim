@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Lidgren.Network;
 using SFML.Window;
-using Server.Entities.Units;
-using SettlersEngine;
-using Shared;
 using Server.Entities;
-using Server.Level;
+using Server.Entities.Units;
+using Shared;
 
 namespace Server.GameModes
 {
-    class StandardMelee : GameModeBase
+    internal class StandardMelee : GameModeBase
     {
+        #region StatusState enum
+
         public enum StatusState : byte
         {
             InProgress,
@@ -24,26 +19,17 @@ namespace Server.GameModes
             Completed,
         }
 
+        #endregion
+
+        public BuildingBase Building;
 
 
         public byte MaxPlayers;
-        public byte idToGive;
 
 
         private StatusState _gameStatus;
-        public StatusState GameStatus
-        {
-            get { return _gameStatus; }
+        public byte idToGive;
 
-            set
-            {
-                _gameStatus = value;
-                SendData(new byte[2] {(byte)StandardMeleeSignature.StatusChanged,(byte) _gameStatus}, Gamemode.Signature.Custom);
-            }
-        }
-
-        public BuildingBase Building;
-        
         public StandardMelee(GameServer server, byte mplayers) : base(server)
         {
             MaxPlayers = mplayers;
@@ -52,133 +38,44 @@ namespace Server.GameModes
 
             SetMap("Resources/Maps/untitled.tmx");
 
-            Entities.Units.StandardWorker worker = new StandardWorker(server, null);
+            var worker = UnitBase.CreateUnit(UnitTypes.Worker, Server, null);
             worker.Team = 1;
             worker.Position = new Vector2f(100, 500);
             AddEntity(worker);
         }
 
-        public override void Update(float ms)
+        public StatusState GameStatus
         {
-            UpdateTiles();
-            //base.Update(ms);
-            switch(GameStatus)
+            get { return _gameStatus; }
+
+            set
             {
-                case StatusState.InProgress:
-                    {
-                        //Check if players are still playing
-
-                        //TODO: Change back to non-comment when ready
-                        base.Update(ms);
-                        var team1Count = 0;
-                        var team1Id = 0;
-                        var gameInProgress = false;
-
-                        foreach(var player in players)
-                        {
-                            if(player.Status == Player.StatusTypes.InGame)
-                            {
-                                if(team1Count == 0)
-                                {
-                                    team1Id = player.Team;
-                                    team1Count++;
-                                }
-                                else
-                                {
-                                    if(team1Id != player.Team)
-                                    {
-                                        gameInProgress = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        //If there's not enough players playing, the game is completed
-                        if(gameInProgress == false)
-                        {
-                            GameStatus = StatusState.Completed;
-                        }
-
-                        //Check if player has lost all their buildings
-
-                        foreach(var player in players)
-                        {
-                            var team = player.Team;
-                            var hasBuilding = false;
-                            foreach (var entity in WorldEntities.Values)
-                            {
-                                if(entity.Team == team && entity is BuildingBase)
-                                {
-                                    hasBuilding = true;
-                                    break;
-                                }
-                            }
-                            if(hasBuilding == false)
-                            {
-                                //player has been eliminated
-                                GameStatus = StatusState.Completed;
-                            }
-                        }
-                    }
-
-                    break;
-                case StatusState.WaitingForPlayers:
-                    break;
-                case StatusState.Completed:
-                    //TODO: Change back to non-comment when ready
-                    base.Update(ms);
-                    break;
-                default:
-                    break;
+                _gameStatus = value;
+                SendData(new byte[2] {(byte) StandardMeleeSignature.StatusChanged, (byte) _gameStatus},
+                         Gamemode.Signature.Custom);
             }
         }
 
-        public void UpdateTiles()
-        {
-            if (pathFinding != null)
-            {
-                foreach (var sTileBase in map.Tiles)
-                {
-                    pathFinding.SearchSpace[sTileBase.GridX, sTileBase.GridY].IsWall = ( sTileBase.DynamicSolid ||
-                                                                                        sTileBase.Solid);
-                    sTileBase.DynamicSolid = false;
-                }
-                foreach (var entityBase in entities.Values)
-                {
-                    if (entityBase is BuildingBase == false) continue;
-
-                    var tilePosition = map.ConvertCoords(entityBase.Position);
-                    if (tilePosition.X >= 0 && tilePosition.Y >= 0 && tilePosition.X < map.MapSize.X && tilePosition.Y < map.MapSize.Y)
-                    {
-                        map.Tiles[(int)tilePosition.X, (int)tilePosition.Y].DynamicSolid = true;
-                    }
-                }
-
-            }
-        }
-
-        public override void UpdatePlayer(Player player)
+        public override byte[] HandShake()
         {
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);
 
-            writer.Write((byte) player.ClientId);
-            writer.Write(player.ToBytes());
-            SendData(memory.ToArray(), Gamemode.Signature.PlayerData);
+            writer.Write(idToGive);
+            idToGive++;
 
-            memory.Close();
-            writer.Close();
+            return memory.ToArray();
         }
 
         public override void OnStatusChange(NetConnection connection, NetConnectionStatus status)
         {
-            switch(status)
+            switch (status)
             {
                 case NetConnectionStatus.None:
                     break;
                 case NetConnectionStatus.InitiatedConnect:
                     break;
-             case NetConnectionStatus.RespondedAwaitingApproval:
+                case NetConnectionStatus.RespondedAwaitingApproval:
                     break;
                 case NetConnectionStatus.RespondedConnect:
                     break;
@@ -189,15 +86,16 @@ namespace Server.GameModes
                             //Connected client must be a player
 
                             var nPlayer = new Player {ClientId = idToGive, Team = idToGive};
-                            nPlayer.Apples = 50;
+                            nPlayer.Wood = 50;
                             nPlayer.Supply = 10;
                             players.Add(nPlayer);
                             connection.Tag = nPlayer;
 
-                            HomeBuilding home = new HomeBuilding(Server, nPlayer);
+                            var home =// new HomeBuilding(Server, nPlayer);
+                            BuildingBase.CreateBuilding(BuildingTypes.Base, Server, nPlayer);
                             home.Team = nPlayer.Team;
 
-                            if(TiledMap.SpawnPoints.Count > players.Count - 1)
+                            if (TiledMap.SpawnPoints.Count > players.Count - 1)
                             {
                                 home.Position = TiledMap.SpawnPoints[players.Count - 1];
                             }
@@ -226,9 +124,9 @@ namespace Server.GameModes
                     break;
                 case NetConnectionStatus.Disconnecting:
 
-                    for(int i = 0; i < players.Count; i++)
+                    for (int i = 0; i < players.Count; i++)
                     {
-                        if(players[i] == connection.Tag)
+                        if (players[i] == connection.Tag)
                         {
                             var memory = new MemoryStream();
                             var writer = new BinaryWriter(memory);
@@ -242,7 +140,7 @@ namespace Server.GameModes
 
                             writer.Close();
                             memory.Close();
-                            
+
                             players.RemoveAt(i);
                             break;
                         }
@@ -260,7 +158,7 @@ namespace Server.GameModes
         {
             var reader = new BinaryReader(memory);
 
-            var type = (InputSignature)reader.ReadByte();
+            var type = (InputSignature) reader.ReadByte();
 
             switch (type)
             {
@@ -268,11 +166,11 @@ namespace Server.GameModes
                     {
                         var player = (Player) client.Tag;
 
-                        var posX = reader.ReadSingle();
-                        var posY = reader.ReadSingle();
-                        var reset = reader.ReadBoolean();
-                        var attackMove = reader.ReadBoolean();
-                        var unitCount = reader.ReadByte();
+                        float posX = reader.ReadSingle();
+                        float posY = reader.ReadSingle();
+                        bool reset = reader.ReadBoolean();
+                        bool attackMove = reader.ReadBoolean();
+                        byte unitCount = reader.ReadByte();
 
 
                         var outmemory = new MemoryStream();
@@ -283,18 +181,18 @@ namespace Server.GameModes
                         outwriter.Write(reset);
                         outwriter.Write(attackMove);
 
-                        List<ushort> idsToWrite = new List<ushort>();
+                        var idsToWrite = new List<ushort>();
 
-                        for (var i = 0; i < unitCount; i++)
+                        for (int i = 0; i < unitCount; i++)
                         {
-                            var entityId = reader.ReadUInt16();
+                            ushort entityId = reader.ReadUInt16();
                             if (entities.ContainsKey(entityId) == false) continue;
                             if (entities[entityId].Team != player.Team) continue;
 
                             idsToWrite.Add(entityId);
                         }
 
-                        outwriter.Write((byte)idsToWrite.Count);
+                        outwriter.Write((byte) idsToWrite.Count);
                         for (int i = 0; i < idsToWrite.Count; i++)
                         {
                             outwriter.Write(idsToWrite[i]);
@@ -304,9 +202,9 @@ namespace Server.GameModes
                         outmemory.Close();
                         outwriter.Close();
 
-                        for (var i = 0; i < idsToWrite.Count; i++)
+                        for (int i = 0; i < idsToWrite.Count; i++)
                         {
-                            var entityId = idsToWrite[i];
+                            ushort entityId = idsToWrite[i];
 
                             entities[entityId].Move(posX, posY,
                                                     !attackMove
@@ -326,8 +224,8 @@ namespace Server.GameModes
                     break;
                 case InputSignature.CreateUnit:
                     {
-                        var unitToCreate = reader.ReadByte();
-                        var unitCount = reader.ReadByte();
+                        byte unitToCreate = reader.ReadByte();
+                        byte unitCount = reader.ReadByte();
                         var player = (Player) client.Tag;
 
                         BuildingBase buildingToUse = null;
@@ -338,13 +236,13 @@ namespace Server.GameModes
                         /// If building 1 has a zealot in production, but building 2 is not in use, it'll choose building 2 to producte
                         */
 
-                        for (var i = 0; i < unitCount; i++)
+                        for (int i = 0; i < unitCount; i++)
                         {
-                            var entityId = reader.ReadUInt16();
+                            ushort entityId = reader.ReadUInt16();
                             if (entities.ContainsKey(entityId) == false) continue;
                             if (entities[entityId].Team != player.Team) continue;
 
-                            var entity = entities[entityId];
+                            EntityBase entity = entities[entityId];
 
                             if (entity is BuildingBase)
                             {
@@ -365,17 +263,16 @@ namespace Server.GameModes
                 case InputSignature.ChangeUseEntity:
                     {
                         var player = (Player) client.Tag;
-                        var useEntity = reader.ReadUInt16();
+                        ushort useEntity = reader.ReadUInt16();
 
-                        var unitCount = reader.ReadByte();
+                        byte unitCount = reader.ReadByte();
 
 
+                        var idsToWrite = new List<ushort>();
 
-                        List<ushort> idsToWrite = new List<ushort>();
-
-                        for (var i = 0; i < unitCount; i++)
+                        for (int i = 0; i < unitCount; i++)
                         {
-                            var entityId = reader.ReadUInt16();
+                            ushort entityId = reader.ReadUInt16();
                             if (entities.ContainsKey(entityId) == false || entities.ContainsKey(useEntity) == false)
                                 continue;
                             if (entities[entityId].Team != player.Team) continue;
@@ -395,7 +292,7 @@ namespace Server.GameModes
                             outwriter.Write(entities[useEntity].Position.Y);
                             outwriter.Write(false);
                             outwriter.Write(false);
-                            outwriter.Write((byte)idsToWrite.Count);
+                            outwriter.Write((byte) idsToWrite.Count);
 
                             for (int i = 0; i < idsToWrite.Count; i++)
                             {
@@ -411,13 +308,13 @@ namespace Server.GameModes
                 case InputSignature.SpellCast:
                     {
                         var player = (Player) client.Tag;
-                        var spell = reader.ReadByte();
-                        var x = reader.ReadSingle();
-                        var y = reader.ReadSingle();
-                        var unitCount = reader.ReadByte();
-                        for (var i = 0; i < unitCount; i++)
+                        byte spell = reader.ReadByte();
+                        float x = reader.ReadSingle();
+                        float y = reader.ReadSingle();
+                        byte unitCount = reader.ReadByte();
+                        for (int i = 0; i < unitCount; i++)
                         {
-                            var entityId = reader.ReadUInt16();
+                            ushort entityId = reader.ReadUInt16();
                             if (entities.ContainsKey(entityId) == false) continue;
                             if (entities[entityId].Team != player.Team) continue;
 
@@ -425,7 +322,6 @@ namespace Server.GameModes
                                 break;
                             //We break because we only want one unit to cast this spell
                         }
-
                     }
                     break;
 
@@ -434,7 +330,7 @@ namespace Server.GameModes
                         var outmemory = new MemoryStream();
                         var writer = new BinaryWriter(outmemory);
 
-                        var player = (Player)client.Tag;
+                        var player = (Player) client.Tag;
                         player.Status = Player.StatusTypes.Left;
 
                         writer.Write((byte) StandardMeleeSignature.PlayerSurrender);
@@ -448,19 +344,118 @@ namespace Server.GameModes
                 default:
                     break;
             }
-
         }
 
-        public override byte[] HandShake()
+        public override void Update(float ms)
+        {
+            UpdateTiles();
+            //base.Update(ms);
+            switch (GameStatus)
+            {
+                case StatusState.InProgress:
+                    {
+                        //Check if players are still playing
+
+                        //TODO: Change back to non-comment when ready
+                        base.Update(ms);
+                        int team1Count = 0;
+                        int team1Id = 0;
+                        bool gameInProgress = false;
+
+                        foreach (Player player in players)
+                        {
+                            if (player.Status == Player.StatusTypes.InGame)
+                            {
+                                if (team1Count == 0)
+                                {
+                                    team1Id = player.Team;
+                                    team1Count++;
+                                }
+                                else
+                                {
+                                    if (team1Id != player.Team)
+                                    {
+                                        gameInProgress = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        //If there's not enough players playing, the game is completed
+                        if (gameInProgress == false)
+                        {
+                            GameStatus = StatusState.Completed;
+                        }
+
+                        //Check if player has lost all their buildings
+
+                        foreach (Player player in players)
+                        {
+                            byte team = player.Team;
+                            bool hasBuilding = false;
+                            foreach (EntityBase entity in WorldEntities.Values)
+                            {
+                                if (entity.Team == team && entity is BuildingBase)
+                                {
+                                    hasBuilding = true;
+                                    break;
+                                }
+                            }
+                            if (hasBuilding == false)
+                            {
+                                //player has been eliminated
+                                GameStatus = StatusState.Completed;
+                            }
+                        }
+                    }
+
+                    break;
+                case StatusState.WaitingForPlayers:
+                    break;
+                case StatusState.Completed:
+                    //TODO: Change back to non-comment when ready
+                    base.Update(ms);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public override void UpdatePlayer(Player player)
         {
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);
 
-            writer.Write(idToGive);
-            idToGive++;
+            writer.Write(player.ClientId);
+            writer.Write(player.ToBytes());
+            SendData(memory.ToArray(), Gamemode.Signature.PlayerData);
 
-            return memory.ToArray();
+            memory.Close();
+            writer.Close();
         }
 
+        public void UpdateTiles()
+        {
+            if (pathFinding != null)
+            {
+                foreach (STileBase sTileBase in map.Tiles)
+                {
+                    pathFinding.SearchSpace[sTileBase.GridX, sTileBase.GridY].IsWall = (sTileBase.DynamicSolid ||
+                                                                                        sTileBase.Solid);
+                    sTileBase.DynamicSolid = false;
+                }
+                foreach (EntityBase entityBase in entities.Values)
+                {
+                    if (entityBase is BuildingBase == false) continue;
+
+                    Vector2f tilePosition = map.ConvertCoords(entityBase.Position);
+                    if (tilePosition.X >= 0 && tilePosition.Y >= 0 && tilePosition.X < map.MapSize.X &&
+                        tilePosition.Y < map.MapSize.Y)
+                    {
+                        map.Tiles[(int) tilePosition.X, (int) tilePosition.Y].DynamicSolid = true;
+                    }
+                }
+            }
+        }
     }
 }

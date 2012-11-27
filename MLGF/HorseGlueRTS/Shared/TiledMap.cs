@@ -1,52 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Xml;
 using SFML.Window;
-using System.IO;
 
 namespace Shared
 {
     public class TiledMap
     {
-        public Vector2i TileSize;
+        public List<Vector2f> AppleResources;
         public Vector2i MapSize;
-
-        public class TileSet
-        {
-            public uint FirstId;
-            public Vector2i TileSize;
-            public string ImageSource;
-
-            public TileSet(uint iu, Vector2i tilesize, string image)
-            {
-                FirstId = iu;
-                TileSize = tilesize;
-                ImageSource = image;
-            }
-        }
-
-        public List<TileSet> TileSets;
-
-        public class TileLayer
-        {
-            public TileLayer()
-            {
-                GIds = null;
-                SolidLayer = false;
-            }
-            public uint[,] GIds;
-            public bool SolidLayer;
-        }
+        public List<Vector2f> SpawnPoints;
 
         public List<TileLayer> TileLayers;
+        public List<TileSet> TileSets;
+        public Vector2i TileSize;
 
         public List<Vector2f> WoodResources;
-        public List<Vector2f> AppleResources;
-        public List<Vector2f> SpawnPoints; 
-        
+
         public TiledMap()
         {
             WoodResources = new List<Vector2f>();
@@ -62,7 +33,7 @@ namespace Shared
         {
             var reader = new XmlTextReader(file);
 
-            var tileSet = new TileSet(0, new Vector2i(0,0), "na");
+            var tileSet = new TileSet(0, new Vector2i(0, 0), "na");
 
             var tileLayer = new TileLayer();
             uint currentTileIdX = 0;
@@ -70,7 +41,7 @@ namespace Shared
 
             string objectGroup = "";
 
-            while(reader.Read())
+            while (reader.Read())
             {
                 switch (reader.NodeType)
                 {
@@ -92,7 +63,7 @@ namespace Shared
                             case "image":
                                 tileSet.ImageSource = reader.GetAttribute("source");
                                 break;
-                            case "layer": 
+                            case "layer":
                                 tileLayer = new TileLayer();
                                 tileLayer.GIds =
                                     new uint[Convert.ToUInt32(reader.GetAttribute("width")),
@@ -105,13 +76,13 @@ namespace Shared
 
                                 break;
                             case "tile":
-                                if(tileLayer.GIds != null)
+                                if (tileLayer.GIds != null)
                                 {
                                     tileLayer.GIds[currentTileIdX, currentTileIdY] =
                                         Convert.ToUInt32(reader.GetAttribute("gid"));
 
                                     currentTileIdX++;
-                                    if(currentTileIdX == tileLayer.GIds.GetLength(0))
+                                    if (currentTileIdX == tileLayer.GIds.GetLength(0))
                                     {
                                         currentTileIdX = 0;
                                         currentTileIdY++;
@@ -123,7 +94,8 @@ namespace Shared
                                 break;
                             case "object":
                                 {
-                                    var pos = new Vector2f(Convert.ToSingle(reader.GetAttribute("x")), Convert.ToSingle(reader.GetAttribute("y")));
+                                    var pos = new Vector2f(Convert.ToSingle(reader.GetAttribute("x")),
+                                                           Convert.ToSingle(reader.GetAttribute("y")));
                                     switch (objectGroup.ToLower())
                                     {
                                         case "wood":
@@ -149,7 +121,7 @@ namespace Shared
                                 TileSets.Add(tileSet);
                                 break;
                             case "layer":
-                                if(tileLayer.GIds != null)
+                                if (tileLayer.GIds != null)
                                     TileLayers.Add(tileLayer);
                                 break;
                         }
@@ -160,6 +132,43 @@ namespace Shared
             }
 
             reader.Close();
+        }
+
+        public void Load(MemoryStream memory)
+        {
+            var reader = new BinaryReader(memory);
+
+            TileSize.X = reader.ReadInt32();
+            TileSize.Y = reader.ReadInt32();
+            MapSize.X = reader.ReadInt32();
+            MapSize.Y = reader.ReadInt32();
+
+            int layerCount = reader.ReadInt32();
+
+            for (int i = 0; i < layerCount; i++)
+            {
+                var newLayer = new TileLayer();
+                newLayer.SolidLayer = reader.ReadBoolean();
+                newLayer.GIds = new uint[reader.ReadInt32(),reader.ReadInt32()];
+
+                for (int y = 0; y < newLayer.GIds.GetLength(1); y++)
+                {
+                    for (int x = 0; x < newLayer.GIds.GetLength(0); x++)
+                    {
+                        newLayer.GIds[x, y] = reader.ReadUInt32();
+                    }
+                }
+                TileLayers.Add(newLayer);
+            }
+
+            int tileSetCount = reader.ReadInt32();
+
+            for (int i = 0; i < tileSetCount; i++)
+            {
+                var newTileSet = new TileSet(reader.ReadUInt32(), new Vector2i(reader.ReadInt32(), reader.ReadInt32()),
+                                             reader.ReadString());
+                TileSets.Add(newTileSet);
+            }
         }
 
         public byte[] ToBytes()
@@ -174,16 +183,16 @@ namespace Shared
 
             writer.Write(TileLayers.Count);
 
-            for(var i = 0; i < TileLayers.Count; i++)
+            for (int i = 0; i < TileLayers.Count; i++)
             {
                 writer.Write(TileLayers[i].SolidLayer);
 
                 writer.Write(TileLayers[i].GIds.GetLength(0));
                 writer.Write(TileLayers[i].GIds.GetLength(1));
 
-                for (var y = 0; y < TileLayers[i].GIds.GetLength(1); y++)
+                for (int y = 0; y < TileLayers[i].GIds.GetLength(1); y++)
                 {
-                    for (var x = 0; x < TileLayers[i].GIds.GetLength(0); x++)
+                    for (int x = 0; x < TileLayers[i].GIds.GetLength(0); x++)
                     {
                         writer.Write(TileLayers[i].GIds[x, y]);
                     }
@@ -192,8 +201,8 @@ namespace Shared
 
 
             writer.Write(TileSets.Count);
-            
-            for(var i = 0; i < TileSets.Count;i++)
+
+            for (int i = 0; i < TileSets.Count; i++)
             {
                 writer.Write(TileSets[i].FirstId);
                 writer.Write(TileSets[i].TileSize.X);
@@ -204,40 +213,38 @@ namespace Shared
             return memory.ToArray();
         }
 
-        public void Load(MemoryStream memory)
+        #region Nested type: TileLayer
+
+        public class TileLayer
         {
-            var reader = new BinaryReader(memory);
+            public uint[,] GIds;
+            public bool SolidLayer;
 
-            TileSize.X = reader.ReadInt32();
-            TileSize.Y = reader.ReadInt32();
-            MapSize.X = reader.ReadInt32();
-            MapSize.Y = reader.ReadInt32();
-
-            var layerCount = reader.ReadInt32();
-
-            for (var i = 0; i < layerCount; i++)
+            public TileLayer()
             {
-                var newLayer = new TileLayer();
-                newLayer.SolidLayer = reader.ReadBoolean();
-                newLayer.GIds = new uint[reader.ReadInt32(),reader.ReadInt32()];
-
-                for (var y = 0; y < newLayer.GIds.GetLength(1); y++)
-                {
-                    for (var x = 0; x < newLayer.GIds.GetLength(0); x++)
-                    {
-                        newLayer.GIds[x, y] = reader.ReadUInt32();
-                    }
-                }
-                TileLayers.Add(newLayer);
-            }
-
-            var tileSetCount = reader.ReadInt32();
-
-            for (var i = 0; i < tileSetCount; i++)
-            {
-                var newTileSet = new TileSet(reader.ReadUInt32(), new Vector2i(reader.ReadInt32(), reader.ReadInt32()), reader.ReadString());
-                TileSets.Add(newTileSet);
+                GIds = null;
+                SolidLayer = false;
             }
         }
+
+        #endregion
+
+        #region Nested type: TileSet
+
+        public class TileSet
+        {
+            public uint FirstId;
+            public string ImageSource;
+            public Vector2i TileSize;
+
+            public TileSet(uint iu, Vector2i tilesize, string image)
+            {
+                FirstId = iu;
+                TileSize = tilesize;
+                ImageSource = image;
+            }
+        }
+
+        #endregion
     }
 }

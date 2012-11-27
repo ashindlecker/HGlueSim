@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Client.GameModes;
 using SFML.Graphics;
 
 namespace Client.Effects
 {
-    abstract class EffectBase
+    internal abstract class EffectBase
     {
-        public GameModes.GameModeBase MyGamemode;
-        public abstract void Update(float ms);
+        public GameModeBase MyGamemode;
         public abstract void Render(RenderTarget target);
+        public abstract void Update(float ms);
     }
 }

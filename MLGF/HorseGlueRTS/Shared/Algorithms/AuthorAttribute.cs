@@ -9,16 +9,19 @@
 //
 //  Copyright (C) 2006 Franco, Gustavo 
 //
+
 using System;
 
-namespace Algorithms 
+namespace Algorithms
 {
-	internal class AuthorAttribute : Attribute
-	{
-		#region Constructors
-		public AuthorAttribute(string authorName)
-		{
-		}
-		#endregion
-	}
+    internal class AuthorAttribute : Attribute
+    {
+        #region Constructors
+
+        public AuthorAttribute(string authorName)
+        {
+        }
+
+        #endregion
+    }
 }

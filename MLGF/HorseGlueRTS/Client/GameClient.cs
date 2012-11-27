@@ -1,26 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Shared;
-using Lidgren.Network;
-using Client.GameModes;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
+using Client.GameModes;
+using Lidgren.Network;
+using Shared;
 
 namespace Client
 {
-    class GameClient
+    internal class GameClient
     {
-        private NetClient client;
+        private readonly List<uint> bitsPerSecondList;
+        private readonly Stopwatch bitsPerSecondTimer;
         public GameModeBase GameMode;
         public InputHandler InputHandler;
 
-        private Stopwatch bitsPerSecondTimer;
-        private List<uint> bitsPerSecondList;
         private uint bitsToAdd;
+        private NetClient client;
 
         private Thread networkThread;
 
@@ -34,7 +31,6 @@ namespace Client
             bitsPerSecondList = new List<uint>();
 
             bitsToAdd = 0;
-
         }
 
         public void Connect(string ip, int port)
@@ -48,9 +44,51 @@ namespace Client
             //networkThread.Start();
         }
 
+        public void SendData(byte[] data)
+        {
+            NetOutgoingMessage message = client.CreateMessage();
+            message.Write(data);
+            client.SendMessage(message, NetDeliveryMethod.ReliableOrdered);
+        }
+
+        public void Update(float ms)
+        {
+            while (ms > 0)
+            {
+                if (ms > Globals.MAXUPDATETIME)
+                {
+                    GameMode.Update(Globals.MAXUPDATETIME);
+                    ms -= Globals.MAXUPDATETIME;
+                }
+                else
+                {
+                    GameMode.Update(ms);
+                    ms = 0;
+                }
+            }
+
+            updateNetwork();
+
+            if (bitsPerSecondTimer.ElapsedMilliseconds >= 1000)
+            {
+                bitsPerSecondList.Add(bitsToAdd);
+                float avg = 0;
+                foreach (uint i in bitsPerSecondList)
+                {
+                    avg += i;
+                }
+                avg /= bitsPerSecondList.Count;
+
+                Console.WriteLine(bitsToAdd + ":" + avg);
+
+                bitsToAdd = 0;
+                bitsPerSecondTimer.Restart();
+            }
+        }
+
         private void netThreadLoop()
         {
-            while(true)
+            while (true)
             {
                 updateNetwork();
                 Thread.Sleep(1);
@@ -68,7 +106,7 @@ namespace Client
                     case NetIncomingMessageType.Error:
                         break;
                     case NetIncomingMessageType.StatusChanged:
-                        if(client.ConnectionStatus == NetConnectionStatus.Disconnected)
+                        if (client.ConnectionStatus == NetConnectionStatus.Disconnected)
                         {
                             //networkThread.Abort();
                         }
@@ -124,48 +162,6 @@ namespace Client
                 }
                 client.Recycle(message);
             }
-        }
-
-        public void Update(float ms)
-        {
-            while (ms > 0)
-            {
-                if (ms > Shared.Globals.MAXUPDATETIME)
-                {
-                    GameMode.Update(Shared.Globals.MAXUPDATETIME);
-                    ms -= Shared.Globals.MAXUPDATETIME;
-                }
-                else
-                {
-                    GameMode.Update(ms);
-                    ms = 0;
-                }
-            }
-            
-            updateNetwork();
-
-            if(bitsPerSecondTimer.ElapsedMilliseconds >= 1000)
-            {
-                bitsPerSecondList.Add(bitsToAdd);
-                float avg = 0;
-                foreach(var i in bitsPerSecondList)
-                {
-                    avg += i;
-                }
-                avg /= bitsPerSecondList.Count;
-
-                //Console.WriteLine(bitsToAdd + ":" + avg);
-
-                bitsToAdd = 0;
-                bitsPerSecondTimer.Restart();
-            }
-        }
-
-        public void SendData(byte[] data)
-        {
-            NetOutgoingMessage message = client.CreateMessage();
-            message.Write(data);
-            client.SendMessage(message, NetDeliveryMethod.ReliableOrdered);
         }
     }
 }

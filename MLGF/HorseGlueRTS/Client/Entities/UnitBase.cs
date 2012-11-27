@@ -1,26 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SFML.Graphics;
 using SFML.Window;
 using Shared;
-using System.Diagnostics;
-
 
 namespace Client.Entities
 {
-    class UnitBase : EntityBase
+    internal class UnitBase : EntityBase
     {
-        public enum UnitState : byte
-        {
-            Agro,
-            Standard,
-        }
+        #region AnimationTypes enum
 
-        public enum AnimationTypes: byte
+        public enum AnimationTypes : byte
         {
             Idle,
             Moving,
@@ -32,30 +23,48 @@ namespace Client.Entities
             GrabbingResources,
         }
 
-        public float StandardAttackDamage { get; protected set; }
-        public Entity.DamageElement StandardAttackElement { get; protected set; }
+        #endregion
 
-        public float Speed;
-        public UnitState State;
-        public float Range;
+        #region UnitState enum
+
+        public enum UnitState : byte
+        {
+            Agro,
+            Standard,
+        }
+
+        #endregion
+
+        private readonly Stopwatch attackTimer;
         public ushort AttackDelay;
-
-        private Stopwatch attackTimer;
-
-        protected EntityBase EntityToAttack { get; private set; }
-
-        private bool allowMovement;
+        public float Range;
+        public float Speed;
 
         protected Dictionary<AnimationTypes, AnimatedSprite> Sprites;
+        public UnitState State;
 
         private AnimationTypes _currentAnimation;
+
+        private bool _moveXCompleted, _moveYCompleted;
+        private bool allowMovement;
+
+        private Vector2f drawPosition;
+
+        protected UnitTypes UnitType;
+        public bool RangedUnit;
+
+        public float StandardAttackDamage { get; protected set; }
+        public Entity.DamageElement StandardAttackElement { get; protected set; }
+        protected EntityBase EntityToAttack { get; private set; }
+
 
         protected AnimationTypes CurrentAnimation
         {
             get { return _currentAnimation; }
             set
             {
-                if (CurrentAnimation == AnimationTypes.StartAttacking || CurrentAnimation == AnimationTypes.EndAttacking || CurrentAnimation == AnimationTypes.SpellCast || CurrentAnimation == AnimationTypes.GrabbingResources)
+                if (CurrentAnimation == AnimationTypes.StartAttacking || CurrentAnimation == AnimationTypes.EndAttacking ||
+                    CurrentAnimation == AnimationTypes.SpellCast || CurrentAnimation == AnimationTypes.GrabbingResources)
                 {
                     if (Sprites[CurrentAnimation].AnimationCompleted)
                     {
@@ -73,13 +82,10 @@ namespace Client.Entities
 
         protected string SpriteFolder { get; set; }
 
-        private bool _moveXCompleted, _moveYCompleted;
-
-        private Vector2f drawPosition;
-
-
         public UnitBase()
         {
+            UnitType = UnitTypes.Default;
+
             drawPosition = new Vector2f();
             _moveXCompleted = false;
             _moveYCompleted = false;
@@ -102,47 +108,18 @@ namespace Client.Entities
             const byte AnimationTypeCount = 8;
             for (int i = 0; i < AnimationTypeCount; i++)
             {
-                Sprites.Add((AnimationTypes) i, new AnimatedSprite(100));
+                Sprites.Add((AnimationTypes)i, new AnimatedSprite(100));
             }
 
             CurrentAnimation = AnimationTypes.Idle;
             SpriteFolder = "";
         }
 
-        public override void SetTeam(byte team)
+        public override void Move(float x, float y)
         {
-            base.SetTeam(team);
-
-            var idleSprites = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "Idle/");
-            if(idleSprites != null)
-                Sprites[AnimationTypes.Idle].Sprites.AddRange(idleSprites);
-
-            var moveSprites = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "Moving/");
-            if(moveSprites != null)
-                Sprites[AnimationTypes.Moving].Sprites.AddRange(moveSprites);
-
-            var resourceMoveSprites = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "MovingWithResources/");
-            if(resourceMoveSprites != null)
-                Sprites[AnimationTypes.MovingWithResources].Sprites.AddRange(resourceMoveSprites);
-
-            var resourceIdleSprites = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "IdleWithResources/");
-            if(resourceIdleSprites != null)
-            Sprites[AnimationTypes.IdleWithResources].Sprites.AddRange(resourceIdleSprites);
-
-            var beginAttack = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "BeginAttack/");
-            if(beginAttack != null)
-                Sprites[AnimationTypes.StartAttacking].Sprites.AddRange(beginAttack);
-            Sprites[AnimationTypes.StartAttacking].Loop = false;
-
-            var afterAttack = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "AfterAttack/");
-            if(afterAttack != null)
-                Sprites[AnimationTypes.EndAttacking].Sprites.AddRange(afterAttack);
-            Sprites[AnimationTypes.EndAttacking].Loop = false;
-
-            var grabbingResources = ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "GrabbingResources/");
-            if(grabbingResources != null)
-                Sprites[AnimationTypes.GrabbingResources].Sprites.AddRange(grabbingResources);
-            Sprites[AnimationTypes.GrabbingResources].Loop = false;
+            base.Move(x, y);
+            _moveXCompleted = false;
+            _moveYCompleted = false;
         }
 
         protected override void ParseCustom(MemoryStream memoryStream)
@@ -154,8 +131,8 @@ namespace Client.Entities
             {
                 case UnitSignature.RallyCompleted:
                     {
-                        var posX = reader.ReadSingle();
-                        var posY = reader.ReadSingle();
+                        float posX = reader.ReadSingle();
+                        float posY = reader.ReadSingle();
 
                         Position = new Vector2f(posX, posY);
                         rallyPoints.Clear();
@@ -172,8 +149,8 @@ namespace Client.Entities
                     break;
                 case UnitSignature.PopFirstRally:
                     {
-                        var posX = reader.ReadSingle();
-                        var posY = reader.ReadSingle();
+                        float posX = reader.ReadSingle();
+                        float posY = reader.ReadSingle();
 
                         Position = new Vector2f(posX, posY);
                         if (rallyPoints.Count > 0)
@@ -203,27 +180,23 @@ namespace Client.Entities
             }
         }
 
-
-        protected virtual void onAttack(EntityBase ent)
-        {
-            ent.OnTakeDamage(StandardAttackDamage, StandardAttackElement);
-        }
-
-
         protected override void ParseUpdate(MemoryStream memoryStream)
         {
             var reader = new BinaryReader(memoryStream);
 
-            var hasEntToUse = reader.ReadBoolean();
-            if(hasEntToUse)
+            UnitType = (UnitTypes) reader.ReadByte();
+
+            bool hasEntToUse = reader.ReadBoolean();
+            if (hasEntToUse)
             {
-                var id = reader.ReadUInt16();
-                if(WorldEntities.ContainsKey(id))
+                ushort id = reader.ReadUInt16();
+                if (WorldEntities.ContainsKey(id))
                 {
                     EntityToUse = WorldEntities[id];
                 }
             }
 
+            RangedUnit = reader.ReadBoolean();
             Health = reader.ReadSingle();
             MaxHealth = reader.ReadSingle();
             State = (UnitState) reader.ReadByte();
@@ -233,14 +206,172 @@ namespace Client.Entities
             Range = reader.ReadSingle();
             allowMovement = reader.ReadBoolean();
 
-            var rallyCount = reader.ReadByte();
+            byte rallyCount = reader.ReadByte();
             rallyPoints.Clear();
-            for(var i = 0; i < rallyCount; i++)
+            for (int i = 0; i < rallyCount; i++)
             {
                 rallyPoints.Add(new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
             }
 
             drawPosition = Position;
+        }
+
+        public override void Render(RenderTarget target)
+        {
+            if (Sprites.ContainsKey(CurrentAnimation) && Sprites[CurrentAnimation].Sprites.Count > 0)
+            {
+                Sprite spr = Sprites[CurrentAnimation].CurrentSprite;
+
+                spr.Position = drawPosition;
+                spr.Origin = new Vector2f(spr.TextureRect.Width/2, spr.TextureRect.Height/2);
+                target.Draw(spr);
+            }
+        }
+
+        public override void SetTeam(byte team)
+        {
+            base.SetTeam(team);
+
+            Sprite[] idleSprites =
+                ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" + "Idle/");
+            if (idleSprites != null)
+                Sprites[AnimationTypes.Idle].Sprites.AddRange(idleSprites);
+
+            Sprite[] moveSprites =
+                ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" +
+                                             "Moving/");
+            if (moveSprites != null)
+                Sprites[AnimationTypes.Moving].Sprites.AddRange(moveSprites);
+
+            Sprite[] resourceMoveSprites =
+                ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" +
+                                             "MovingWithResources/");
+            if (resourceMoveSprites != null)
+                Sprites[AnimationTypes.MovingWithResources].Sprites.AddRange(resourceMoveSprites);
+
+            Sprite[] resourceIdleSprites =
+                ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" +
+                                             "IdleWithResources/");
+            if (resourceIdleSprites != null)
+                Sprites[AnimationTypes.IdleWithResources].Sprites.AddRange(resourceIdleSprites);
+
+            Sprite[] beginAttack =
+                ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" +
+                                             "BeginAttack/");
+            if (beginAttack != null)
+                Sprites[AnimationTypes.StartAttacking].Sprites.AddRange(beginAttack);
+            Sprites[AnimationTypes.StartAttacking].Loop = false;
+
+            Sprite[] afterAttack =
+                ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" +
+                                             "AfterAttack/");
+            if (afterAttack != null)
+                Sprites[AnimationTypes.EndAttacking].Sprites.AddRange(afterAttack);
+            Sprites[AnimationTypes.EndAttacking].Loop = false;
+
+            Sprite[] grabbingResources =
+                ExternalResources.GetSprites("Resources/Sprites/" + SpriteFolder + "/" + team.ToString() + "/" +
+                                             "GrabbingResources/");
+            if (grabbingResources != null)
+                Sprites[AnimationTypes.GrabbingResources].Sprites.AddRange(grabbingResources);
+            Sprites[AnimationTypes.GrabbingResources].Loop = false;
+        }
+
+        public override void Update(float ms)
+        {
+            if (Sprites.ContainsKey(CurrentAnimation))
+            {
+                Sprites[CurrentAnimation].Update(ms);
+            }
+
+            if ((rallyPoints.Count == 0 || allowMovement == false)) onSetIdleAnimation();
+
+            #region CLIENT PREDICTION INTERPOLATION
+
+            Vector2f destination = Position;
+
+            if ((int) drawPosition.X < (int) destination.X)
+            {
+                drawPosition.X += Speed*ms;
+                if ((int) drawPosition.X >= (int) destination.X) drawPosition.X = destination.X;
+            }
+            if ((int) drawPosition.Y < (int) destination.Y)
+            {
+                drawPosition.Y += Speed*ms;
+                if ((int) drawPosition.Y >= (int) destination.Y) drawPosition.Y = destination.Y;
+            }
+            if ((int) drawPosition.X > destination.X)
+            {
+                drawPosition.X -= Speed*ms;
+                if ((int) drawPosition.X <= (int) destination.X) drawPosition.X = destination.X;
+            }
+            if ((int) drawPosition.Y > (int) destination.Y)
+            {
+                drawPosition.Y -= Speed*ms;
+                if ((int) drawPosition.Y <= (int) destination.Y) drawPosition.Y = destination.Y;
+            }
+
+            #endregion
+
+            if (!allowMovement || rallyPoints.Count == 0) return;
+            if (CurrentAnimation != AnimationTypes.SpellCast)
+                onSetMovingAnimation();
+
+            destination = rallyPoints[0];
+
+            if ((int) Position.X < (int) destination.X)
+            {
+                Position.X += Speed*ms;
+                if ((int) Position.X >= (int) destination.X) _moveXCompleted = true;
+            }
+            if ((int) Position.Y < (int) destination.Y)
+            {
+                Position.Y += Speed*ms;
+                if ((int) Position.Y >= (int) destination.Y) _moveYCompleted = true;
+            }
+            if ((int) Position.X > destination.X)
+            {
+                Position.X -= Speed*ms;
+                if ((int) Position.X <= (int) destination.X) _moveXCompleted = true;
+            }
+            if ((int) Position.Y > (int) destination.Y)
+            {
+                Position.Y -= Speed*ms;
+                if ((int) Position.Y <= (int) destination.Y) _moveYCompleted = true;
+            }
+
+            if ((int) Position.X == (int) destination.X) _moveXCompleted = true;
+            if ((int) Position.Y == (int) destination.Y) _moveYCompleted = true;
+
+
+            if (_moveXCompleted && _moveYCompleted)
+            {
+                _moveXCompleted = false;
+                _moveYCompleted = false;
+
+                if (rallyPoints.Count == 1)
+                    Position = destination;
+                rallyPoints.RemoveAt(0);
+            }
+        }
+
+        protected void debugDrawRange(RenderTarget target)
+        {
+            var circle = new CircleShape(Range);
+            circle.Origin = new Vector2f(circle.Radius, circle.Radius);
+            circle.Position = Position;
+            circle.FillColor = new Color(255, 0, 0, 100);
+
+            target.Draw(circle);
+        }
+
+        protected virtual void onAttack(EntityBase ent)
+        {
+            if (!RangedUnit) //Happy asshole?
+            {
+                ent.OnTakeDamage(StandardAttackDamage, StandardAttackElement);
+            }
+            //Ranged units send projectiles, this is handled in the game mode, and is not needed to do prediction here
         }
 
         protected virtual void onSetIdleAnimation()
@@ -251,113 +382,6 @@ namespace Client.Entities
         protected virtual void onSetMovingAnimation()
         {
             CurrentAnimation = AnimationTypes.Moving;
-        }
-
-        public override void Move(float x, float y)
-        {
-            base.Move(x, y);
-            _moveXCompleted = false;
-            _moveYCompleted = false;
-        }
-
-        public override void Update(float ms)
-        {
-            if (Sprites.ContainsKey(CurrentAnimation))
-            {
-                Sprites[CurrentAnimation].Update(ms);
-            }
-
-            if( (rallyPoints.Count == 0 || allowMovement == false)) onSetIdleAnimation();
-
-
-            #region CLIENT PREDICTION INTERPOLATION
-            Vector2f destination = Position;
-
-            if ((int)drawPosition.X < (int)destination.X)
-            {
-                drawPosition.X += Speed * ms;
-                if ((int)drawPosition.X >= (int)destination.X) drawPosition.X = destination.X;
-            }
-            if ((int)drawPosition.Y < (int)destination.Y)
-            {
-                drawPosition.Y += Speed * ms;
-                if ((int)drawPosition.Y >= (int)destination.Y) drawPosition.Y = destination.Y;
-            }
-            if ((int)drawPosition.X > destination.X)
-            {
-                drawPosition.X -= Speed * ms;
-                if ((int)drawPosition.X <= (int)destination.X) drawPosition.X = destination.X;
-            }
-            if ((int)drawPosition.Y > (int)destination.Y)
-            {
-                drawPosition.Y -= Speed * ms;
-                if ((int)drawPosition.Y <= (int)destination.Y) drawPosition.Y = destination.Y;
-            }
-            #endregion
-
-            if (!allowMovement || rallyPoints.Count == 0) return;
-            if(CurrentAnimation != AnimationTypes.SpellCast)
-                onSetMovingAnimation();
-
-            destination = rallyPoints[0];
-
-            if ((int)Position.X < (int)destination.X)
-            {
-                Position.X += Speed * ms;
-                if ((int)Position.X >= (int)destination.X) _moveXCompleted = true;
-            }
-            if ((int)Position.Y < (int)destination.Y)
-            {
-                Position.Y += Speed * ms;
-                if ((int)Position.Y >= (int)destination.Y) _moveYCompleted = true;
-            }
-            if ((int)Position.X > destination.X)
-            {
-                Position.X -= Speed * ms;
-                if ((int)Position.X <= (int)destination.X) _moveXCompleted = true;
-            }
-            if ((int)Position.Y > (int)destination.Y)
-            {
-                Position.Y -= Speed * ms;
-                if ((int)Position.Y <= (int)destination.Y) _moveYCompleted = true;
-            }
-
-            if ((int)Position.X == (int)destination.X) _moveXCompleted = true;
-            if ((int)Position.Y == (int)destination.Y) _moveYCompleted = true;
-
-
-            if (_moveXCompleted && _moveYCompleted)
-            {
-                _moveXCompleted = false;
-                _moveYCompleted = false;
-
-                if(rallyPoints.Count == 1)
-                    Position = destination;
-                rallyPoints.RemoveAt(0);
-            }
-
-        }
-
-        public override void Render(RenderTarget target)
-        {
-            if(Sprites.ContainsKey(CurrentAnimation) && Sprites[CurrentAnimation].Sprites.Count > 0)
-            {
-                Sprite spr = Sprites[CurrentAnimation].CurrentSprite;
-
-                spr.Position = drawPosition;
-                spr.Origin = new Vector2f(spr.TextureRect.Width/2, spr.TextureRect.Height/2);
-                target.Draw(spr);
-            }
-        }
-
-        protected void debugDrawRange(RenderTarget target)
-        {
-            CircleShape circle = new CircleShape(Range);
-            circle.Origin = new Vector2f(circle.Radius, circle.Radius);
-            circle.Position = Position;
-            circle.FillColor = new Color(255, 0, 0, 100);
-
-            target.Draw(circle);
         }
     }
 }

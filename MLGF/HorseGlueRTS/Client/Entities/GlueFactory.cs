@@ -1,28 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Client.Effects;
+﻿using Client.Effects;
+using SFML.Graphics;
 
 namespace Client.Entities
 {
-    class GlueFactory : BuildingBase
+    internal class GlueFactory : BuildingBase
     {
-
         public GlueFactory()
         {
-            SetSprites(); ;
+            SetSprites();
+            ;
         }
 
         public override void SetTeam(byte team)
         {
             base.SetTeam(team);
 
-            var standardSprites = ExternalResources.GetSprites("Resources/Sprites/GlueFactory/" + team.ToString() + "/");
+            Sprite[] standardSprites =
+                ExternalResources.GetSprites("Resources/Sprites/GlueFactory/" + team.ToString() + "/");
             Sprites[AnimationTypes.Standard].Sprites.AddRange(standardSprites);
 
-            var producingSprites = ExternalResources.GetSprites("Resources/Sprites/GlueFactory/" + team.ToString() + "/");
+            Sprite[] producingSprites =
+                ExternalResources.GetSprites("Resources/Sprites/GlueFactory/" + team.ToString() + "/");
             Sprites[AnimationTypes.Producing].Sprites.AddRange(producingSprites);
 
             SetSprites();
@@ -32,7 +30,7 @@ namespace Client.Entities
         {
             base.Use(user);
             //TODO: Blood/Glue effect
-            for(var i = 0; i < 5; i++)
+            for (int i = 0; i < 5; i++)
             {
                 MyGameMode.AddEffect(new GlueParticle(Position));
             }

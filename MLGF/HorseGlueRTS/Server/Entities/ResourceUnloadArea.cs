@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Shared;
+﻿using Shared;
 
 namespace Server.Entities
 {
-    class ResourceUnloadArea : EntityBase
+    internal class ResourceUnloadArea : EntityBase
     {
         public ResourceUnloadArea(GameServer _server, Player player) : base(_server, player)
         {
@@ -28,7 +23,7 @@ namespace Server.Entities
         {
             if (user.Team == Team && user.EntityType == Entity.EntityType.Worker)
             {
-                var workerCast = (Worker)user;
+                var workerCast = (Worker) user;
 
                 if (workerCast.IsHoldingResources)
                 {

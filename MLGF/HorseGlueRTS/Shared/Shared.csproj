@@ -60,6 +60,7 @@
     <Compile Include="Gamemode.cs" />
     <Compile Include="Globals.cs" />
     <Compile Include="Algorithms\PathFinderFast.cs" />
+    <Compile Include="HotkeySheet.cs" />
     <Compile Include="STileBase.cs" />
     <Compile Include="STileMap.cs" />
     <Compile Include="Player.cs" />
@@ -70,6 +71,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Level\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

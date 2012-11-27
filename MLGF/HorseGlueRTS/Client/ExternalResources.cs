@@ -1,18 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SFML.Graphics;
+﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using SFML.Audio;
+using SFML.Graphics;
 
 namespace Client
 {
-    class ExternalResources
+    internal class ExternalResources
     {
-        private static Dictionary<string, Texture> textures = new Dictionary<string, Texture>();
-        private static Dictionary<string, SoundBuffer> sounds = new Dictionary<string, SoundBuffer>();
+        #region AttackSounds enum
+
+        public enum AttackSounds
+        {
+            CliffGetFucked = 0,
+        }
+
+        #endregion
+
+        #region DeathSounds enum
+
+        public enum DeathSounds
+        {
+            CliffDeath = 0,
+        }
+
+        #endregion
+
+        #region ResourceSounds enum
+
+        public enum ResourceSounds
+        {
+            CliffMining = 0,
+        }
+
+        #endregion
+
+        #region UseSounds enum
+
+        public enum UseSounds
+        {
+            CliffUsing = 0,
+        }
+
+        #endregion
+
+        private static readonly Dictionary<string, Texture> textures = new Dictionary<string, Texture>();
+        private static readonly Dictionary<string, SoundBuffer> sounds = new Dictionary<string, SoundBuffer>();
 
         public static SoundBuffer GSoundBuffer(string file)
         {
@@ -25,7 +58,7 @@ namespace Client
 
         public static Texture GTexture(string file)
         {
-            if(textures.ContainsKey(file) == false)
+            if (textures.ContainsKey(file) == false)
             {
                 textures.Add(file, new Texture(file));
             }
@@ -34,15 +67,15 @@ namespace Client
 
         public static Sprite[] GetSprites(string directory)
         {
-            List<Sprite> ret = new List<Sprite>();
+            var ret = new List<Sprite>();
             if (Directory.Exists(directory) == false) return null;
             string[] files = Directory.GetFiles(directory, "*.png");
-           
-            for(int i = 0; i < files.Count(); i++)
+
+            for (int i = 0; i < files.Count(); i++)
             {
                 ret.Add(new Sprite(GTexture(files[i])));
-            } 
-            
+            }
+
 
             files = Directory.GetFiles(directory, "*.bmp");
 
@@ -52,26 +85,6 @@ namespace Client
             }
 
             return ret.ToArray();
-        }
-
-        public enum DeathSounds
-        {
-            CliffDeath = 0,
-        }
-
-        public enum ResourceSounds
-        {
-            CliffMining = 0,
-        }
-
-        public enum UseSounds
-        {
-            CliffUsing = 0,
-        }
-
-        public enum AttackSounds
-        {
-            CliffGetFucked = 0,
         }
     }
 }

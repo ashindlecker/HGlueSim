@@ -1,59 +1,59 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Shared;
-using System.IO;
-using SFML.Window;
 using System.Diagnostics;
+using System.IO;
 using SFML.Graphics;
+using SFML.Window;
+using Server.Entities.Units;
+using Shared;
+using System.Xml;
+using System.Xml.Linq;
+
+
 namespace Server.Entities
 {
-    class UnitBase : EntityBase
+    internal class UnitBase : EntityBase
     {
+        #region UnitState enum
+
         public enum UnitState : byte
         {
             Agro,
             Standard,
         }
 
-        public byte SupplyUsage
-        {
-            get; protected set;
-        }
+        #endregion
 
-        public float StandardAttackDamage { get; protected set; }
-        public Entity.DamageElement StandardAttackElement { get; protected set; }
+        private readonly Stopwatch attackTimer;
+        private readonly Stopwatch rechargeTimer;
 
+        public ushort AttackDelay;
+        public ushort AttackRechargeTime;
+        public float Range;
 
         public float Speed;
         public UnitState State;
-        public float Range;
-        public ushort AttackDelay;
-
-        //movement is typically stopped when a unit is attacking, after the attack the unit continues moving
-        private bool allowMovement;
-
-
-        private Stopwatch attackTimer;
-        protected EntityBase EntityToAttack { get; private set; }
 
         private bool _moveXCompleted, _moveYCompleted;
+        private bool allowMovement;
 
+        protected bool RangedUnit;
 
-
+        protected UnitTypes UnitType;
 
         public UnitBase(GameServer _server, Player player) : base(_server, player)
         {
             EntityType = Entity.EntityType.Unit;
+            UnitType = UnitTypes.Default;
 
             EntityToAttack = null;
 
             Speed = .01f;
             Range = 50;
-            AttackDelay = 2000;
+            AttackDelay = 100;
+            AttackRechargeTime = 1000;
             SupplyUsage = 1;
+
+            RangedUnit = false;
 
             StandardAttackDamage = 1;
             StandardAttackElement = Entity.DamageElement.Normal;
@@ -67,31 +67,47 @@ namespace Server.Entities
             attackTimer.Reset();
             attackTimer.Stop();
 
+            rechargeTimer = new Stopwatch();
+            rechargeTimer.Restart();
+
         }
 
-        protected FloatRect RangeBounds()
+        public byte SupplyUsage { get; protected set; }
+
+        public float StandardAttackDamage { get; protected set; }
+        public Entity.DamageElement StandardAttackElement { get; protected set; }
+        protected EntityBase EntityToAttack { get; private set; }
+
+        public void Attack(EntityBase entity)
         {
-            return new FloatRect(Position.X - (Range/2), Position.Y - (Range/2), Range, Range);
+            if (entity.Team == Team) return;
+            if (attackTimer.ElapsedMilliseconds < AttackDelay) return;
+
+            attackTimer.Reset();
+            attackTimer.Stop();
+
+            rechargeTimer.Restart();
+
+            var memory = new MemoryStream();
+            var writer = new BinaryWriter(memory);
+
+            writer.Write((byte) UnitSignature.Attack);
+            writer.Write(entity.WorldId);
+            writer.Write(onAttack(entity));
+
+            SendData(memory.ToArray(), Entity.Signature.Custom);
+
+            writer.Close();
+            memory.Close();
         }
 
-        private FloatRect SearchBounds()
+        public override void OnDeath()
         {
-            const float SEARCHSIZE = 200;
-            return new FloatRect(Position.X - (SEARCHSIZE / 2), Position.Y - (SEARCHSIZE / 2), SEARCHSIZE, SEARCHSIZE);
-        }
-
-        private void clearRally()
-        {
-            rallyPoints.Clear();
-            SendData(new byte[1] { (byte)UnitSignature.ClearRally }, Entity.Signature.Custom);
-        }
-
-        protected void setAllowMove(bool value)
-        {
-            if (allowMovement != value)
+            base.OnDeath();
+            if (MyPlayer != null)
             {
-                allowMovement = value;
-                SendData(new byte[2] { (byte)UnitSignature.ChangeMovementAllow, BitConverter.GetBytes(value)[0] }, Entity.Signature.Custom);
+                MyPlayer.UsedSupply -= UnitData.WorkerSupplyCost;
+                MyGameMode.UpdatePlayer(MyPlayer);
             }
         }
 
@@ -102,12 +118,42 @@ namespace Server.Entities
             _moveYCompleted = false;
         }
 
+        protected virtual void OnRallyPointCompleted(Entity.RallyPoint rally)
+        {
+            //Called when a rally is popped off
+        }
+
+        protected FloatRect RangeBounds()
+        {
+            return new FloatRect(Position.X - (Range/2), Position.Y - (Range/2), Range, Range);
+        }
+
+        private FloatRect SearchBounds()
+        {
+            const float SEARCHSIZE = 200;
+            if(Range < SEARCHSIZE)
+            return new FloatRect(Position.X - (SEARCHSIZE/2), Position.Y - (SEARCHSIZE/2), SEARCHSIZE, SEARCHSIZE);
+            return RangeBounds();
+        }
+
+        public virtual void StartAttack()
+        {
+            attackTimer.Restart();
+            SendData(new byte[1] {(byte) UnitSignature.StartAttack}, Entity.Signature.Custom);
+        }
+
+        public virtual void StopAttack()
+        {
+            attackTimer.Reset();
+            attackTimer.Stop();
+        }
+
         public override void Update(float ms)
         {
             if (State == UnitState.Agro)
             {
-                var rangeBounds = RangeBounds();
-                var searchBounds = SearchBounds();
+                FloatRect rangeBounds = RangeBounds();
+                FloatRect searchBounds = SearchBounds();
 
                 //If the unit has something to attack
                 if (EntityToAttack != null)
@@ -120,7 +166,7 @@ namespace Server.Entities
                     }
                     else
                     {
-                        if (attackTimer.IsRunning == false)
+                        if ( attackTimer.IsRunning == false)
                         {
                             //If the entity to attack is not in range, allow movement
                             if (!rangeBounds.Intersects(EntityToAttack.GetBounds()))
@@ -134,33 +180,37 @@ namespace Server.Entities
                                 }
                                 else
                                 {
-                                    Move(EntityToAttack.Position.X, EntityToAttack.Position.Y, Entity.RallyPoint.RallyTypes.AttackMove, true);
+                                    Move(EntityToAttack.Position.X, EntityToAttack.Position.Y,
+                                         Entity.RallyPoint.RallyTypes.AttackMove, true);
                                 }
                             }
                             else //Otherwize, try to attack and stop ability to move
                             {
-                                if (rallyPoints.Count > 0)
+                                if (rechargeTimer.ElapsedMilliseconds >= AttackRechargeTime )
                                 {
-                                    setAllowMove(false);
+                                    if (rallyPoints.Count > 0)
+                                    {
+                                        setAllowMove(false);
+                                    }
+                                    //start the attack
+                                    StartAttack();
+
                                 }
-                                //start the attack
-                                StartAttack();
                             }
                         }
                         else
                         {
-                            if(attackTimer.ElapsedMilliseconds >= AttackDelay)
+                            if (attackTimer.ElapsedMilliseconds >= AttackDelay)
                             {
                                 Attack(EntityToAttack);
                             }
                         }
-
                     }
                 }
                 else //Otherwise look for something to attack
                 {
                     StopAttack();
-                    foreach (var entity in MyGameMode.WorldEntities.Values)
+                    foreach (EntityBase entity in MyGameMode.WorldEntities.Values)
                     {
                         if (entity.Team == Team) continue;
 
@@ -181,7 +231,7 @@ namespace Server.Entities
 
             if (State != UnitState.Agro)
                 attackTimer.Restart();
-            if(rallyPoints.Count == 0)
+            if (rallyPoints.Count == 0)
                 State = UnitState.Agro;
             //Rallypoint movement
 
@@ -197,26 +247,26 @@ namespace Server.Entities
                 if ((int) Position.X < (int) destination.X)
                 {
                     Position.X += Speed*ms;
-                    if ((int)Position.X >= (int)destination.X) _moveXCompleted = true;
+                    if ((int) Position.X >= (int) destination.X) _moveXCompleted = true;
                 }
                 if ((int) Position.Y < (int) destination.Y)
                 {
                     Position.Y += Speed*ms;
-                    if ((int)Position.Y >= (int)destination.Y) _moveYCompleted = true;
+                    if ((int) Position.Y >= (int) destination.Y) _moveYCompleted = true;
                 }
                 if ((int) Position.X > destination.X)
                 {
                     Position.X -= Speed*ms;
-                    if ((int)Position.X <= (int)destination.X) _moveXCompleted = true;
+                    if ((int) Position.X <= (int) destination.X) _moveXCompleted = true;
                 }
                 if ((int) Position.Y > (int) destination.Y)
                 {
                     Position.Y -= Speed*ms;
-                    if ((int)Position.Y <= (int)destination.Y) _moveYCompleted = true;
+                    if ((int) Position.Y <= (int) destination.Y) _moveYCompleted = true;
                 }
 
-                if ((int)Position.X == (int)destination.X) _moveXCompleted = true;
-                if ((int)Position.Y == (int)destination.Y) _moveYCompleted = true;
+                if ((int) Position.X == (int) destination.X) _moveXCompleted = true;
+                if ((int) Position.Y == (int) destination.Y) _moveYCompleted = true;
 
                 if (_moveXCompleted && _moveYCompleted)
                 {
@@ -248,82 +298,30 @@ namespace Server.Entities
             }
         }
 
-        protected virtual void OnRallyPointCompleted(Entity.RallyPoint rally)
-        {
-            //Called when a rally is popped off
-        }
-
-        public virtual void StartAttack()
-        {
-            attackTimer.Restart();
-            SendData(new byte[1]{(byte)UnitSignature.StartAttack}, Entity.Signature.Custom );
-        }
-
-        public virtual void StopAttack()
-        {
-            attackTimer.Reset();
-            attackTimer.Stop();
-        }
-
-        public void Attack(EntityBase entity)
-        {
-            if (entity.Team == Team) return;
-            if (attackTimer.ElapsedMilliseconds < AttackDelay) return;
-
-            attackTimer.Reset();
-            attackTimer.Stop();
-
-            var memory = new MemoryStream();
-            var writer = new BinaryWriter(memory);
-
-            writer.Write((byte)UnitSignature.Attack);
-            writer.Write((ushort)entity.WorldId);
-            writer.Write(onAttack(entity));
-
-            SendData(memory.ToArray(), Entity.Signature.Custom);
-
-            writer.Close();
-            memory.Close();
-        }
-
-        protected virtual byte[] onAttack(EntityBase entity)
-        {
-            entity.TakeDamage(StandardAttackDamage, StandardAttackElement, false);
-            return new byte[0];
-        }
-
-        public override void OnDeath()
-        {
-            base.OnDeath();
-            if (MyPlayer != null)
-            {
-                MyPlayer.UsedSupply -= UnitData.WorkerSupplyCost;
-                MyGameMode.UpdatePlayer(MyPlayer);
-            }
-        }
-
         public override byte[] UpdateData()
         {
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);
 
-            writer.Write((bool)( EntityToUse != null));
-            if(EntityToUse != null)
+            writer.Write((byte)UnitType);
+            writer.Write((EntityToUse != null));
+            if (EntityToUse != null)
             {
                 writer.Write(EntityToUse.WorldId);
             }
 
+            writer.Write(RangedUnit);
             writer.Write(Health);
             writer.Write(MaxHealth);
-            writer.Write((byte)State);
+            writer.Write((byte) State);
             writer.Write(Position.X);
             writer.Write(Position.Y);
             writer.Write(Speed);
             writer.Write(Energy);
             writer.Write(Range);
             writer.Write(allowMovement);
-            writer.Write((byte)rallyPoints.Count);
-            for (var i = 0; i < rallyPoints.Count; i++)
+            writer.Write((byte) rallyPoints.Count);
+            for (int i = 0; i < rallyPoints.Count; i++)
             {
                 writer.Write(rallyPoints[i].X);
                 writer.Write(rallyPoints[i].Y);
@@ -331,5 +329,147 @@ namespace Server.Entities
             return memory.ToArray();
         }
 
+        private void clearRally()
+        {
+            rallyPoints.Clear();
+            SendData(new byte[1] {(byte) UnitSignature.ClearRally}, Entity.Signature.Custom);
+        }
+
+        protected virtual byte[] onAttack(EntityBase entity)
+        {
+            if (!RangedUnit) //Happy asshole?
+            {
+                entity.TakeDamage(StandardAttackDamage, StandardAttackElement, false);
+            }
+            else
+            {
+                var rangedBullet = new Projectiles.ProjectileBase(Server, MyPlayer, Position, entity, StandardAttackDamage, StandardAttackElement);
+                MyGameMode.AddEntity(rangedBullet);
+            }
+            return new byte[0];
+        }
+
+        protected void setAllowMove(bool value)
+        {
+            if (allowMovement != value)
+            {
+                allowMovement = value;
+                SendData(new byte[2] {(byte) UnitSignature.ChangeMovementAllow, BitConverter.GetBytes(value)[0]},
+                         Entity.Signature.Custom);
+            }
+        }
+
+        public static UnitBase LoadUnitFromXML(string unit, GameServer server, Player player)
+        {
+            const string UNITFILE = "Resources/Data/Units.xml";
+            var xElement = XDocument.Load(UNITFILE);
+
+            var units = xElement.Elements("units").Elements("unit");
+
+            UnitBase retUnit = null;
+
+            foreach (var element in units)
+            {
+                var unitName = element.Attribute("name").Value;
+
+                if (unitName.ToLower() != unit.ToLower()) continue;
+                var unitSpeed = Convert.ToSingle(element.Attribute("speed").Value);
+
+                var attackElement = element.Element("attack");
+                if(attackElement != null)
+                {
+
+                    var rangedUnit = false;
+                    var range = 0f;
+                    var damage = 0f;
+                    var rechargeTime = (ushort)0;
+                    var delayTime = (ushort)0;
+
+                    if(attackElement.Attribute("rangedUnit") != null)
+                        rangedUnit = Convert.ToBoolean(attackElement.Attribute("rangedUnit").Value);
+                    if (attackElement.Attribute("attackRange") != null)
+                        range = Convert.ToSingle(attackElement.Attribute("attackRange").Value);
+                    if (attackElement.Attribute("damage") != null)
+                        damage = Convert.ToSingle(attackElement.Attribute("damage").Value);
+                    if (attackElement.Attribute("rechargeTime") != null)
+                        rechargeTime = Convert.ToUInt16(attackElement.Attribute("rechargeTime").Value);
+                    if (attackElement.Attribute("delayTime") != null)
+                        delayTime = Convert.ToUInt16(attackElement.Attribute("delayTime").Value);
+
+                    switch (unitName.ToLower())
+                    {
+                        default:
+                        case "default":
+                            retUnit = new UnitBase(server, player);
+                            break;
+                        case "worker":
+                            retUnit = new Worker(server, player);
+                            break;
+                    }
+
+                    retUnit.RangedUnit = rangedUnit;
+                    retUnit.Range = range;
+                    retUnit.StandardAttackDamage = damage;
+                    retUnit.AttackRechargeTime = rechargeTime;
+                    retUnit.AttackDelay = delayTime;
+
+                    var spellElements = element.Elements("spells").Elements("spell");
+
+                    foreach (var spellElement in spellElements)
+                    {
+                        var isBuildSpell = false;
+                        var function = "";
+                        var energyCost = 0f;
+
+                        if(spellElement.Attribute("isBuildSpell") != null)
+                            isBuildSpell = Convert.ToBoolean(spellElement.Attribute("isBuildSpell").Value);
+                        if (spellElement.Attribute("function") != null)
+                            function = spellElement.Attribute("function").Value;
+                        if (spellElement.Attribute("energyCost") != null)
+                            energyCost = Convert.ToSingle(spellElement.Attribute("energyCost").Value);
+
+                        var spellData = new SpellData(energyCost, null);
+                        spellData.IsBuildSpell = isBuildSpell;
+                        spellData.EnergyCost = energyCost;
+
+                        switch (function.ToLower())
+                        {
+                            case "buildbase":
+                                spellData.BuildType = (byte)WorkerSpellIds.BuildHomeBase;
+                                break;
+                            case "buildsupply":
+                                spellData.BuildType = (byte) WorkerSpellIds.BuildSupplyBuilding;
+                                break;
+                            case "buildgluefactory":
+                                spellData.BuildType = (byte) WorkerSpellIds.BuildGlueFactory;
+                                break;
+                        }
+                    }
+                }
+            }
+
+            return retUnit;
+        }
+
+        public static UnitBase CreateUnit(UnitTypes unit, GameServer server, Player player)
+        {
+            UnitBase retUnit = null;
+
+            switch (unit)
+            {
+                default:
+                case UnitTypes.Default:
+                    retUnit = LoadUnitFromXML("default", server, player);
+                    break;
+                case UnitTypes.Worker:
+                    retUnit = LoadUnitFromXML("worker", server, player);
+                    break;
+                case UnitTypes.Unicorn:
+                    retUnit = LoadUnitFromXML("unicorn", server, player);
+                    break;
+            }
+
+            return retUnit;
+        }
     }
 }

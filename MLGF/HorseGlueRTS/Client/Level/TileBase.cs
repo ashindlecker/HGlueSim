@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using Shared;
-using System.IO;
 
 namespace Client.Level
 {
-    class TileBase : STileBase, ILoadable
+    internal class TileBase : STileBase, ILoadable
     {
+        #region ILoadable Members
+
         public void LoadFromBytes(MemoryStream data)
         {
             var reader = new BinaryReader(data);
@@ -17,5 +14,7 @@ namespace Client.Level
             Type = (TileType) reader.ReadByte();
             Solid = reader.ReadBoolean();
         }
+
+        #endregion
     }
 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Shared
+﻿namespace Shared
 {
     public class BuildingData
     {
@@ -14,6 +8,5 @@ namespace Shared
         public const ushort SupplyBuildingWoodCost = 100;
 
         public const ushort GlueFactoryWoodCost = 100;
-
     }
 }

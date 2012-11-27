@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Client.GameModes;
 using SFML.Graphics;
-using System.Diagnostics;
 using SFML.Window;
 using Shared;
+using System;
 
 namespace Client.Entities
 {
-    class BuildingBase : EntityBase
+    internal class BuildingBase : EntityBase
     {
+        #region AnimationTypes enum
+
         public enum AnimationTypes : byte
         {
             BeingBuilt,
@@ -23,20 +22,51 @@ namespace Client.Entities
             WreckedProducing,
         }
 
-        protected Dictionary<AnimationTypes, AnimatedSprite> Sprites;
+        #endregion
+
+        private readonly Stopwatch stopwatch;
+
         protected AnimationTypes CurrentAnimation;
+        protected Dictionary<AnimationTypes, AnimatedSprite> Sprites;
+        public byte SupplyGain;
 
 
         protected List<byte> buildOrder;
+        private float elapsedBuildTime;
         protected List<BuildProduceData> supportedBuilds;
 
-        public ushort BuildTime //in milliseconds
+        public BuildingBase()
         {
-            get;
-            protected set;
+            IsBuilding = true;
+            BuildTime = 10000;
+            elapsedBuildTime = 0;
+            buildOrder = new List<byte>();
+            supportedBuilds = new List<BuildProduceData>();
+            stopwatch = new Stopwatch();
+
+            Health = 1;
+            MaxHealth = 100;
+
+            Sprites = new Dictionary<AnimationTypes, AnimatedSprite>();
+
+            const byte AnimationTypeCount = 5;
+
+
+            for (int i = 0; i < AnimationTypeCount; i++)
+            {
+                Sprites.Add((AnimationTypes) i, new AnimatedSprite(100));
+            }
+
+            Sprite[] buildSprites = ExternalResources.GetSprites("Resources/Sprites/Buildings/BeingBuilt/");
+            Sprites[AnimationTypes.BeingBuilt].Sprites.AddRange(buildSprites);
+
+            SetSprites();
         }
 
-        public bool IsBuilding { get; private set; }    //Is building currently being build (NOT BUILDING UNITS)
+        public ushort BuildTime //in milliseconds
+        { get; protected set; }
+
+        public bool IsBuilding { get; private set; } //Is building currently being build (NOT BUILDING UNITS)
         public bool IsProductingUnit
         {
             get { return buildOrder.Count > 0; }
@@ -58,55 +88,15 @@ namespace Client.Entities
             {
                 if (!IsProductingUnit)
                     return 0;
-
-                foreach (var buildProduceData in supportedBuilds)
+                foreach (BuildProduceData buildProduceData in supportedBuilds)
                 {
-                    if (buildProduceData.id == buildOrder[0] && stopwatch.ElapsedMilliseconds >= buildProduceData.CreationTime)
+                    if (buildProduceData.id == buildOrder[0])
                     {
-                        return ((float) stopwatch.ElapsedMilliseconds/((float) buildProduceData.CreationTime)*100f);
+                        return (stopwatch.ElapsedMilliseconds/((float) buildProduceData.CreationTime)*100f);
                     }
                 }
                 return 0;
             }
-        }
-
-        public byte SupplyGain;
-        private float elapsedBuildTime;
-
-        private Stopwatch stopwatch;
-
-        public BuildingBase()
-        {
-            IsBuilding = true;
-            BuildTime = 10000;
-            elapsedBuildTime = 0;
-            buildOrder = new List<byte>();
-            supportedBuilds = new List<BuildProduceData>();
-            stopwatch = new Stopwatch();
-
-            Health = 1;
-            MaxHealth = 100;
-
-            Sprites = new Dictionary<AnimationTypes, AnimatedSprite>();
-
-            const byte AnimationTypeCount = 5;
-
-
-            for (int i = 0; i < AnimationTypeCount; i++)
-            {
-                Sprites.Add((AnimationTypes)i, new AnimatedSprite(100));
-            }
-
-            var buildSprites = ExternalResources.GetSprites("Resources/Sprites/Buildings/BeingBuilt/");
-            Sprites[AnimationTypes.BeingBuilt].Sprites.AddRange(buildSprites);
-
-            SetSprites();
-        }
-
-        protected void SetSprites()
-        {
-            Sprites[AnimationTypes.BeingBuilt].Delay =
-                (uint)((float)BuildTime / (float)Sprites[AnimationTypes.BeingBuilt].Sprites.Count);
         }
 
         protected override void ParseCustom(MemoryStream memoryStream)
@@ -114,11 +104,11 @@ namespace Client.Entities
             var reader = new BinaryReader(memoryStream);
             var signature = (BuildingSignature) reader.ReadByte();
 
-            switch(signature)
+            switch (signature)
             {
                 case BuildingSignature.ProductionComplete:
                     {
-                        if(buildOrder.Count > 0)
+                        if (buildOrder.Count > 0)
                         {
                             onCompleteProduction(buildOrder[0]);
                             buildOrder.RemoveAt(0);
@@ -128,7 +118,7 @@ namespace Client.Entities
                     break;
                 case BuildingSignature.StartProduction:
                     {
-                        var type = reader.ReadByte();
+                        byte type = reader.ReadByte();
                         onStartProduction(type);
                         buildOrder.Add(type);
                     }
@@ -157,38 +147,35 @@ namespace Client.Entities
             Position = new Vector2f(reader.ReadSingle(), reader.ReadSingle());
             byte buildCount = reader.ReadByte();
             buildOrder.Clear();
-            for(var i = 0; i < buildCount; i++)
+            for (int i = 0; i < buildCount; i++)
             {
                 buildOrder.Add(reader.ReadByte());
             }
 
-            var rallyCount = reader.ReadByte();
+            byte rallyCount = reader.ReadByte();
             rallyPoints.Clear();
-            for (var i = 0; i < rallyCount; i++)
+            for (int i = 0; i < rallyCount; i++)
             {
                 rallyPoints.Add(new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
             }
         }
 
-        protected virtual void onCompleteProduction(byte type)
+        public override void Render(RenderTarget target)
         {
-            //play sound or add something to HUD
-            MyGameMode.AddAlert(GameModeBase.HUDAlert.AlertTypes.UnitCreated);
-
-            foreach (var buildProduceData in supportedBuilds)
+            if (Sprites.ContainsKey(CurrentAnimation) && Sprites[CurrentAnimation].Sprites.Count > 0)
             {
-                if (buildProduceData.id == type)
-                {
-                    MyGameMode.PlayUnitFinishedSound(buildProduceData.Sound);
-                }
+                Sprite spr = Sprites[CurrentAnimation].CurrentSprite;
+                spr.Position = Position;
+                spr.Origin = new Vector2f(spr.TextureRect.Width/2, spr.TextureRect.Height/2);
+                target.Draw(spr);
             }
         }
 
-        protected virtual void onStartProduction(byte type)
+        protected void SetSprites()
         {
-            //play sound or add something to HUD
+            Sprites[AnimationTypes.BeingBuilt].Delay =
+                (uint) (BuildTime/(float) Sprites[AnimationTypes.BeingBuilt].Sprites.Count);
         }
-
 
         public override void Update(float ms)
         {
@@ -201,7 +188,7 @@ namespace Client.Entities
             {
                 CurrentAnimation = AnimationTypes.BeingBuilt;
                 elapsedBuildTime += ms;
-                Health += (float)((MaxHealth / BuildTime)) * ms;
+                Health += ((MaxHealth/BuildTime))*ms;
             }
             else
             {
@@ -222,16 +209,23 @@ namespace Client.Entities
             }
         }
 
-        public override void Render(RenderTarget target)
+        protected virtual void onCompleteProduction(byte type)
         {
-            if (Sprites.ContainsKey(CurrentAnimation) && Sprites[CurrentAnimation].Sprites.Count > 0)
-            {
-                Sprite spr = Sprites[CurrentAnimation].CurrentSprite;
-                spr.Position = Position;
-                spr.Origin = new Vector2f(spr.TextureRect.Width / 2, spr.TextureRect.Height / 2);
-                target.Draw(spr);
-            }
+            //play sound or add something to HUD
+            MyGameMode.AddAlert(GameModeBase.HUDAlert.AlertTypes.UnitCreated);
 
+            foreach (BuildProduceData buildProduceData in supportedBuilds)
+            {
+                if (buildProduceData.id == type)
+                {
+                    MyGameMode.PlayUnitFinishedSound(buildProduceData.Sound);
+                }
+            }
+        }
+
+        protected virtual void onStartProduction(byte type)
+        {
+            //play sound or add something to HUD
         }
     }
 }

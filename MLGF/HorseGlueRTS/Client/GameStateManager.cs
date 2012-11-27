@@ -1,24 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Client.GameStates;
 using SFML.Graphics;
 
 namespace Client
 {
-    class GameStateManager
+    internal class GameStateManager
     {
-        private GameStates.GameStateBase gameState;
+        private GameStateBase gameState;
 
         public GameStateManager()
         {
             gameState = null;
         }
 
-        public void SwitchState(GameStates.GameStateBase state, object data)
+        public void Render(RenderTarget target)
         {
-            if(gameState != null)
+            if (gameState != null)
+                gameState.Render(target);
+        }
+
+        public void SwitchState(GameStateBase state, object data)
+        {
+            if (gameState != null)
             {
                 gameState.End();
             }
@@ -29,14 +31,8 @@ namespace Client
 
         public void Update(float ts)
         {
-            if(gameState != null)
-            gameState.Update(ts);
-        }
-
-        public void Render(RenderTarget target)
-        {
-            if(gameState != null)
-            gameState.Render(target);
+            if (gameState != null)
+                gameState.Update(ts);
         }
     }
 }
