@@ -1,9 +1,22 @@
 <hotkeysheets>
 
+	<sheet name="standard_game_mode_controls">
+	<!-- attack hotkey -->
+		<key  spellType="0" key="a" usesClick="true"/>
+	</sheet>
+	
 	<sheet name="worker">
+	<!-- build base -->
 		<key spellType="0" key="n" usesClick="true"/>
+	<!-- build supply -->
+		<key spellType="1" key="e" usesClick="true"/>
+	<!-- build grinder -->
+		<key spellType="2" key="q" usesClick="true"/>
 	</sheet>
+	
 	<sheet name="base">
-		<key spellType="worker" key="e" usesClick="false"/>
+	<!-- build worker -->
+		<key spellType="0" key="e" usesClick="false"/>
 	</sheet>
+	
 </hotkeysheets>

@@ -12,13 +12,12 @@ namespace Shared
 
         public class SpellXMLData
         {
-            public string Function;
             public bool IsBuildSpell;
             public float EnergyCost;
             public ushort WoodCost;
             public ushort AppleCost;
             public ushort GlueCost;
-            public byte BuildType;
+            public string BuildString;
         }
 
         public float Speed;
@@ -28,6 +27,7 @@ namespace Shared
         public float StandardAttackDamage;
         public ushort AttackRechargeTime;
         public ushort AttackDelay;
+        public string Type; //Is this a worker, attacking unit, etc
 
         public List<SpellXMLData> Spells; 
 
@@ -36,7 +36,7 @@ namespace Shared
             Spells = new List<SpellXMLData>();
             Speed = 0;
             Name = "";
-            
+            Type = "worker";
         }
 
         public static List<UnitXMLData> Load(string file)
@@ -54,6 +54,9 @@ namespace Shared
 
                 var unitName = element.Attribute("name").Value;
                 var unitSpeed = Convert.ToSingle(element.Attribute("speed").Value);
+                var typeAttribute = element.Attribute("type");
+                if(typeAttribute != null)
+                    unitAdd.Type = typeAttribute.Value;
 
                 unitAdd.Name = unitName;
                 unitAdd.Speed = unitSpeed;
@@ -93,31 +96,32 @@ namespace Shared
                 foreach (var spellElement in spellElements)
                 {
                     var isBuildSpell = false;
-                    var function = "";
                     var energyCost = 0f;
+                    var buildingString = "";
+                    var woodCost = (ushort) 0;
+                    var appleCost = (ushort) 0;
+                    var glueCost = (ushort) 0;
+
 
                     if (spellElement.Attribute("isBuildSpell") != null)
                         isBuildSpell = Convert.ToBoolean(spellElement.Attribute("isBuildSpell").Value);
-                    if (spellElement.Attribute("function") != null)
-                        function = spellElement.Attribute("function").Value;
-                    if (spellElement.Attribute("energyCost") != null)
-                        energyCost = Convert.ToSingle(spellElement.Attribute("energyCost").Value);
+                    if (spellElement.Attribute("energy") != null)
+                        energyCost = Convert.ToSingle(spellElement.Attribute("energy").Value);
+                    if (spellElement.Attribute("building") != null)
+                        buildingString = spellElement.Attribute("building").Value;
+                    if (spellElement.Attribute("wood") != null)
+                        woodCost = Convert.ToUInt16(spellElement.Attribute("wood").Value);
+                    if (spellElement.Attribute("apples") != null)
+                        appleCost = Convert.ToUInt16(spellElement.Attribute("apples").Value);
+                    if (spellElement.Attribute("glue") != null)
+                        glueCost = Convert.ToUInt16(spellElement.Attribute("glue").Value);
 
                     var spellAdd = new SpellXMLData { EnergyCost = energyCost, IsBuildSpell = isBuildSpell };
                     spellAdd.EnergyCost = energyCost;
-                    spellAdd.Function = function;
-                    switch (function.ToLower())
-                    {
-                        case "buildbase":
-                            spellAdd.BuildType = (byte)WorkerSpellIds.BuildHomeBase;
-                            break;
-                        case "buildsupply":
-                            spellAdd.BuildType = (byte)WorkerSpellIds.BuildSupplyBuilding;
-                            break;
-                        case "buildgluefactory":
-                            spellAdd.BuildType = (byte)WorkerSpellIds.BuildGlueFactory;
-                            break;
-                    }
+                    spellAdd.BuildString = buildingString;
+                    spellAdd.WoodCost = woodCost;
+                    spellAdd.GlueCost = glueCost;
+                    spellAdd.AppleCost = appleCost;
                     unitAdd.Spells.Add(spellAdd);
                 }
 

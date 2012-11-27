@@ -1,8 +1,11 @@
 <units>
-	<unit name="worker" speed="100">
-		<attack rangedUnit="true" attackRange="100000" damage="10" delayTime="100" rechargeTime="1000" />
+
+	<unit name="worker" type="worker" speed=".5">
+		<attack rangedUnit="true" attackRange="500" damage="10" delayTime="100" rechargeTime="1000" />
 		<spells>
-			<spell isBuildSpell="true" function="buildBase" energyCost="0"/>
+			<spell isBuildSpell="true" building="standardBase" energy="0" wood="10" apples="0" glue="0"/>
+			<spell isBuildSpell="true" building="standardSupply" energy="0" wood="10" apples="0" glue="0"/>
+			<spell isBuildSpell="true" building="standardGrinder" energy="0" wood="10" apples="0" glue="0"/>
 		</spells>
 	</unit>
 </units>

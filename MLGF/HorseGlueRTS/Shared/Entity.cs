@@ -68,6 +68,7 @@ namespace Shared
             public byte BuildType;
             public RallyTypes RallyType;
             public float X, Y;
+            public string RallyDataString;
 
             public RallyPoint()
             {
@@ -75,6 +76,7 @@ namespace Shared
                 Y = 0;
                 RallyType = RallyTypes.StandardMove;
                 BuildType = 0;
+                RallyDataString = "";
             }
 
             public void Load(MemoryStream memory)

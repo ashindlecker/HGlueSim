@@ -24,14 +24,6 @@ namespace Client.GameModes
 
         #endregion
 
-        //HotKeys
-        private const Keyboard.Key AttackHotkey = Keyboard.Key.A;
-        private const Keyboard.Key NormalBuildingsHotkey = Keyboard.Key.B;
-        private const Keyboard.Key AdvancedBuildingsHotkey = Keyboard.Key.V;
-        private const Keyboard.Key HomeBaseHotkey = Keyboard.Key.N;
-        private const Keyboard.Key SupplyBuildingHotkey = Keyboard.Key.E;
-        private const Keyboard.Key WorkerHotkey = Keyboard.Key.E;
-        private const Keyboard.Key GlueFactoryHotkey = Keyboard.Key.A;
         private const float CAMERAMOVESPEED = .5f;
 
         //UI
@@ -66,6 +58,7 @@ namespace Client.GameModes
         private UIStateTypes uiState;
         private Hotkey currentHotkey;
         private HotkeySheet currentHotkeySheet;
+        private HotkeySheet standardHotkeys;
 
 
 
@@ -78,6 +71,7 @@ namespace Client.GameModes
             uiState = UIStateTypes.Normal;
             currentHotkey = null;
             currentHotkeySheet = null;
+            standardHotkeys = Settings.GetSheet("standard_game_mode_controls");
 
             InputHandler = handler;
             myId = 0;
@@ -220,23 +214,29 @@ namespace Client.GameModes
                         selectedUnits = controlGroups[keyEvent.Code].ToArray();
                 }
             }
-
-            EntityBase priorEntity = prioritySelectedUnit();
-            if (priorEntity == null) return;
-
-            currentHotkeySheet = GetHotkeySheet(priorEntity);
-
-            if(currentHotkeySheet != null)
+            else if (keyEvent.Code == standardHotkeys.Hotkeys[0].Key)
             {
-                Console.WriteLine((int)currentHotkeySheet.Hotkeys[0].Key + " " + (int)Keyboard.Key.B);
-                currentHotkey = currentHotkeySheet.ProcessInput(keyEvent.Code);
-                if(currentHotkey != null && currentHotkey.RequiresClick == false)
+                //Attack hotkey was pressed
+                selectedAttackMove = true;
+            }
+            else if(selectedAttackMove == false)
+            {
+                EntityBase priorEntity = prioritySelectedUnit();
+                if (priorEntity == null) return;
+
+                currentHotkeySheet = GetHotkeySheet(priorEntity);
+
+                if (currentHotkeySheet != null)
                 {
-                    sendSpellCommand(0, 0, priorEntity);
-                }
-                else if(currentHotkey != null)
-                {
-                    uiState = UIStateTypes.SpellCast;
+                    currentHotkey = currentHotkeySheet.ProcessInput(keyEvent.Code);
+                    if (currentHotkey != null && currentHotkey.RequiresClick == false)
+                    {
+                        sendSpellCommand(0, 0, priorEntity);
+                    }
+                    else if (currentHotkey != null)
+                    {
+                        uiState = UIStateTypes.SpellCast;
+                    }
                 }
             }
         }
@@ -807,20 +807,6 @@ namespace Client.GameModes
                     return selectedUnits[0];
             }
             return null;
-        }
-
-        private void sendBuildCommand(UnitBuildIds id)
-        {
-            if (selectedUnits != null)
-            {
-                var idList = new List<ushort>();
-                foreach (EntityBase entityBase in selectedUnits)
-                {
-                    if (entityBase is BuildingBase)
-                        idList.Add(entityBase.WorldId);
-                }
-                InputHandler.SendBuildUnit(idList.ToArray(), (byte) id);
-            }
         }
 
         private void sendMoveCommand(float x, float y, bool reset = true)

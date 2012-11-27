@@ -10,17 +10,6 @@ namespace Server.Entities
             BuildTime = 2000;
             EntityType = Entity.EntityType.HomeBuilding;
 
-            /*
-            supportedBuilds.Add(new BuildProduceData
-                                    {
-                                        id = 0,
-                                        AppleCost = 0,
-                                        WoodCost = 50,
-                                        GlueCost = 0,
-                                        SupplyCost = 1,
-                                        CreationTime = 7000,
-                                    });
-             */
         }
 
 

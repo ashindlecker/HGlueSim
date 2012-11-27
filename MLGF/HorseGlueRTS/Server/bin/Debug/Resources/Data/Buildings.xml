@@ -1,7 +1,17 @@
 <buildings>
-	<building name="Base">
+	<building name="standardBase" type="base">
 		<units>
-			<unit name="worker" wood="50" buildtime="5000"/>
+			<unit name="worker" wood="40" buildtime="1000"/>
+		</units>
+	</building>
+	
+	<building name="standardGrinder" type="gluefactory">
+		<units>
+		</units>
+	</building>
+	
+	<building name="standardSupply" type="supply">
+		<units>
 		</units>
 	</building>
 </buildings>

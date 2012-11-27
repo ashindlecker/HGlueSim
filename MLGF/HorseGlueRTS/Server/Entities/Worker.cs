@@ -4,6 +4,7 @@ using System.IO;
 using SFML.Window;
 using Server.Entities.Buildings;
 using Shared;
+using SFML.Graphics;
 
 namespace Server.Entities
 {
@@ -50,6 +51,11 @@ namespace Server.Entities
             Move(x, y, Entity.RallyPoint.RallyTypes.Build, false, true, type);
         }
 
+        public void AddBuildingToBuild(string type, float x, float y)
+        {
+            Move(x, y, Entity.RallyPoint.RallyTypes.Build, false, true, 0, false, type);
+        }
+
         protected TYPE GetClosest<TYPE>(Entity.EntityType eType, ResourceTypes rType = ResourceTypes.Apple)
             where TYPE : EntityBase
         {
@@ -87,7 +93,7 @@ namespace Server.Entities
         }
 
 
-        protected virtual EntityBase OnPlaceBuilding(byte type, float x, float y)
+        protected  EntityBase OnPlaceBuilding(byte type, float x, float y)
         {
             switch (type)
             {
@@ -102,6 +108,11 @@ namespace Server.Entities
                     break;
             }
             return null;
+        }
+
+        protected EntityBase OnPlaceBuilding(string type, float x, float y)
+        {
+            return BuildingBase.CreateBuilding(type, Server, MyPlayer);
         }
 
         public override void OnPlayerCustomMove()
@@ -126,7 +137,15 @@ namespace Server.Entities
                         MyPlayer.Wood -= spells[rally.BuildType].WoodCost;
                     }
                 }
-                EntityBase ent = OnPlaceBuilding(rally.BuildType, rally.X, rally.Y);
+                EntityBase ent = null;
+                if(rally.RallyDataString.Length > 0)
+                {
+                    ent = OnPlaceBuilding(rally.RallyDataString, rally.X, rally.Y);
+                }
+                else
+                {
+                    ent = OnPlaceBuilding(rally.BuildType, rally.X, rally.Y);
+                }
                 ent.Position = new Vector2f(rally.X, rally.Y);
                 ent.Team = Team;
                 MyGameMode.AddEntity(ent);
@@ -160,7 +179,9 @@ namespace Server.Entities
 
             if (EntityToUse != null)
             {
-                if (RangeBounds().Contains(EntityToUse.Position.X, EntityToUse.Position.Y))
+                const float USEBOUNDS = 50;
+                var useBounds = new FloatRect(Position.X - (USEBOUNDS / 2), Position.Y - (USEBOUNDS / 2), USEBOUNDS, USEBOUNDS);
+                if (useBounds.Contains(EntityToUse.Position.X, EntityToUse.Position.Y))
                 {
                     if (EntityToUse.EntityType == Entity.EntityType.Resources)
                     {
@@ -234,7 +255,7 @@ namespace Server.Entities
                 updatedMovePositionTimer.Restart();
             }
         }
-
+         
         public override byte[] UpdateData()
         {
             var memory = new MemoryStream();

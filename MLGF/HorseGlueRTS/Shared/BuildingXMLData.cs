@@ -16,14 +16,17 @@ namespace Shared
             public ushort AppleCost;
             public ushort CreationTime;
             public byte SupplyCost;
-            public byte Type;
+            public string UnitTypeString;
         }
-        public string Name;
+        
+        public string Name; //identifier for building
         public List<UnitXMLData> Units;
-        public byte SupplyAdd;
+        public byte SupplyAdd;  //amount to add to player's max supply (usually for supply depos)
+        public string BuildingType; //determines functionality (is this a grinder, standard building, base)
 
         public BuildingXMLData()
         {
+            BuildingType = "default";
             SupplyAdd = 0;
             Name = "";
             Units = new List<UnitXMLData>();
@@ -43,7 +46,9 @@ namespace Shared
                 var supplyAttribute = buildingElement.Attribute("supply");
                 if (supplyAttribute != null)
                     addBuilding.SupplyAdd = Convert.ToByte(supplyAttribute.Value);
-
+                var type = buildingElement.Attribute("type");
+                if(type != null)
+                    addBuilding.BuildingType = type.Value;
 
                 var unitElements = buildingElement.Element("units").Elements("unit");
 
@@ -55,6 +60,7 @@ namespace Shared
                     var glueCost = (ushort)0;
                     var unitid = (byte) 0;
                     var supply = (byte)0;
+                    var unitString = "";
 
                     if (unitElement.Attribute("glue") != null)
                         glueCost = Convert.ToUInt16(unitElement.Attribute("glue").Value);
@@ -64,8 +70,11 @@ namespace Shared
                         woodCost = Convert.ToUInt16(unitElement.Attribute("wood").Value);
                     if (unitElement.Attribute("buildtime") != null)
                         buildTime = Convert.ToUInt16(unitElement.Attribute("buildtime").Value);
-                    if (unitElement.Attribute("unit") != null)
-                        unitid = (byte)(Factory.GetUnitBuildId(unitElement.Attribute("unit").Value));
+                    if (unitElement.Attribute("name") != null)
+                    {
+                        unitid = (byte) (Factory.GetUnitId(unitElement.Attribute("name").Value));
+                        unitString = unitElement.Attribute("name").Value;
+                    }
                     if (unitElement.Attribute("supply") != null)
                         supply = Convert.ToByte(unitElement.Attribute("supply").Value);
 
@@ -77,7 +86,7 @@ namespace Shared
                         CreationTime = buildTime,
                         GlueCost = glueCost,
                         SupplyCost = supply,
-                        Type = unitid,
+                        UnitTypeString = unitString,
                     });
                 }
 
