@@ -46,14 +46,9 @@ namespace Server.Entities
             get { return (resourceCount > 0); }
         }
 
-        public void AddBuildingToBuild(byte type, float x, float y)
-        {
-            Move(x, y, Entity.RallyPoint.RallyTypes.Build, false, true, type);
-        }
-
         public void AddBuildingToBuild(string type, float x, float y)
         {
-            Move(x, y, Entity.RallyPoint.RallyTypes.Build, false, true, 0, false, type);
+            Move(x, y, Entity.RallyPoint.RallyTypes.Build, false, true, type, false);
         }
 
         protected TYPE GetClosest<TYPE>(Entity.EntityType eType, ResourceTypes rType = ResourceTypes.Apple)
@@ -136,11 +131,15 @@ namespace Server.Entities
                         MyPlayer.Glue -= spells[rally.BuildType].GlueCost;
                         MyPlayer.Wood -= spells[rally.BuildType].WoodCost;
                     }
+                    else
+                    {
+                        return;
+                    }
                 }
                 EntityBase ent = null;
-                if(rally.RallyDataString.Length > 0)
+                if(rally.BuildType.Length > 0)
                 {
-                    ent = OnPlaceBuilding(rally.RallyDataString, rally.X, rally.Y);
+                    ent = OnPlaceBuilding(rally.BuildType, rally.X, rally.Y);
                 }
                 else
                 {

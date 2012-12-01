@@ -65,7 +65,6 @@
     <Compile Include="Entities\Resources.cs" />
     <Compile Include="Entities\ResourceUnloadArea.cs" />
     <Compile Include="Entities\UnitBase.cs" />
-    <Compile Include="Entities\Units\StandardWorker.cs" />
     <Compile Include="Entities\Worker.cs" />
     <Compile Include="GameModes\GameModeBase.cs" />
     <Compile Include="GameModes\StandardMelee.cs" />

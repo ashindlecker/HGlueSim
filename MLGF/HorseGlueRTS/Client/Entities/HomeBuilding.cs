@@ -11,7 +11,7 @@ namespace Client.Entities
 
             supportedBuilds.Add(new BuildProduceData
                                     {
-                                        id = 0,
+                                        id = "worker",
                                         AppleCost = 0,
                                         WoodCost = 0,
                                         GlueCost = 0,

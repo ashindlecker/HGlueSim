@@ -87,7 +87,7 @@ namespace Client
         }
 
 
-        public void SendSpellInput(float x, float y, byte spell, ushort[] entityIds)
+        public void SendSpellInput(float x, float y, string spell, ushort[] entityIds)
         {
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);

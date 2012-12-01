@@ -24,7 +24,7 @@ namespace Server.Entities
         public Vector2f Position;
         public GameServer Server;
         public List<Entity.RallyPoint> rallyPoints;
-        public Dictionary<byte, SpellData> spells;
+        public Dictionary<string, SpellData> spells;
         public ushort UseCount;
 
 
@@ -49,7 +49,7 @@ namespace Server.Entities
 
             Position = new Vector2f();
 
-            spells = new Dictionary<byte, SpellData>();
+            spells = new Dictionary<string, SpellData>();
         }
 
         public ushort WorldId { get; set; }
@@ -70,7 +70,7 @@ namespace Server.Entities
 
         #endregion
 
-        public bool CastSpell(byte spell, float x, float y)
+        public bool CastSpell(string spell, float x, float y)
         {
             if (spells.ContainsKey(spell) == false) return false;
             if (Energy < spells[spell].EnergyCost) return false;
@@ -89,8 +89,7 @@ namespace Server.Entities
                         var worker = this as Worker;
                         if (worker != null)
                         {
-                            //worker.AddBuildingToBuild(spells[spell].BuildType, x, y);
-                            worker.AddBuildingToBuild(spells[spell].SpellDataString, x, y);
+                            worker.AddBuildingToBuild(spell, x, y);
                         }
                     }
                     break;
@@ -99,8 +98,13 @@ namespace Server.Entities
                         var building = this as BuildingBase;
                         if (building != null)
                         {
-                            building.StartProduce(spells[spell].SpellDataString);
+                            building.StartProduce(spell);
                         }
+                    }
+                    break;
+                    case SpellTypes.Attack:
+                    {
+                        Move(x, y, Entity.RallyPoint.RallyTypes.AttackMove, spells[spell].ResetRally, true);
                     }
                     break;
             }
@@ -140,7 +144,7 @@ namespace Server.Entities
         }
 
         public void Move(float x, float y, Entity.RallyPoint.RallyTypes type = Entity.RallyPoint.RallyTypes.StandardMove,
-                         bool reset = false, bool send = true, byte buildData = 0, bool noclipLast = false, string extraData = "")
+                         bool reset = false, bool send = true, string buildData = "", bool noclipLast = false)
         {
             if (reset)
                 rallyPoints.Clear();
@@ -169,7 +173,6 @@ namespace Server.Entities
                                                 Y = node.Y*nodes.MapSize.Y + (nodes.MapSize.Y/2),
                                                 RallyType = rallyType,
                                                 BuildType = buildData,
-                                                RallyDataString = extraData,
                                             });
                     }
                 }
@@ -291,11 +294,9 @@ namespace Server.Entities
         public class SpellData
         {
             public SpellTypes SpellType;
-            //public bool IsBuildSpell;
-            public string SpellDataString;
 
-            public byte BuildType;
 
+            public bool ResetRally;
             public ushort AppleCost;
             public float EnergyCost;
             public SpellResponseDelegate Function;
@@ -306,9 +307,8 @@ namespace Server.Entities
 
             public SpellData(float engy, SpellResponseDelegate dDelegate)
             {
-                SpellDataString = "";
+                ResetRally = false;
                 SpellType = SpellTypes.Normal;
-                BuildType = 0;
                 EnergyCost = engy;
                 Function = dDelegate;
                 WoodCost = 0;

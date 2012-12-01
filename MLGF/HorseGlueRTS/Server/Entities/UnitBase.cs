@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using SFML.Graphics;
 using SFML.Window;
-using Server.Entities.Units;
 using Shared;
 using System.Xml;
 using System.Xml.Linq;
@@ -391,12 +390,11 @@ namespace Server.Entities
                 if(spellXmlData.IsBuildSpell)
                     spellData.SpellType = SpellTypes.BuildingPlacement;
 
-                spellData.SpellDataString = spellXmlData.BuildString;
                 spellData.WoodCost = spellXmlData.WoodCost;
                 spellData.EnergyCost = spellXmlData.EnergyCost;
                 spellData.AppleCost = spellXmlData.AppleCost;
                 spellData.GlueCost = spellXmlData.GlueCost;
-                retUnit.spells.Add((byte)retUnit.spells.Count, spellData);
+                retUnit.spells.Add(spellXmlData.BuildString, spellData);
             }
 
             retUnit.Health = unitSetting.Health;

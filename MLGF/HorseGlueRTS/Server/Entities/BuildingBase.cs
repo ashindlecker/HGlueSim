@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Server.Entities.Buildings;
-using Server.Entities.Units;
 using Shared;
 using System.Xml.Linq;
 using System.Xml;
@@ -92,7 +91,7 @@ namespace Server.Entities
 
             foreach (var spellData in spells)
             {
-                if (spellData.Value.SpellDataString == type)
+                if (spellData.Key == type)
                 {
                     var buildProduceData = spellData.Value;
                     if (MyPlayer.Apples >= buildProduceData.AppleCost && MyPlayer.Glue >= buildProduceData.GlueCost &&
@@ -164,7 +163,7 @@ namespace Server.Entities
                     foreach (var spellData in spells)
                     {
                         
-                        if (spellData.Value.SpellDataString == buildOrder[0] &&
+                        if (spellData.Key == buildOrder[0] &&
                             stopwatch.ElapsedMilliseconds >= spellData.Value.CastTime)
                         {
                             Complete();
@@ -246,7 +245,7 @@ namespace Server.Entities
 
             foreach (var unitElement in buildingData.Units)
             {
-                ret.spells.Add((byte)ret.spells.Count, new SpellData(0, null)
+                ret.spells.Add(unitElement.UnitTypeString, new SpellData(0, null)
                 {
                     AppleCost = unitElement.AppleCost,
                     WoodCost = unitElement.WoodCost,
@@ -254,8 +253,6 @@ namespace Server.Entities
                     GlueCost = unitElement.GlueCost,
                     SupplyCost = unitElement.SupplyCost,
                     SpellType = SpellTypes.UnitCreation,
-                    //BuildType = unitElement.Type,
-                    SpellDataString = unitElement.UnitTypeString,
                 });
             }
             ret.Health = buildingData.Health;

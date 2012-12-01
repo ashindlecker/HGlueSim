@@ -11,7 +11,7 @@ namespace Shared
     public class Hotkey
     {
         public Keyboard.Key Key;
-        public byte SpellId;
+        public string SpellId;
         public bool RequiresClick;
     }
     
@@ -56,7 +56,7 @@ namespace Shared
                     addKey.Key = (Keyboard.Key) intKey;
                     Console.WriteLine(addKey.Key);
                     addKey.RequiresClick = Convert.ToBoolean(keyElement.Attribute("usesClick").Value);
-                    addKey.SpellId = Convert.ToByte(keyElement.Attribute("spellType").Value);
+                    addKey.SpellId = (keyElement.Attribute("spellType").Value);
                     add.Hotkeys.Add(addKey);
                 }
                 retList.Add(add);

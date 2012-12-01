@@ -6,17 +6,13 @@
 	</sheet>
 	
 	<sheet name="worker">
-	<!-- build base -->
-		<key spellType="0" key="n" usesClick="true"/>
-	<!-- build supply -->
-		<key spellType="1" key="e" usesClick="true"/>
-	<!-- build grinder -->
-		<key spellType="2" key="q" usesClick="true"/>
+		<key spellType="standardBase" key="n" usesClick="true"/>
+		<key spellType="standardSupply" key="e" usesClick="true"/>
+		<key spellType="standardGrinder" key="q" usesClick="true"/>
 	</sheet>
 	
 	<sheet name="base">
-	<!-- build worker -->
-		<key spellType="0" key="e" usesClick="false"/>
+		<key spellType="worker" key="e" usesClick="false"/>
 	</sheet>
 	
 </hotkeysheets>

@@ -1,5 +1,5 @@
 <buildings>
-	<building health="100" maxhp="100" name="standardBase" type="base" buildTime="1000">
+	<building maxhp="100" name="standardBase" type="base" buildTime="1000">
 		<units>
 			<unit name="worker" wood="40" buildtime="1000"/>
 		</units>

@@ -31,7 +31,7 @@ namespace Client.Entities
         public byte SupplyGain;
 
 
-        protected List<byte> buildOrder;
+        protected List<string> buildOrder;
         private float elapsedBuildTime;
         protected List<BuildProduceData> supportedBuilds;
 
@@ -40,7 +40,7 @@ namespace Client.Entities
             IsBuilding = true;
             BuildTime = 10000;
             elapsedBuildTime = 0;
-            buildOrder = new List<byte>();
+            buildOrder = new List<string>();
             supportedBuilds = new List<BuildProduceData>();
             stopwatch = new Stopwatch();
 
@@ -72,13 +72,13 @@ namespace Client.Entities
             get { return buildOrder.Count > 0; }
         }
 
-        public byte UnitInProduction
+        public string UnitInProduction
         {
             get
             {
                 if (IsProductingUnit)
                     return buildOrder[0];
-                return 0;
+                return "";
             }
         }
 
@@ -118,7 +118,7 @@ namespace Client.Entities
                     break;
                 case BuildingSignature.StartProduction:
                     {
-                        byte type = reader.ReadByte();
+                        string type = reader.ReadString();
                         onStartProduction(type);
                         buildOrder.Add(type);
                     }
@@ -149,7 +149,7 @@ namespace Client.Entities
             buildOrder.Clear();
             for (int i = 0; i < buildCount; i++)
             {
-                buildOrder.Add(reader.ReadByte());
+                buildOrder.Add(reader.ReadString());
             }
 
             byte rallyCount = reader.ReadByte();
@@ -209,7 +209,7 @@ namespace Client.Entities
             }
         }
 
-        protected virtual void onCompleteProduction(byte type)
+        protected virtual void onCompleteProduction(string type)
         {
             //play sound or add something to HUD
             MyGameMode.AddAlert(GameModeBase.HUDAlert.AlertTypes.UnitCreated);
@@ -223,7 +223,7 @@ namespace Client.Entities
             }
         }
 
-        protected virtual void onStartProduction(byte type)
+        protected virtual void onStartProduction(string type)
         {
             //play sound or add something to HUD
         }

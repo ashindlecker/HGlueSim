@@ -65,18 +65,16 @@ namespace Shared
             #endregion
 
             //Only used if rally type is build
-            public byte BuildType;
+            public string BuildType;
             public RallyTypes RallyType;
             public float X, Y;
-            public string RallyDataString;
 
             public RallyPoint()
             {
                 X = 0;
                 Y = 0;
                 RallyType = RallyTypes.StandardMove;
-                BuildType = 0;
-                RallyDataString = "";
+                BuildType = "";
             }
 
             public void Load(MemoryStream memory)
@@ -88,7 +86,7 @@ namespace Shared
 
                 if (RallyType == RallyTypes.Build)
                 {
-                    BuildType = reader.ReadByte();
+                    BuildType = reader.ReadString();
                 }
             }
 

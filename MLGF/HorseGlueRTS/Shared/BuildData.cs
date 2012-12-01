@@ -8,6 +8,6 @@
         public Entity.EntityType Sound;
         public byte SupplyCost;
         public ushort WoodCost;
-        public byte id;
+        public string id;
     }
 }

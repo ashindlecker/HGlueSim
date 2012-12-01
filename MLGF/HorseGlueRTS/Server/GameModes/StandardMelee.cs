@@ -3,7 +3,6 @@ using System.IO;
 using Lidgren.Network;
 using SFML.Window;
 using Server.Entities;
-using Server.Entities.Units;
 using Shared;
 
 namespace Server.GameModes
@@ -308,7 +307,7 @@ namespace Server.GameModes
                 case InputSignature.SpellCast:
                     {
                         var player = (Player) client.Tag;
-                        byte spell = reader.ReadByte();
+                        string spell = reader.ReadString();
                         float x = reader.ReadSingle();
                         float y = reader.ReadSingle();
                         byte unitCount = reader.ReadByte();
