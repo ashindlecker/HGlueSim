@@ -1,5 +1,4 @@
 <units>
-
 	<unit hp="50" maxhp="50" name="worker" type="worker" speed=".15">
 		<attack rangedUnit="false" attackRange="5" damage="10" delayTime="100" rechargeTime="1000" />
 		<spells>
