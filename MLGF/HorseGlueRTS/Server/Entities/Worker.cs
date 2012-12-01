@@ -178,6 +178,7 @@ namespace Server.Entities
 
             if (EntityToUse != null)
             {
+                State = UnitState.Standard;
                 const float USEBOUNDS = 50;
                 var useBounds = new FloatRect(Position.X - (USEBOUNDS / 2), Position.Y - (USEBOUNDS / 2), USEBOUNDS, USEBOUNDS);
                 if (useBounds.Contains(EntityToUse.Position.X, EntityToUse.Position.Y))
