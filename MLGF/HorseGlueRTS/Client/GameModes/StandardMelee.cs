@@ -236,7 +236,7 @@ namespace Client.GameModes
                     currentHotkey = currentHotkeySheet.ProcessInput(keyEvent.Code);
                     if (currentHotkey != null && currentHotkey.RequiresClick == false)
                     {
-                        sendSpellCommand(0, 0, priorEntity);
+                        sendSpellCommand(0, 0);
                     }
                     else if (currentHotkey != null)
                     {
@@ -281,7 +281,7 @@ namespace Client.GameModes
                     allowMinimapCameraMove = false;
                     EntityBase priorEntity = prioritySelectedUnit();
                     if (priorEntity != null)
-                        sendSpellCommand(convertedPos.X, convertedPos.Y, priorEntity);
+                        sendSpellCommand(convertedPos.X, convertedPos.Y);
                     uiState = UIStateTypes.Normal;
                 }
                 else if (!selectedAttackMove)
@@ -911,7 +911,7 @@ namespace Client.GameModes
             }
         }
 
-        private void sendSpellCommand(float x, float y, EntityBase entity)
+        private void sendSpellCommand(float x, float y)
         {
             var idList = new List<ushort>();
             foreach (EntityBase entityBase in selectedUnits)
@@ -920,7 +920,8 @@ namespace Client.GameModes
             }
             if (idList.Count > 0)
             {
-                InputHandler.SendSpellInput(x, y, currentHotkey.SpellId, idList.ToArray());
+                if(currentHotkey != null)
+                    InputHandler.SendSpellInput(x, y, currentHotkey.SpellId, idList.ToArray());
             }
         }
 
