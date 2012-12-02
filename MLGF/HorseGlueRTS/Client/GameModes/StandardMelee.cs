@@ -49,8 +49,6 @@ namespace Client.GameModes
         private Vector2f controlBoxP1;
         private Vector2f controlBoxP2;
         protected Dictionary<Keyboard.Key, List<EntityBase>> controlGroups;
-        private bool idSet;
-        private byte myId;
         protected bool releaseSelect;
         protected bool selectedAttackMove;
         protected EntityBase[] selectedUnits;
@@ -75,7 +73,6 @@ namespace Client.GameModes
 
             InputHandler = handler;
             myId = 0;
-            idSet = false;
             map = new TileMap();
 
             selectedUnits = null;
@@ -378,7 +375,7 @@ namespace Client.GameModes
         public override void Render(RenderTarget target)
         {
             View view = target.GetView();
-            view.Center = CameraPosition;
+            view.Center = new Vector2f((int) CameraPosition.X, (int) CameraPosition.Y);
             target.SetView(view);
 
             var screenBounds = new FloatRect
@@ -389,7 +386,7 @@ namespace Client.GameModes
                 Height = view.Size.Y
             };
 
-            map.Render(target, screenBounds);
+            map.Render(target, screenBounds, Fog);
 
 
             const float selectCircleRadius = 20;
@@ -417,25 +414,34 @@ namespace Client.GameModes
 
             foreach (EntityBase entityBase in readOnly.Values)
             {
-                if(entityBase.GetBounds().Intersects(screenBounds))
-                    entityBase.Render(target);
-
-                debugHPText.Color = new Color(255, 255, 255, 200);
-                debugHPText.DisplayedString = "HP: " + entityBase.Health.ToString();
-                debugHPText.Origin = new Vector2f(debugHPText.GetGlobalBounds().Width/2,
-                                                  debugHPText.GetGlobalBounds().Height);
-                debugHPText.Position = entityBase.Position;
-
-                target.Draw(debugHPText);
-                if (entityBase is BuildingBase)
+                if (entityBase.GetBounds().Intersects(screenBounds))
                 {
-                    var buildingCast = (BuildingBase) entityBase;
-                    if (buildingCast.IsProductingUnit)
+                    if (Fog != null)
                     {
-                        debugHPText.Color = new Color(255, 255, 0, 100);
-                        debugHPText.DisplayedString = buildingCast.UnitBuildCompletePercent.ToString();
-                        debugHPText.Position += new Vector2f(0, 50);
-                        target.Draw(debugHPText);
+                        var coords = map.ConvertCoords(entityBase.Position);
+                        if (Fog.Grid[(int)coords.X, (int)coords.Y].CurrentState == FOWTile.TileStates.CurrentlyViewed)
+                        {
+                            entityBase.Render(target);
+
+                            debugHPText.Color = new Color(255, 255, 255, 200);
+                            debugHPText.DisplayedString = "HP: " + entityBase.Health.ToString();
+                            debugHPText.Origin = new Vector2f(debugHPText.GetGlobalBounds().Width/2,
+                                                              debugHPText.GetGlobalBounds().Height);
+                            debugHPText.Position = entityBase.Position;
+
+                            target.Draw(debugHPText);
+                            if (entityBase is BuildingBase)
+                            {
+                                var buildingCast = (BuildingBase) entityBase;
+                                if (buildingCast.IsProductingUnit)
+                                {
+                                    debugHPText.Color = new Color(255, 255, 0, 100);
+                                    debugHPText.DisplayedString = buildingCast.UnitBuildCompletePercent.ToString();
+                                    debugHPText.Position += new Vector2f(0, 50);
+                                    target.Draw(debugHPText);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -693,6 +699,8 @@ namespace Client.GameModes
 
             UpdateAlerts(ms);
             UpdateTiles();
+            ApplyFog();
+
             if (CurrentStatus == StatusState.InProgress || CurrentStatus == StatusState.Completed)
             {
                 var readOnly = new Dictionary<ushort, EntityBase>(entities);

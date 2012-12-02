@@ -15,6 +15,8 @@ namespace Client.GameModes
 {
     internal abstract class GameModeBase
     {
+        public const int ENTITYFOWRADIUS = 5;
+
         protected const float ALERTFADESPEED = .05f;
         protected List<EffectBase> Effects;
         protected List<HUDAlert> alerts;
@@ -28,6 +30,9 @@ namespace Client.GameModes
         protected Dictionary<byte, Player> players;
         protected Sound unitCompleteSound_Worker;
         protected Sound useSound_Cliff;
+        protected FogOfWar Fog;
+        protected byte myId;
+        protected bool idSet;
 
         public Dictionary<ushort, EntityBase> EntityBases
         {
@@ -36,6 +41,9 @@ namespace Client.GameModes
 
         public GameModeBase()
         {
+            myId = 0;
+            idSet = false;
+
             map = new TileMap();
 
             alerts = new List<HUDAlert>();
@@ -45,6 +53,8 @@ namespace Client.GameModes
             Effects = new List<EffectBase>();
 
             pathFinding = null;
+
+            Fog = null;
 
             deathSound_Cliff = new Sound(ExternalResources.GSoundBuffer("Resources/Audio/Death/0.wav"));
             unitCompleteSound_Worker = new Sound(ExternalResources.GSoundBuffer("Resources/Audio/UnitCompleted/0.wav"));
@@ -123,6 +133,14 @@ namespace Client.GameModes
                         tiledMap.Load(stream);
                         map.ApplyLevel(tiledMap);
                         pathFinding = new SpatialAStar<PathNode, object>(map.GetPathNodeMap());
+                        Fog = new FogOfWar(map.MapSize.X, map.MapSize.Y);
+                        for (int x = 0; x < map.MapSize.X; x++)
+                        {
+                            for (int y = 0; y < map.MapSize.Y; y++)
+                            {
+                                Fog.Grid[x, y].Blocker = map.Tiles[x, y].Solid;
+                            }
+                        }
                     }
                     break;
                 case Gamemode.Signature.Handshake:
@@ -404,6 +422,25 @@ namespace Client.GameModes
         }
 
         public abstract void Update(float ms);
+
+        protected void ApplyFog()
+        {
+            if(Fog == null) return;
+
+            Fog.SetupForFrame();
+            if (idSet && players.ContainsKey(myId))
+            {
+                var myPlayer = players[myId];
+                foreach (var entityBase in entities.Values)
+                {
+                    if (entityBase.Team == myPlayer.Team)
+                    {
+                        var coords = map.ConvertCoords(entityBase.Position);
+                        Fog.ApplyView((uint) coords.X, (uint) coords.Y, ENTITYFOWRADIUS, 5);
+                    }
+                }
+            }
+        }
 
         protected void UpdateAlerts(float ms)
         {

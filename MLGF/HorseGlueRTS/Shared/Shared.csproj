@@ -58,6 +58,7 @@
     <Compile Include="BuildingData.cs" />
     <Compile Include="BuildingXMLData.cs" />
     <Compile Include="Entity.cs" />
+    <Compile Include="FogOfWar.cs" />
     <Compile Include="Gamemode.cs" />
     <Compile Include="Globals.cs" />
     <Compile Include="Algorithms\PathFinderFast.cs" />

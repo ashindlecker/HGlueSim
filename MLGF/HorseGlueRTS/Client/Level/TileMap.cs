@@ -44,7 +44,7 @@ namespace Client.Level
             }
         }
 
-        public void Render(RenderTarget target, FloatRect screenBounds)
+        public void Render(RenderTarget target, FloatRect screenBounds, FogOfWar fog = null)
         {
             /*
             var spriteSheet =
@@ -102,6 +102,23 @@ namespace Client.Level
 
                         Sprite sprite = tiles[(int) layers.GIds[x, y] - 1];
                         sprite.Position = new Vector2f(x*TileSize.X, y*TileSize.Y);
+                        if(fog != null)
+                        {
+                            switch (fog.Grid[x,y].CurrentState)
+                            {
+                                case FOWTile.TileStates.NeverSeen:
+                                    sprite.Color = new Color(50, 50, 50);
+                                    break;
+                                case FOWTile.TileStates.PreviouslySeen:
+                                    sprite.Color = new Color(150, 150, 150);
+                                    break;
+                                case FOWTile.TileStates.CurrentlyViewed:
+                                    sprite.Color = new Color(255, 255, 255);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
                         target.Draw(sprite);
                     }
                 }
