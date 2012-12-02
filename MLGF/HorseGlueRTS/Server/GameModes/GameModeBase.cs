@@ -311,7 +311,7 @@ namespace Server.GameModes
             }
             SpaceUnits(ms);
 
-            if (entityPositionUpdateTimer.ElapsedMilliseconds >= 500)
+            if (false && entityPositionUpdateTimer.ElapsedMilliseconds >= 500)
             {
                 if (entities.ContainsKey(entityToUpdate))
                     SendEntityPosition(entities[entityToUpdate]);
