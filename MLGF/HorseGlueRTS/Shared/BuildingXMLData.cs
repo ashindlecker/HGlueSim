@@ -80,7 +80,6 @@ namespace Shared
                     var woodCost = (ushort)0;
                     var buildTime = (ushort)0;
                     var glueCost = (ushort)0;
-                    var unitid = (byte) 0;
                     var supply = (byte)0;
                     var unitString = "";
 
@@ -94,7 +93,6 @@ namespace Shared
                         buildTime = Convert.ToUInt16(unitElement.Attribute("buildtime").Value);
                     if (unitElement.Attribute("name") != null)
                     {
-                        unitid = (byte) (Factory.GetUnitId(unitElement.Attribute("name").Value));
                         unitString = unitElement.Attribute("name").Value;
                     }
                     if (unitElement.Attribute("supply") != null)

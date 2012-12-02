@@ -30,6 +30,7 @@ namespace Shared
         public string Type; //Is this a worker, attacking unit, etc
         public float Health;
         public float MaxHealth;
+        public byte SupplyCost;
         public List<SpellXMLData> Spells; 
 
         public UnitXMLData()
@@ -40,6 +41,7 @@ namespace Shared
             Type = "worker";
             Health = 1;
             MaxHealth = 0;
+            SupplyCost = 1;
         }
 
         public static List<UnitXMLData> Load(string file)
@@ -70,6 +72,9 @@ namespace Shared
                 if (maxhealth != null)
                     unitAdd.MaxHealth = Convert.ToSingle(maxhealth.Value);
 
+                var supply = element.Attribute("supply");
+                if (maxhealth != null)
+                    unitAdd.SupplyCost = Convert.ToByte(supply.Value);
 
                 unitAdd.Name = unitName;
                 unitAdd.Speed = unitSpeed;

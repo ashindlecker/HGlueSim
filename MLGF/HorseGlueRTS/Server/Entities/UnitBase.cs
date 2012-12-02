@@ -39,7 +39,6 @@ namespace Server.Entities
         private bool allowMovement;
 
         protected bool RangedUnit;
-
         protected UnitTypes UnitType;
 
         public UnitBase(GameServer _server, Player player) : base(_server, player)
@@ -54,7 +53,6 @@ namespace Server.Entities
             AttackDelay = 100;
             AttackRechargeTime = 1000;
             SupplyUsage = 1;
-
             RangedUnit = false;
 
             StandardAttackDamage = 1;
@@ -111,7 +109,7 @@ namespace Server.Entities
             base.OnDeath();
             if (MyPlayer != null)
             {
-                MyPlayer.UsedSupply -= UnitData.WorkerSupplyCost;
+                MyPlayer.UsedSupply -= SupplyUsage;
                 MyGameMode.UpdatePlayer(MyPlayer);
             }
         }
@@ -436,6 +434,7 @@ namespace Server.Entities
 
             retUnit.Health = unitSetting.Health;
             retUnit.MaxHealth = unitSetting.MaxHealth;
+            retUnit.SupplyUsage = unitSetting.SupplyCost;
             return retUnit;
         }
 

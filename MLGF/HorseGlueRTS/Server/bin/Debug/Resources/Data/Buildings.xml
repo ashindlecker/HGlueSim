@@ -1,7 +1,13 @@
 <buildings>
-	<building maxhp="100" name="standardBase" type="base" buildTime="1000">
+	<building maxhp="500" name="standardBase" type="base" buildTime="20000">
 		<units>
-			<unit name="worker" wood="50" buildtime="1000"/>
+			<unit name="worker" wood="50" buildtime="1000" supply="1"/>
+		</units>
+	</building>
+	
+	<building maxhp="150" name="tortureChamber" type="normal" buildTime="10000">
+		<units>
+			<unit name="attackPony" wood="100" buildTime = "10000" supply="2"/>
 		</units>
 	</building>
 	

@@ -1,10 +1,15 @@
 <units>
-	<unit hp="50" maxhp="50" name="worker" type="worker" speed=".15">
-		<attack rangedUnit="false" attackRange="50" damage="10" delayTime="100" rechargeTime="1000" />
+	<unit name="worker" hp="50" maxhp="50" supply="1" type="worker" speed=".15">
+		<attack rangedUnit="false" attackRange="50" damage="5" delayTime="100" rechargeTime="1000" />
 		<spells>
 			<spell isBuildSpell="true" building="standardSupply" energy="0" wood="10" apples="0" glue="0"/>
 			<spell isBuildSpell="true" building="standardBase" energy="0" wood="10" apples="0" glue="0"/>
 			<spell isBuildSpell="true" building="standardGrinder" energy="0" wood="10" apples="0" glue="0"/>
 		</spells>
+	</unit>
+	
+	
+	<unit name="attackPony" hp="100" maxhp="100" supply="2" type="normal" speed=".10">
+		<attack rangedUnit="true" attackRange="100" damage="10" delayTime="100" rechargeTime="1000" />
 	</unit>
 </units>
