@@ -27,9 +27,12 @@ namespace Client.Entities
         public ushort WorldId;
         public List<Vector2f> rallyPoints;
 
+        public byte Team;
 
         protected EntityBase()
         {
+            Team = 0;
+
             Type = Entity.EntityType.Unit;
             BoundsSize = new Vector2f(20, 20);
             WorldId = 0;
@@ -236,6 +239,7 @@ namespace Client.Entities
 
         public virtual void SetTeam(byte team)
         {
+            Team = team;
         }
 
         public abstract void Update(float ts);
