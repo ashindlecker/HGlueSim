@@ -97,12 +97,21 @@ namespace Client
                 var gridPos = ConvertCoordsToGrid(entityBase.Position);
                 square.Position = gridPos;
                 bool allowDraw = false;
-
+                bool secondaryDraw = false;
                 var mapGridPos = TileMap.ConvertCoords(entityBase.Position);
                 if ((int)mapGridPos.X >= 0 && (int)mapGridPos.X < (int)Fog.Grid.GetLength(0) && (int)mapGridPos.Y >= 0 && (int)mapGridPos.Y < (int)Fog.Grid.GetLength(1))
                 {
                     allowDraw = Fog.Grid[(int) mapGridPos.X, (int) mapGridPos.Y].CurrentState ==
                                 FOWTile.TileStates.CurrentlyViewed;
+                    if(entityBase is Entities.BuildingBase)
+                    {
+                        if(entityBase.HasBeenViewed && Fog.Grid[(int) mapGridPos.X, (int) mapGridPos.Y].CurrentState !=
+                                FOWTile.TileStates.CurrentlyViewed)
+                        {
+                            allowDraw = true;
+                            secondaryDraw = true;
+                        }
+                    }
                 }
 
                 if (entityBase is Entities.Resources)
@@ -114,7 +123,14 @@ namespace Client
                 {
                     if (entityBase.Team != Team)
                     {
-                        square.FillColor = new Color(200, 100, 100);
+                        if (!secondaryDraw)
+                        {
+                            square.FillColor = new Color(200, 100, 100);
+                        }
+                        else
+                        {
+                            square.FillColor = new Color(100, 50, 50);
+                        }
                     }
                     if (entityBase.Team == Team)
                     {
