@@ -12,7 +12,7 @@ namespace Server
             Settings.Init("Resources/Data/Buildings.xml", "Resources/Data/Units.xml");
 
             var server = new GameServer(5555);
-            server.SetGame(new StandardMelee(server, 1));
+            server.SetGame(new StandardMelee(server, 2));
             server.Start();
 
             var stopwatch = new Stopwatch();

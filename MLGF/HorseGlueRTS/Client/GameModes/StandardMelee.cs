@@ -746,6 +746,8 @@ namespace Client.GameModes
 
             miniMap.Fog = Fog;
             miniMap.TileMap = map;
+            if(myPlayer != null)
+                miniMap.Team = myPlayer.Team;
             miniMap.CameraPosition = CameraPosition;
 
             UpdateAlerts(ms);
