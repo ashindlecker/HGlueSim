@@ -10,11 +10,9 @@ namespace Server.Entities
 {
     internal class Worker : UnitBase
     {
-        private const float moveUpdateDelay = 3000; //3 seconds
         private readonly Stopwatch passedGatherTime;
 
         //The worker should constantly move towards it's target, but not flood the client
-        private readonly Stopwatch updatedMovePositionTimer;
         public ushort GatherResourceTime; //How long it takes to gather a resource in milliseconds
         public ResourceTypes heldResource;
 
@@ -36,9 +34,6 @@ namespace Server.Entities
             Range = 60;
             Health = 50;
             MaxHealth = 50;
-
-            updatedMovePositionTimer = new Stopwatch();
-            updatedMovePositionTimer.Start();
         }
 
         public bool IsHoldingResources
@@ -152,13 +147,6 @@ namespace Server.Entities
             }
         }
 
-        protected override byte[] SetEntityToUseResponse(EntityBase toUse)
-        {
-            rallyPoints.Clear();
-            State = UnitState.Standard;
-            moveToUsedEntity(toUse);
-            return base.SetEntityToUseResponse(toUse);
-        }
 
         private void StartGatheringResources()
         {
@@ -243,16 +231,9 @@ namespace Server.Entities
                         StopGatheringResources();
                     }
                 }
-
-                if (updatedMovePositionTimer.ElapsedMilliseconds >= moveUpdateDelay)
-                {
-                    updatedMovePositionTimer.Restart();
-                    moveToUsedEntity(EntityToUse);
-                }
             }
             else
             {
-                updatedMovePositionTimer.Restart();
             }
         }
          
@@ -268,15 +249,5 @@ namespace Server.Entities
             return memory.ToArray();
         }
 
-        private void moveToUsedEntity(EntityBase toUse)
-        {
-            if (toUse != null)
-            {
-                Move(toUse.Position.X, toUse.Position.Y,
-                     noclipLast:
-                         (toUse.EntityType == Entity.EntityType.HomeBuilding ||
-                          toUse.EntityType == Entity.EntityType.GlueFactory));
-            }
-        }
     }
 }

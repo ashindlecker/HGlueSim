@@ -311,15 +311,41 @@ namespace Server.GameModes
                         float x = reader.ReadSingle();
                         float y = reader.ReadSingle();
                         byte unitCount = reader.ReadByte();
+
+                        BuildingBase buildingToUse = null;
                         for (int i = 0; i < unitCount; i++)
                         {
                             ushort entityId = reader.ReadUInt16();
                             if (entities.ContainsKey(entityId) == false) continue;
                             if (entities[entityId].Team != player.Team) continue;
 
-                            if (entities[entityId].CastSpell(spell, x, y))
-                                break;
-                            //We break because we only want one unit to cast this spell
+                            if (entities[entityId] is UnitBase)
+                            {
+                                if (entities[entityId].CastSpell(spell, x, y))
+                                {
+                                    break;
+                                    //we only want one unit to cast a spell at a time, so we don't cast a million spells at the same time
+                                }
+                            }
+                            else if (entities[entityId] is BuildingBase)
+                            {
+                                var buildingEntity = entities[entityId] as BuildingBase;
+                                if (buildingToUse == null)
+                                {
+                                    buildingToUse = buildingEntity;
+                                }
+                                else
+                                {
+                                    if (buildingEntity.BuildOrderCount < buildingToUse.BuildOrderCount)
+                                    {
+                                        buildingToUse = buildingEntity;
+                                    }
+                                }
+                            }
+                        }
+                        if(buildingToUse != null)
+                        {
+                            buildingToUse.CastSpell(spell, x, y);
                         }
                     }
                     break;

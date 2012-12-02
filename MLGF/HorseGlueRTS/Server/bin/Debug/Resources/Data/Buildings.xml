@@ -1,7 +1,7 @@
 <buildings>
 	<building maxhp="100" name="standardBase" type="base" buildTime="1000">
 		<units>
-			<unit name="worker" wood="40" buildtime="1000"/>
+			<unit name="worker" wood="50" buildtime="1000"/>
 		</units>
 	</building>
 	

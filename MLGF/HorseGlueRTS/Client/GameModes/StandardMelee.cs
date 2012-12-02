@@ -852,7 +852,15 @@ namespace Client.GameModes
 
         private void sendSpellCommand(float x, float y, EntityBase entity)
         {
-            InputHandler.SendSpellInput(x, y, currentHotkey.SpellId, new ushort[1] {entity.WorldId});
+            var idList = new List<ushort>();
+            foreach (EntityBase entityBase in selectedUnits)
+            {
+                idList.Add(entityBase.WorldId);
+            }
+            if (idList.Count > 0)
+            {
+                InputHandler.SendSpellInput(x, y, currentHotkey.SpellId, idList.ToArray());
+            }
         }
 
         private enum UIStateTypes:byte

@@ -17,6 +17,7 @@ namespace Client.Entities
         public EntityBase Target;
         public float Speed;
 
+        private AnimatedSprite toDraw;
         
         public Projectile()
         {
@@ -24,7 +25,11 @@ namespace Client.Entities
             Element = Entity.DamageElement.Normal;
             Target = null;
             Speed = 0;
-            
+
+            toDraw = new AnimatedSprite(10);
+
+            toDraw.Sprites = new List<Sprite>(ExternalResources.GetSprites("Resources/Sprites/Projectiles"));
+            toDraw.Reset();
         }
 
         protected override void ParseCustom(MemoryStream memoryStream)
@@ -48,6 +53,8 @@ namespace Client.Entities
 
         public override void Render(RenderTarget target)
         {
+            toDraw.CurrentSprite.Position = Position;
+            target.Draw(toDraw.CurrentSprite);
         }
 
         public override void Update(float ms)
@@ -63,6 +70,8 @@ namespace Client.Entities
             {
                 OnHit(Target);
             }
+
+            toDraw.Update(ms);
         }
 
         public virtual void OnHit(EntityBase entity)

@@ -25,6 +25,9 @@ namespace Server.Entities
         private readonly Stopwatch attackTimer;
         private readonly Stopwatch rechargeTimer;
 
+        private const float moveUpdateDelay = 3000; //3 seconds
+        private readonly Stopwatch updatedMovePositionTimer;
+
         public ushort AttackDelay;
         public ushort AttackRechargeTime;
         public float Range;
@@ -69,6 +72,9 @@ namespace Server.Entities
             rechargeTimer = new Stopwatch();
             rechargeTimer.Restart();
 
+
+            updatedMovePositionTimer = new Stopwatch();
+            updatedMovePositionTimer.Start();
         }
 
         public byte SupplyUsage { get; protected set; }
@@ -135,6 +141,14 @@ namespace Server.Entities
             return RangeBounds();
         }
 
+        protected override byte[] SetEntityToUseResponse(EntityBase toUse)
+        {
+            rallyPoints.Clear();
+            State = UnitState.Standard;
+            moveToUsedEntity(toUse);
+            return base.SetEntityToUseResponse(toUse);
+        }
+
         public virtual void StartAttack()
         {
             attackTimer.Restart();
@@ -149,6 +163,18 @@ namespace Server.Entities
 
         public override void Update(float ms)
         {
+            if(EntityToUse != null)
+            {
+                if (updatedMovePositionTimer.ElapsedMilliseconds >= moveUpdateDelay)
+                {
+                    updatedMovePositionTimer.Restart();
+                    moveToUsedEntity(EntityToUse);
+                }
+            }
+            else
+            {
+                updatedMovePositionTimer.Reset();
+            }
             if (State == UnitState.Agro)
             {
                 FloatRect rangeBounds = RangeBounds();
@@ -355,6 +381,17 @@ namespace Server.Entities
                 allowMovement = value;
                 SendData(new byte[2] {(byte) UnitSignature.ChangeMovementAllow, BitConverter.GetBytes(value)[0]},
                          Entity.Signature.Custom);
+            }
+        }
+
+        private void moveToUsedEntity(EntityBase toUse)
+        {
+            if (toUse != null)
+            {
+                Move(toUse.Position.X, toUse.Position.Y,
+                     noclipLast:
+                         (toUse.EntityType == Entity.EntityType.HomeBuilding ||
+                          toUse.EntityType == Entity.EntityType.GlueFactory));
             }
         }
 
