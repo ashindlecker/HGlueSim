@@ -60,8 +60,8 @@ namespace Client.GameModes
 
         private MiniMap miniMap;
 
-        private const float MINIMAPPOSX = 10;
-        private const float MINIMAPPOSY = 530;
+        private const float MINIMAPPOSX = 50;
+        private const float MINIMAPPOSY = 535;
 
 
         public StandardMelee(InputHandler handler)
@@ -259,6 +259,15 @@ namespace Client.GameModes
 
         public override void MouseClick(Mouse.Button button, int x, int y)
         {
+            if(x >= MINIMAPPOSX && y >= MINIMAPPOSY && x <= MINIMAPPOSX + MiniMap.SIZEX &&  y <= MINIMAPPOSY + MiniMap.SIZEY)
+            {
+                if (miniMap != null)
+                {
+                    var convert = miniMap.ConvertCoordsToView(new Vector2f(x - MINIMAPPOSX, y - MINIMAPPOSY));
+                    x = (int)convert.X;
+                    y = (int)convert.Y;
+                }
+            }
             Vector2f convertedPos = Program.window.ConvertCoords(new Vector2i(x, y));
             if (button == Mouse.Button.Left)
             {
@@ -705,6 +714,19 @@ namespace Client.GameModes
             foreach (var controlGroup in controlGroups.Values)
             {
                 FilterSelectedUnits(controlGroup);
+            }
+
+            if (Mouse.IsButtonPressed(Mouse.Button.Left))
+            {
+                var x = _mousePosition.X;
+                var y = _mousePosition.Y;
+                if (x >= MINIMAPPOSX && y >= MINIMAPPOSY && x <= MINIMAPPOSX + MiniMap.SIZEX && y <= MINIMAPPOSY + MiniMap.SIZEY)
+                {
+                    if (miniMap != null)
+                    {
+                        CameraPosition = miniMap.ConvertCoordsToView(new Vector2f(x - MINIMAPPOSX, y - MINIMAPPOSY));
+                    }
+                }
             }
 
             miniMap.Fog = Fog;

@@ -53,7 +53,7 @@ namespace Client
         {
             float squareSizeX = (float)renderTexture.Size.X / TileMap.MapSize.X;
             float squareSizeY = (float)renderTexture.Size.Y / TileMap.MapSize.Y;
-            return new Vector2f((pos.X/TileMap.TileSize.X)*squareSizeX, (pos.Y/TileMap.TileSize.Y)*squareSizeY);
+            return new Vector2f(TileMap.ConvertCoords(pos).X * squareSizeX, TileMap.ConvertCoords(pos).Y * squareSizeY);
         }
 
         public void Render()
@@ -63,8 +63,8 @@ namespace Client
 
             //Draw tiles
 
-            float squareSizeX = renderTexture.Size.X / TileMap.MapSize.X;
-            float squareSizeY = renderTexture.Size.Y / TileMap.MapSize.Y;
+            float squareSizeX = (float)renderTexture.Size.X / TileMap.MapSize.X;
+            float squareSizeY = (float)renderTexture.Size.Y / TileMap.MapSize.Y;
             var square = new RectangleShape(new Vector2f(squareSizeX, squareSizeY));
 
             for(int x = 0; x < TileMap.MapSize.X; x++)
@@ -91,7 +91,7 @@ namespace Client
             }
 
             //Draw Entities
-            square.Scale = new Vector2f(1.1f, 1.1f);
+            //square.Scale = new Vector2f(1.1f, 1.1f);
             foreach (var entityBase in Entities.Values)
             {
                 var gridPos = ConvertCoordsToGrid(entityBase.Position);
