@@ -46,11 +46,6 @@ namespace Client.Entities
             ResourceCount = reader.ReadByte();
         }
 
-        public override void Render(RenderTarget target)
-        {
-            base.Render(target);
-        }
-
         protected override void onSetIdleAnimation()
         {
             base.onSetIdleAnimation();

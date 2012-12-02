@@ -29,8 +29,11 @@ namespace Client.Entities
 
         public byte Team;
 
+        public bool HasBeenViewed;
+
         protected EntityBase()
         {
+            HasBeenViewed = false;
             Team = 0;
 
             Type = Entity.EntityType.Unit;
@@ -235,7 +238,7 @@ namespace Client.Entities
             }
         }
 
-        public abstract void Render(RenderTarget target);
+        public abstract void Render(RenderTarget target, FOWTile.TileStates state = FOWTile.TileStates.CurrentlyViewed);
 
         public virtual void SetTeam(byte team)
         {

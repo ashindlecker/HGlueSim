@@ -160,13 +160,22 @@ namespace Client.Entities
             }
         }
 
-        public override void Render(RenderTarget target)
+        public override void Render(RenderTarget target, FOWTile.TileStates state)
         {
+            if (!HasBeenViewed) return;
             if (Sprites.ContainsKey(CurrentAnimation) && Sprites[CurrentAnimation].Sprites.Count > 0)
             {
                 Sprite spr = Sprites[CurrentAnimation].CurrentSprite;
                 spr.Position = Position;
                 spr.Origin = new Vector2f(spr.TextureRect.Width/2, spr.TextureRect.Height/2);
+                if(state == FOWTile.TileStates.CurrentlyViewed)
+                {
+                    spr.Color = new Color(255, 255, 255, 255);
+                }
+                else
+                {
+                    spr.Color = new Color(50, 50, 50, 255);
+                }
                 target.Draw(spr);
             }
         }

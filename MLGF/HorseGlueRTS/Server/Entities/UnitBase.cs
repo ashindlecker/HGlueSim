@@ -206,7 +206,7 @@ namespace Server.Entities
                                 else
                                 {
                                     Move(EntityToAttack.Position.X, EntityToAttack.Position.Y,
-                                         Entity.RallyPoint.RallyTypes.AttackMove, true);
+                                         Entity.RallyPoint.RallyTypes.AttackMove, true, true, "", true);
                                 }
                             }
                             else //Otherwize, try to attack and stop ability to move
@@ -219,7 +219,6 @@ namespace Server.Entities
                                     }
                                     //start the attack
                                     StartAttack();
-
                                 }
                             }
                         }
@@ -254,8 +253,6 @@ namespace Server.Entities
                 setAllowMove(true);
             }
 
-            if (State != UnitState.Agro)
-                attackTimer.Restart();
             if (rallyPoints.Count == 0)
                 State = UnitState.Agro;
             //Rallypoint movement
@@ -351,6 +348,9 @@ namespace Server.Entities
                 writer.Write(rallyPoints[i].X);
                 writer.Write(rallyPoints[i].Y);
             }
+
+            writer.Write(StandardAttackDamage);
+
             return memory.ToArray();
         }
 

@@ -213,11 +213,14 @@ namespace Client.Entities
                 rallyPoints.Add(new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
             }
 
+            StandardAttackDamage = reader.ReadSingle();
+
             drawPosition = Position;
         }
 
-        public override void Render(RenderTarget target)
+        public override void Render(RenderTarget target, FOWTile.TileStates state)
         {
+            if(state != FOWTile.TileStates.CurrentlyViewed) return;
             if (Sprites.ContainsKey(CurrentAnimation) && Sprites[CurrentAnimation].Sprites.Count > 0)
             {
                 Sprite spr = Sprites[CurrentAnimation].CurrentSprite;

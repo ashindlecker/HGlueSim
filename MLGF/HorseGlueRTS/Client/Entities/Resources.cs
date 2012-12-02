@@ -34,13 +34,21 @@ namespace Client.Entities
             ResourcesPerTrip = reader.ReadByte();
         }
 
-        public override void Render(RenderTarget target)
+        public override void Render(RenderTarget target, FOWTile.TileStates state)
         {
             //debug drawing
             var sprite = new Sprite(ExternalResources.GTexture("Resources/Sprites/TestTile.png"));
             sprite.Origin = new Vector2f(sprite.TextureRect.Width/2, sprite.TextureRect.Height/2);
             sprite.Position = Position;
             sprite.Color = new Color(100, 100, 255);
+            if (state == FOWTile.TileStates.CurrentlyViewed)
+            {
+                sprite.Color = new Color(100, 100, 255, 255);
+            }
+            else
+            {
+                sprite.Color = new Color(50, 50, 100, 255);
+            }
             target.Draw(sprite);
         }
 

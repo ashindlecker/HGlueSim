@@ -405,7 +405,6 @@ namespace Client.GameModes
                 }
             }
 
-
             var debugHPText = new Text();
             debugHPText.Scale = new Vector2f(.6f, .6f);
             debugHPText.Color = new Color(255, 255, 255, 100);
@@ -419,27 +418,28 @@ namespace Client.GameModes
                     if (Fog != null)
                     {
                         var coords = map.ConvertCoords(entityBase.Position);
+                        entityBase.Render(target, Fog.Grid[(int) coords.X, (int) coords.Y].CurrentState);
                         if (Fog.Grid[(int)coords.X, (int)coords.Y].CurrentState == FOWTile.TileStates.CurrentlyViewed)
                         {
-                            entityBase.Render(target);
+                            entityBase.HasBeenViewed = true;
+                        }
 
-                            debugHPText.Color = new Color(255, 255, 255, 200);
-                            debugHPText.DisplayedString = "HP: " + entityBase.Health.ToString();
-                            debugHPText.Origin = new Vector2f(debugHPText.GetGlobalBounds().Width/2,
-                                                              debugHPText.GetGlobalBounds().Height);
-                            debugHPText.Position = entityBase.Position;
+                        debugHPText.Color = new Color(255, 255, 255, 200);
+                        debugHPText.DisplayedString = "HP: " + entityBase.Health.ToString();
+                        debugHPText.Origin = new Vector2f(debugHPText.GetGlobalBounds().Width/2,
+                                                          debugHPText.GetGlobalBounds().Height);
+                        debugHPText.Position = entityBase.Position;
 
-                            target.Draw(debugHPText);
-                            if (entityBase is BuildingBase)
+                        target.Draw(debugHPText);
+                        if (entityBase is BuildingBase)
+                        {
+                            var buildingCast = (BuildingBase) entityBase;
+                            if (buildingCast.IsProductingUnit)
                             {
-                                var buildingCast = (BuildingBase) entityBase;
-                                if (buildingCast.IsProductingUnit)
-                                {
-                                    debugHPText.Color = new Color(255, 255, 0, 100);
-                                    debugHPText.DisplayedString = buildingCast.UnitBuildCompletePercent.ToString();
-                                    debugHPText.Position += new Vector2f(0, 50);
-                                    target.Draw(debugHPText);
-                                }
+                                debugHPText.Color = new Color(255, 255, 0, 100);
+                                debugHPText.DisplayedString = buildingCast.UnitBuildCompletePercent.ToString();
+                                debugHPText.Position += new Vector2f(0, 50);
+                                target.Draw(debugHPText);
                             }
                         }
                     }

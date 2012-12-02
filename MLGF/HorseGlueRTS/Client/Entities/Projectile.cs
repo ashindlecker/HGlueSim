@@ -51,7 +51,7 @@ namespace Client.Entities
             }
         }
 
-        public override void Render(RenderTarget target)
+        public override void Render(RenderTarget target, FOWTile.TileStates state)
         {
             toDraw.CurrentSprite.Position = Position;
             target.Draw(toDraw.CurrentSprite);
