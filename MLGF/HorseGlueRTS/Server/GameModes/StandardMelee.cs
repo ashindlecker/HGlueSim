@@ -39,7 +39,7 @@ namespace Server.GameModes
             var worker = UnitBase.CreateUnit(UnitTypes.Worker, Server, null);
             worker.Team = 1;
             worker.Position = new Vector2f(100, 500);
-            //AddEntity(worker);
+            AddEntity(worker);
 
 
             var build = BuildingBase.CreateBuilding("standardBase", Server, null);
@@ -68,6 +68,7 @@ namespace Server.GameModes
             writer.Write(idToGive);
             idToGive++;
 
+            
             return memory.ToArray();
         }
 

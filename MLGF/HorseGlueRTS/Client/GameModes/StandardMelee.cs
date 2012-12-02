@@ -58,6 +58,10 @@ namespace Client.GameModes
         private HotkeySheet currentHotkeySheet;
         private HotkeySheet standardHotkeys;
 
+        private MiniMap miniMap;
+
+        private const float MINIMAPPOSX = 10;
+        private const float MINIMAPPOSY = 530;
 
 
         public StandardMelee(InputHandler handler)
@@ -89,6 +93,8 @@ namespace Client.GameModes
             releaseSelect = false;
 
             CameraPosition = new Vector2f(0, 0);
+
+            miniMap = new MiniMap(map, Fog, entities);
 
             //Load Sprites
             bottomHUDGUI = new Sprite(ExternalResources.GTexture("Resources/Sprites/HUD/BottomGUI.png"));
@@ -462,7 +468,6 @@ namespace Client.GameModes
                 target.Draw(rectangle);
             }
 
-            //Draw HUD
 
             //Draw Alerts
             const int ALERTXOFFSET = 10;
@@ -503,6 +508,11 @@ namespace Client.GameModes
             //Draw bottom GUI
             bottomHUDGUI.Position = target.ConvertCoords(new Vector2i(0, 0));
             target.Draw(bottomHUDGUI);
+
+            //Draw minimap
+            miniMap.Render();
+            miniMap.MapSprite.Position = target.ConvertCoords(new Vector2i((int)MINIMAPPOSX, (int)MINIMAPPOSY));
+            target.Draw(miniMap.MapSprite);
 
             //Draw unit stats HUD
 
@@ -696,6 +706,10 @@ namespace Client.GameModes
             {
                 FilterSelectedUnits(controlGroup);
             }
+
+            miniMap.Fog = Fog;
+            miniMap.TileMap = map;
+            miniMap.CameraPosition = CameraPosition;
 
             UpdateAlerts(ms);
             UpdateTiles();

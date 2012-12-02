@@ -14,6 +14,7 @@ namespace Client.Entities
 
         public Resources()
         {
+            Neutral = true;
             ResourceType = ResourceTypes.Glue;
             ResourcesPerTrip = 0;
             RemainingResources = 0;

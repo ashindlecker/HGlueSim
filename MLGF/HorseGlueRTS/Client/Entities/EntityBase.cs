@@ -30,9 +30,11 @@ namespace Client.Entities
         public byte Team;
 
         public bool HasBeenViewed;
+        public bool Neutral;
 
         protected EntityBase()
         {
+            Neutral = false;
             HasBeenViewed = false;
             Team = 0;
 
