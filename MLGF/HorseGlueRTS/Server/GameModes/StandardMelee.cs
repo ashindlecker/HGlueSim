@@ -39,13 +39,13 @@ namespace Server.GameModes
             var worker = UnitBase.CreateUnit(UnitTypes.Worker, Server, null);
             worker.Team = 1;
             worker.Position = new Vector2f(100, 500);
-            AddEntity(worker);
+            //AddEntity(worker);
 
 
             var build = BuildingBase.CreateBuilding("standardBase", Server, null);
             build.Team = 1;
             build.Position = new Vector2f(100, 500);
-            AddEntity(build);
+            //AddEntity(build);
         }
 
         public StatusState GameStatus

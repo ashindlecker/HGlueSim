@@ -63,6 +63,7 @@ namespace Client.GameModes
         private const float MINIMAPPOSX = 50;
         private const float MINIMAPPOSY = 535;
 
+        private bool allowMinimapCameraMove;
 
         public StandardMelee(InputHandler handler)
         {
@@ -79,6 +80,7 @@ namespace Client.GameModes
             myId = 0;
             map = new TileMap();
 
+            allowMinimapCameraMove = true;
             selectedUnits = null;
             controlGroups = new Dictionary<Keyboard.Key, List<EntityBase>>();
 
@@ -259,21 +261,24 @@ namespace Client.GameModes
 
         public override void MouseClick(Mouse.Button button, int x, int y)
         {
-            if(x >= MINIMAPPOSX && y >= MINIMAPPOSY && x <= MINIMAPPOSX + MiniMap.SIZEX &&  y <= MINIMAPPOSY + MiniMap.SIZEY)
+            bool minimapClick = false;
+            Vector2f convertedPos = Program.window.ConvertCoords(new Vector2i(x, y));
+            if (x >= MINIMAPPOSX && y >= MINIMAPPOSY && x <= MINIMAPPOSX + MiniMap.SIZEX && y <= MINIMAPPOSY + MiniMap.SIZEY)
             {
                 if (miniMap != null)
                 {
+                    minimapClick = true;
                     var convert = miniMap.ConvertCoordsToView(new Vector2f(x - MINIMAPPOSX, y - MINIMAPPOSY));
-                    x = (int)convert.X;
-                    y = (int)convert.Y;
+                    convertedPos.X = (int)convert.X;
+                    convertedPos.Y = (int)convert.Y;
                 }
             }
-            Vector2f convertedPos = Program.window.ConvertCoords(new Vector2i(x, y));
             if (button == Mouse.Button.Left)
             {
             
                 if(uiState == UIStateTypes.SpellCast)
                 {
+                    allowMinimapCameraMove = false;
                     EntityBase priorEntity = prioritySelectedUnit();
                     if (priorEntity != null)
                         sendSpellCommand(convertedPos.X, convertedPos.Y, priorEntity);
@@ -281,12 +286,16 @@ namespace Client.GameModes
                 }
                 else if (!selectedAttackMove)
                 {
-                    controlBoxP1 = convertedPos;
-                    controlBoxP2 = controlBoxP1;
-                    releaseSelect = true;
+                    if (!minimapClick)
+                    {
+                        controlBoxP1 = convertedPos;
+                        controlBoxP2 = controlBoxP1;
+                        releaseSelect = true;
+                    }
                 }
                 else
                 {
+                    allowMinimapCameraMove = false;
                     sendMoveCommand(convertedPos.X, convertedPos.Y);
                     selectedAttackMove = false;
                 }
@@ -328,8 +337,13 @@ namespace Client.GameModes
         public override void MouseRelease(Mouse.Button button, int x, int y)
         {
             Vector2f convertedPos = Program.window.ConvertCoords(new Vector2i(x, y));
+            if(button == Mouse.Button.Left)
+            {
+                allowMinimapCameraMove = true;
+            }
             if (releaseSelect && button == Mouse.Button.Left)
             {
+                allowMinimapCameraMove = true;
                 controlBoxP2 = convertedPos;
                 //SetControlUnits(new FloatRect(controlBoxP1.X, controlBoxP1.Y, controlBoxP2.X - controlBoxP1.X,
                 //controlBoxP2.Y - controlBoxP1.Y));
@@ -722,9 +736,10 @@ namespace Client.GameModes
                 var y = _mousePosition.Y;
                 if (x >= MINIMAPPOSX && y >= MINIMAPPOSY && x <= MINIMAPPOSX + MiniMap.SIZEX && y <= MINIMAPPOSY + MiniMap.SIZEY)
                 {
-                    if (miniMap != null)
+                    if (miniMap != null && allowMinimapCameraMove)
                     {
-                        CameraPosition = miniMap.ConvertCoordsToView(new Vector2f(x - MINIMAPPOSX, y - MINIMAPPOSY));
+                        if(uiState == UIStateTypes.Normal && selectedAttackMove == false)
+                            CameraPosition = miniMap.ConvertCoordsToView(new Vector2f(x - MINIMAPPOSX, y - MINIMAPPOSY));
                     }
                 }
             }
