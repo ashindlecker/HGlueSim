@@ -99,7 +99,7 @@ namespace Server.GameModes
                             var home =// new HomeBuilding(Server, nPlayer);
                             BuildingBase.CreateBuilding("standardBase", Server, nPlayer);
                             home.Team = nPlayer.Team;
-
+                            home.BuildTime = 0;
                             if (TiledMap.SpawnPoints.Count > players.Count - 1)
                             {
                                 home.Position = TiledMap.SpawnPoints[players.Count - 1];
