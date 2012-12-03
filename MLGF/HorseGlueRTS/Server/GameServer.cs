@@ -13,8 +13,15 @@ namespace Server
         private readonly List<byte> sendBuffer;
         private readonly NetServer server;
         private GameModeBase gameMode;
-
         private Thread netThread;
+
+        public enum ServerStates : byte
+        {
+            InLobby,
+            InGame,
+        }
+
+        public ServerStates ServerState;
 
         public GameServer(int port)
         {
@@ -22,6 +29,8 @@ namespace Server
             configuration.Port = port;
             sendBuffer = new List<byte>();
             server = new NetServer(configuration);
+
+            ServerState = ServerStates.InLobby;
         }
 
         public void SendGameData(byte[] data, bool directSend = false)
@@ -97,12 +106,22 @@ namespace Server
                         {
                             var memory = new MemoryStream(message.ReadBytes(message.LengthBytes));
                             var reader = new BinaryReader(memory);
-                            var protocol = (Protocol) reader.ReadByte();
 
-                            switch (protocol)
+                            switch (ServerState)
                             {
-                                case Protocol.Input:
-                                    gameMode.ParseInput(memory, message.SenderConnection);
+                                case ServerStates.InLobby:
+                                    break;
+                                case ServerStates.InGame:
+                                    {
+                                        var protocol = (Protocol)reader.ReadByte();
+
+                                        switch (protocol)
+                                        {
+                                            case Protocol.Input:
+                                                gameMode.ParseInput(memory, message.SenderConnection);
+                                                break;
+                                        }
+                                    }
                                     break;
                             }
 
