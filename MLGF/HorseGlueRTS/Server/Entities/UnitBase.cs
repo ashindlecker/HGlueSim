@@ -348,6 +348,7 @@ namespace Server.Entities
             }
 
             writer.Write(StandardAttackDamage);
+            writer.Write(HotkeyString);
 
             return memory.ToArray();
         }
@@ -435,6 +436,7 @@ namespace Server.Entities
             retUnit.Health = unitSetting.Health;
             retUnit.MaxHealth = unitSetting.MaxHealth;
             retUnit.SupplyUsage = unitSetting.SupplyCost;
+            retUnit.HotkeyString = unitSetting.Name;
             return retUnit;
         }
 

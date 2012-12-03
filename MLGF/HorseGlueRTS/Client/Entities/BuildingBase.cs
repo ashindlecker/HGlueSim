@@ -158,6 +158,8 @@ namespace Client.Entities
             {
                 rallyPoints.Add(new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
             }
+
+            HotkeyString = reader.ReadString();
         }
 
         public override void Render(RenderTarget target, FOWTile.TileStates state)

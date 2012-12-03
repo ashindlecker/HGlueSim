@@ -11,7 +11,7 @@
 		<key spellType="standardGrinder" key="q" usesClick="true"/>
 	</sheet>
 	
-	<sheet name="base">
+	<sheet name="standardBase">
 		<key spellType="worker" key="e" usesClick="false"/>
 	</sheet>
 </hotkeysheets>

@@ -16,7 +16,7 @@
 		</units>
 	</building>
 	
-	<building maxhp="100" name="standardSupply" type="supply" buildTime="1000">
+	<building maxhp="100" name="standardSupply" type="supply" supply="12" buildTime="1000">
 		<units>
 		</units>
 	</building>

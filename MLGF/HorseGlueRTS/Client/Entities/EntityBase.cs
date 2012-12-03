@@ -10,6 +10,9 @@ namespace Client.Entities
 {
     internal abstract class EntityBase : ILoadable
     {
+
+        public string HotkeyString;
+
         protected Vector2f BoundsSize;
         public ushort Energy;
         public byte EnergyRegenRate; //in milliseconds
@@ -34,6 +37,8 @@ namespace Client.Entities
 
         protected EntityBase()
         {
+            HotkeyString = "";
+
             Neutral = false;
             HasBeenViewed = false;
             Team = 0;

@@ -248,15 +248,7 @@ namespace Client.GameModes
 
         public HotkeySheet GetHotkeySheet(EntityBase entity)
         {
-            if(entity.Type == Entity.EntityType.Worker)
-            {
-                return Settings.GetSheet("worker");
-            }
-            if (entity.Type == Entity.EntityType.HomeBuilding)
-            {
-                return Settings.GetSheet("base");
-            }
-            return null;
+            return Settings.GetSheet(entity.HotkeyString);
         }
 
         public override void MouseClick(Mouse.Button button, int x, int y)

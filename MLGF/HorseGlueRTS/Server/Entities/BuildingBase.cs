@@ -120,7 +120,6 @@ namespace Server.Entities
             memory.Close();
             writer.Close();
 
-
             buildOrder.Add(type);
             onStartProduce(type);
             MyGameMode.UpdatePlayer(MyPlayer);
@@ -201,6 +200,8 @@ namespace Server.Entities
                 writer.Write(rallyPoints[i].X);
                 writer.Write(rallyPoints[i].Y);
             }
+
+            writer.Write(HotkeyString);
             return memory.ToArray();
         }
 
@@ -258,6 +259,7 @@ namespace Server.Entities
             ret.Health = buildingData.Health;
             ret.MaxHealth = buildingData.MaxHealth;
             ret.BuildTime = buildingData.BuildTime;
+            ret.HotkeyString = buildingData.Name;
             return ret;
         }
         public static BuildingBase CreateBuilding(string building, GameServer server, Player player)

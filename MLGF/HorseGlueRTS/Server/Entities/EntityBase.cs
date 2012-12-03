@@ -11,6 +11,8 @@ namespace Server.Entities
 {
     internal abstract class EntityBase : ISavable
     {
+        public string HotkeyString;
+
         public Vector2f BoundsSize;
 
         public ushort Energy;
@@ -30,6 +32,7 @@ namespace Server.Entities
 
         protected EntityBase(GameServer _server, Player player)
         {
+            HotkeyString = "";
             UseCount = 0;
             Server = _server;
             MyPlayer = player;

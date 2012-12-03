@@ -214,6 +214,7 @@ namespace Client.Entities
             }
 
             StandardAttackDamage = reader.ReadSingle();
+            HotkeyString = reader.ReadString();
 
             drawPosition = Position;
         }
