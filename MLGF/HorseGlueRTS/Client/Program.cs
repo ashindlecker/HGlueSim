@@ -16,6 +16,7 @@ namespace Client
 
         public static Random MRandom;
 
+        public static GameStateManager manager = new GameStateManager();
 
         private static void Main(string[] args)
         {
@@ -34,13 +35,12 @@ namespace Client
 
             Console.WriteLine("Server IP (ip only no port): ");
             //client.Connect(Console.ReadLine(), 5555);
-            client.Connect("localhost", 5555);
+            //client.Connect("localhost", 5555);
 
 
             var stopwatch = new Stopwatch();
             stopwatch.Restart();
 
-            var manager = new GameStateManager();
             manager.SwitchState(new MainMenuState(), null);
 
 
@@ -52,11 +52,11 @@ namespace Client
                 var dt = (float) (stopwatch.Elapsed.TotalSeconds*1000);
                 stopwatch.Restart();
 
-                client.Update(dt);
-                client.GameMode.Render(window);
+                //client.Update(dt);
+                //client.GameMode.Render(window);
 
-                //manager.Update(dt);
-                //manager.Render(window);
+                manager.Update(dt);
+                manager.Render(window);
                 window.Display();
             }
         }
@@ -66,29 +66,36 @@ namespace Client
             ((Window) sender).Close();
         }
 
+        //TODO: eventually the client will be in it's own gamestate where it'll process events there
+
         private static void WindowOnKeyPressed(object sender, KeyEventArgs keyEventArgs)
         {
-            client.GameMode.KeyPress(keyEventArgs);
+            manager.SendKeyPress(keyEventArgs);   
+            //client.GameMode.KeyPress(keyEventArgs);
         }
 
         private static void WindowOnKeyReleased(object sender, KeyEventArgs keyEventArgs)
         {
-            client.GameMode.KeyRelease(keyEventArgs);
+            manager.SendKeyRelease(keyEventArgs);
+            //client.GameMode.KeyRelease(keyEventArgs);
         }
 
         private static void WindowOnMouseButtonPressed(object sender, MouseButtonEventArgs mouseButtonEventArgs)
         {
-            client.GameMode.MouseClick(mouseButtonEventArgs.Button, mouseButtonEventArgs.X, mouseButtonEventArgs.Y);
+            manager.SendMouseClick(mouseButtonEventArgs.Button, mouseButtonEventArgs.X, mouseButtonEventArgs.Y);
+            //client.GameMode.MouseClick(mouseButtonEventArgs.Button, mouseButtonEventArgs.X, mouseButtonEventArgs.Y);
         }
 
         private static void WindowOnMouseButtonReleased(object sender, MouseButtonEventArgs mouseButtonEventArgs)
         {
-            client.GameMode.MouseRelease(mouseButtonEventArgs.Button, mouseButtonEventArgs.X, mouseButtonEventArgs.Y);
+            manager.SendMouseRelease(mouseButtonEventArgs.Button, mouseButtonEventArgs.X, mouseButtonEventArgs.Y);
+            //client.GameMode.MouseRelease(mouseButtonEventArgs.Button, mouseButtonEventArgs.X, mouseButtonEventArgs.Y);
         }
 
         private static void WindowOnMouseMoved(object sender, MouseMoveEventArgs mouseMoveEventArgs)
         {
-            client.GameMode.MouseMoved(mouseMoveEventArgs.X, mouseMoveEventArgs.Y);
+            manager.SendMouseMoved(mouseMoveEventArgs.X, mouseMoveEventArgs.Y);
+            //client.GameMode.MouseMoved(mouseMoveEventArgs.X, mouseMoveEventArgs.Y);
         }
     }
 }

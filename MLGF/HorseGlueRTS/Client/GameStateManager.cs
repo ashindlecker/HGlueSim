@@ -1,5 +1,6 @@
 ﻿using Client.GameStates;
 using SFML.Graphics;
+using SFML.Window;
 
 namespace Client
 {
@@ -33,6 +34,37 @@ namespace Client
         {
             if (gameState != null)
                 gameState.Update(ts);
+        }
+
+
+        public void SendKeyPress(KeyEventArgs keyEvent)
+        {
+            if (gameState != null)
+                gameState.KeyPress(keyEvent);
+        }
+
+        public void SendKeyRelease(KeyEventArgs keyEvent)
+        {
+            if (gameState != null)
+                gameState.KeyRelease(keyEvent);
+        }
+
+        public void SendMouseClick(Mouse.Button button, int x, int y)
+        {
+            if (gameState != null)
+                gameState.MouseClick(button, x, y);
+        }
+
+        public void SendMouseMoved(int x, int y)
+        {
+            if (gameState != null)
+                gameState.MouseMoved(x,y);
+        }
+
+        public void SendMouseRelease(Mouse.Button button, int x, int y)
+        {
+            if (gameState != null)
+                gameState.MouseRelease(button, x, y);
         }
     }
 }
