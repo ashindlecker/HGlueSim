@@ -18,7 +18,7 @@ namespace Client
 
         private uint bitsToAdd;
         private NetClient client;
-
+        private Lobby lobby;
         private Thread networkThread;
 
         public GameClient()
@@ -29,6 +29,8 @@ namespace Client
             bitsPerSecondTimer = new Stopwatch();
             bitsPerSecondTimer.Restart();
             bitsPerSecondList = new List<uint>();
+
+            lobby = new Lobby(this);
 
             bitsToAdd = 0;
         }
@@ -130,6 +132,8 @@ namespace Client
                                 {
                                     case Protocol.GameData:
                                         GameMode.ParseData(memory);
+                                        break;
+                                        case Protocol.LobbyData:
                                         break;
                                     case Protocol.Chat:
                                         break;

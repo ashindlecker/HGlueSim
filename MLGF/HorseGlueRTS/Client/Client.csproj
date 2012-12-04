@@ -78,10 +78,12 @@
     <Compile Include="GameStateManager.cs" />
     <Compile Include="GameStates\GameStateBase.cs" />
     <Compile Include="GameStates\MainMenuState.cs" />
+    <Compile Include="GameStates\SelectSeverState.cs" />
     <Compile Include="ILoadable.cs" />
     <Compile Include="InputHandler.cs" />
     <Compile Include="Level\TileBase.cs" />
     <Compile Include="Level\TileMap.cs" />
+    <Compile Include="Lobby.cs" />
     <Compile Include="MiniMap.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

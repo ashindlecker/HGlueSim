@@ -14,6 +14,7 @@ namespace Server
         private readonly NetServer server;
         private GameModeBase gameMode;
         private Thread netThread;
+        private Lobby lobby;
 
         public enum ServerStates : byte
         {
@@ -29,16 +30,17 @@ namespace Server
             configuration.Port = port;
             sendBuffer = new List<byte>();
             server = new NetServer(configuration);
-
             ServerState = ServerStates.InLobby;
+
+            lobby = new Lobby(this);
         }
 
-        public void SendGameData(byte[] data, bool directSend = false)
+        private void SendData(byte[] data, byte type, bool directSend = false)
         {
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);
 
-            writer.Write((byte) Protocol.GameData);
+            writer.Write(type);
             writer.Write(data);
 
             if (!directSend)
@@ -52,6 +54,16 @@ namespace Server
 
             memory.Close();
             writer.Close();
+        }
+
+        public void SendGameData(byte[] data, bool directSend = false)
+        {
+            SendData(data, (byte) Protocol.GameData, directSend);
+        }
+
+        public void SendLobbyData(byte[] data, bool directSend = false)
+        {
+            SendData(data, (byte)Protocol.LobbyData, directSend);
         }
 
         public void SetGame(GameModeBase game)
@@ -110,6 +122,10 @@ namespace Server
                             switch (ServerState)
                             {
                                 case ServerStates.InLobby:
+                                    {
+                                        var protocol = (LobbyProtocol)reader.ReadByte();
+                                        lobby.ParseProtocol(protocol, memory, message.SenderConnection);
+                                    }
                                     break;
                                 case ServerStates.InGame:
                                     {
@@ -136,7 +152,6 @@ namespace Server
                         if (message.SenderConnection.Status == NetConnectionStatus.Connected)
                         {
                             byte[] data = gameMode.HandShake();
-
                             NetOutgoingMessage outmessage = server.CreateMessage();
 
                             var memory = new MemoryStream();
@@ -190,6 +205,11 @@ namespace Server
                 server.SendToAll(outmessage, NetDeliveryMethod.ReliableOrdered);
                 sendBuffer.Clear();
             }
+        }
+
+        private void addLobbyClientsToGame()
+        {
+            
         }
     }
 }

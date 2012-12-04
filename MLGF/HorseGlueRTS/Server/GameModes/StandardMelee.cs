@@ -72,6 +72,49 @@ namespace Server.GameModes
             return memory.ToArray();
         }
 
+        public override void AddConnection(NetConnection connection)
+        {
+            if (players.Count < MaxPlayers)
+            {
+                //Connected client must be a player
+
+                var nPlayer = new Player { ClientId = idToGive, Team = idToGive };
+                nPlayer.Wood = 50;
+                nPlayer.Supply = 10;
+                players.Add(nPlayer);
+                connection.Tag = nPlayer;
+
+                var home =// new HomeBuilding(Server, nPlayer);
+                BuildingBase.CreateBuilding("standardBase", Server, nPlayer);
+                home.Team = nPlayer.Team;
+                home.BuildTime = 0;
+                if (TiledMap.SpawnPoints.Count > players.Count - 1)
+                {
+                    home.Position = TiledMap.SpawnPoints[players.Count - 1];
+                }
+
+                AddEntity(home);
+
+                SendAllPlayers();
+                SendMap();
+                SendAllEntities();
+                SetCamera(nPlayer, home.Position);
+
+                if (players.Count >= MaxPlayers)
+                {
+                    GameStatus = StatusState.InProgress;
+                }
+            }
+            else
+            {
+                //Connectd client must be a spectator or something non-player type?
+                SendAllPlayers();
+                SendData(map.ToBytes(), Gamemode.Signature.MapLoad);
+                SendAllEntities();
+            }
+            //we don't increase the idToGive here, that's handled by the handshake.
+        }
+
         public override void OnStatusChange(NetConnection connection, NetConnectionStatus status)
         {
             switch (status)
@@ -86,45 +129,7 @@ namespace Server.GameModes
                     break;
                 case NetConnectionStatus.Connected:
                     {
-                        if (players.Count < MaxPlayers)
-                        {
-                            //Connected client must be a player
-
-                            var nPlayer = new Player {ClientId = idToGive, Team = idToGive};
-                            nPlayer.Wood = 50;
-                            nPlayer.Supply = 10;
-                            players.Add(nPlayer);
-                            connection.Tag = nPlayer;
-
-                            var home =// new HomeBuilding(Server, nPlayer);
-                            BuildingBase.CreateBuilding("standardBase", Server, nPlayer);
-                            home.Team = nPlayer.Team;
-                            home.BuildTime = 0;
-                            if (TiledMap.SpawnPoints.Count > players.Count - 1)
-                            {
-                                home.Position = TiledMap.SpawnPoints[players.Count - 1];
-                            }
-
-                            AddEntity(home);
-
-                            SendAllPlayers();
-                            SendMap();
-                            SendAllEntities();
-                            SetCamera(nPlayer, home.Position);
-
-                            if (players.Count >= MaxPlayers)
-                            {
-                                GameStatus = StatusState.InProgress;
-                            }
-                        }
-                        else
-                        {
-                            //Connectd client must be a spectator or something non-player type?
-                            SendAllPlayers();
-                            SendData(map.ToBytes(), Gamemode.Signature.MapLoad);
-                            SendAllEntities();
-                        }
-                        //we don't increase the idToGive here, that's handled by the handshake.
+                        AddConnection(connection);
                     }
                     break;
                 case NetConnectionStatus.Disconnecting:

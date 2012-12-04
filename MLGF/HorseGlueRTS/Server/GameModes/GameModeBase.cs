@@ -74,6 +74,8 @@ namespace Server.GameModes
         public abstract byte[] HandShake();
         public abstract void OnStatusChange(NetConnection connection, NetConnectionStatus status);
 
+        public abstract void AddConnection(NetConnection connection);
+
         public abstract void ParseInput(MemoryStream memory, NetConnection client);
 
         public PathFindReturn PathFindNodes(float sx, float sy, float x, float y, bool noclipLast = false)
