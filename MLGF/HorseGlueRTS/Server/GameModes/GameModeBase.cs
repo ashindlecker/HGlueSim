@@ -71,7 +71,6 @@ namespace Server.GameModes
             entityWorldIdToGive++;
         }
 
-        public abstract byte[] HandShake();
         public abstract void OnStatusChange(NetConnection connection, NetConnectionStatus status);
 
         public abstract void AddConnection(NetConnection connection);

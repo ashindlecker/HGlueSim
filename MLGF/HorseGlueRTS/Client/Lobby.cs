@@ -11,12 +11,17 @@ namespace Client
 {
     class Lobby
     {
-        
-        Lis
+        private Dictionary<byte, LobbyPlayer> players;
         private GameClient myclient;
+        private byte myId;
+        private bool idSet;
 
         public Lobby(GameClient client)
         {
+            idSet = false;
+            myId = 0;
+
+            players = new Dictionary<byte, LobbyPlayer>();
             myclient = client;
         }
 
@@ -32,7 +37,17 @@ namespace Client
             var lobbyProtocol = (LobbyProtocol) reader.ReadByte();
             switch (lobbyProtocol)
             {
+                case LobbyProtocol.UpdatePlayer:
+                    {
+                        var id = reader.ReadByte();
+                        if (players.ContainsKey(id))
+                        {
+                            players[id].Load(memory);
+                        }
+                    }
+                    break;
                 case LobbyProtocol.SetTeam:
+
                     break;
                 case LobbyProtocol.IsReady:
                     break;
@@ -40,9 +55,26 @@ namespace Client
                     break;
                 case LobbyProtocol.SetHost:
                     break;
+                case LobbyProtocol.SetID:
+                    {
+                        myId = reader.ReadByte();
+                        idSet = true;
+                    }
+                    break;
                 default:
                     break;
             }
+        }
+
+        public void SendData(byte[] data, LobbyProtocol protocol)
+        {
+            var memory = new MemoryStream();
+            var writer = new BinaryWriter(memory);
+
+            writer.Write((byte)protocol);
+            writer.Write(data);
+
+            myclient.SendData(memory.ToArray());
         }
     }
 }

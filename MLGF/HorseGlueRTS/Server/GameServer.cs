@@ -56,6 +56,23 @@ namespace Server
             writer.Close();
         }
 
+        private void SendData(byte[] data, byte type, NetConnection connection)
+        {
+            var memory = new MemoryStream();
+            var writer = new BinaryWriter(memory);
+
+            writer.Write(type);
+            writer.Write(data);
+
+            NetOutgoingMessage outMessage = server.CreateMessage();
+            outMessage.Write(memory.ToArray());
+            server.SendToAll(outMessage, NetDeliveryMethod.ReliableOrdered);
+
+            memory.Close();
+            writer.Close();
+
+        }
+
         public void SendGameData(byte[] data, bool directSend = false)
         {
             SendData(data, (byte) Protocol.GameData, directSend);
@@ -65,6 +82,18 @@ namespace Server
         {
             SendData(data, (byte)Protocol.LobbyData, directSend);
         }
+
+        public void SendGameData(byte[] data, NetConnection connection)
+        {
+            SendData(data, (byte)Protocol.GameData, connection);
+        }
+
+        public void SendLobbyData(byte[] data, NetConnection connection)
+        {
+            SendData(data, (byte)Protocol.LobbyData, connection);
+        }
+
+        
 
         public void SetGame(GameModeBase game)
         {
@@ -148,24 +177,20 @@ namespace Server
                     case NetIncomingMessageType.Error:
                         break;
                     case NetIncomingMessageType.StatusChanged:
-                        gameMode.OnStatusChange(message.SenderConnection, message.SenderConnection.Status);
-                        if (message.SenderConnection.Status == NetConnectionStatus.Connected)
+                        switch (ServerState)
                         {
-                            byte[] data = gameMode.HandShake();
-                            NetOutgoingMessage outmessage = server.CreateMessage();
-
-                            var memory = new MemoryStream();
-                            var writer = new BinaryWriter(memory);
-
-                            writer.Write((byte) Protocol.GameData);
-                            writer.Write((byte) Gamemode.Signature.Handshake);
-                            writer.Write(data);
-
-                            outmessage.Write(memory.ToArray());
-                            server.SendMessage(outmessage, message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
-
-                            memory.Close();
-                            writer.Close();
+                            case ServerStates.InLobby:
+                                {
+                                    lobby.AddConnection(message.SenderConnection);
+                                }
+                                break;
+                            case ServerStates.InGame:
+                                {
+                                    gameMode.OnStatusChange(message.SenderConnection, message.SenderConnection.Status);
+                                }
+                                break;
+                            default:
+                                break;
                         }
                         break;
                     case NetIncomingMessageType.UnconnectedData:

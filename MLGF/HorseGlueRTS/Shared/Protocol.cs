@@ -1,21 +1,5 @@
 ﻿namespace Shared
 {
-
-    public class LobbyPlayer
-    {
-        public byte Team;
-        public bool IsHost;
-
-        public bool IsReady;
-
-        public LobbyPlayer()
-        {
-            IsHost = false;
-            Team = 0;
-            IsReady = false;
-        }
-    }
-
     public enum Protocol : byte
     {
         Input,
@@ -26,10 +10,12 @@
 
     public enum LobbyProtocol : byte
     {
+        UpdatePlayer,
         SetTeam,
         IsReady,
         StartGame,
         SetHost,
+        SetID,
     }
 
     public enum SpellTypes:byte

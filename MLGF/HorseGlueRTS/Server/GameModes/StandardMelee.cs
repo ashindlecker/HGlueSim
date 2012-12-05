@@ -60,18 +60,6 @@ namespace Server.GameModes
             }
         }
 
-        public override byte[] HandShake()
-        {
-            var memory = new MemoryStream();
-            var writer = new BinaryWriter(memory);
-
-            writer.Write(idToGive);
-            idToGive++;
-
-            
-            return memory.ToArray();
-        }
-
         public override void AddConnection(NetConnection connection)
         {
             if (players.Count < MaxPlayers)
@@ -104,6 +92,12 @@ namespace Server.GameModes
                 {
                     GameStatus = StatusState.InProgress;
                 }
+
+                var memory = new MemoryStream();
+                var writer = new BinaryWriter(memory);
+                writer.Write((byte) Gamemode.Signature.Handshake);
+                writer.Write(idToGive);
+                Server.SendGameData(memory.ToArray(), connection);
             }
             else
             {
@@ -112,7 +106,7 @@ namespace Server.GameModes
                 SendData(map.ToBytes(), Gamemode.Signature.MapLoad);
                 SendAllEntities();
             }
-            //we don't increase the idToGive here, that's handled by the handshake.
+            idToGive++;
         }
 
         public override void OnStatusChange(NetConnection connection, NetConnectionStatus status)

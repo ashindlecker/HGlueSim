@@ -63,6 +63,7 @@
     <Compile Include="Globals.cs" />
     <Compile Include="Algorithms\PathFinderFast.cs" />
     <Compile Include="HotkeySheet.cs" />
+    <Compile Include="LobbyPlayer.cs" />
     <Compile Include="STileBase.cs" />
     <Compile Include="STileMap.cs" />
     <Compile Include="Player.cs" />
