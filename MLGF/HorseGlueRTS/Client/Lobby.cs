@@ -17,6 +17,7 @@ namespace Client
         private bool idSet;
         public byte MaxSlots;
         public string Name;
+        public string Description;
 
         public bool FLAG_IsSwitchedToGame;
         public bool FLAG_StartGameState;
@@ -29,6 +30,7 @@ namespace Client
         public Lobby(GameClient client)
         {
             Name = "Lobby Name Not Set";
+            Description = "Description Not Set";
             idSet = false;
             myId = 0;
 
@@ -91,11 +93,6 @@ namespace Client
                     break;
                 case LobbyProtocol.ChangeName:
                     break;
-                case LobbyProtocol.ChangeLobbyName:
-                    {
-                        Name = reader.ReadString();
-                    }
-                    break;
                 case LobbyProtocol.SendMaxSlots:
                     {
                         MaxSlots = reader.ReadByte();
@@ -104,6 +101,7 @@ namespace Client
                 case LobbyProtocol.SendLobbyName:
                     {
                         Name = reader.ReadString();
+                        Description = reader.ReadString();
                     }
                     break;
                 case LobbyProtocol.SwitchingToGame:

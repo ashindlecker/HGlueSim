@@ -17,6 +17,7 @@ namespace Server
         private GameServer myServer;
         public byte MaxSlots;
         public string Name;
+        public string Description;
 
         public Lobby(GameServer server)
         {
@@ -25,6 +26,7 @@ namespace Server
             myServer = server;
             clients = new List<NetConnection>();
             Name = "Diamond Tiaras Death Room";
+            Description = "Testing Server Descriptions";
         }
 
         public void AddConnection(NetConnection connection)
@@ -53,7 +55,10 @@ namespace Server
             memory = new MemoryStream();
             writer = new BinaryWriter(memory);
             writer.Write(Name);
+            writer.Write(Description);
             SendData(memory.ToArray(), LobbyProtocol.SendLobbyName);
+
+
         }
 
         public void ParseProtocol(LobbyProtocol protocol, MemoryStream memory, NetConnection connection)
@@ -141,7 +146,6 @@ namespace Server
             SendData(new byte[0], LobbyProtocol.LoadedGameState, true);
         }
 
-
         public void UpdatePlayer(LobbyPlayer player)
         {
             var memory = new MemoryStream();
@@ -174,7 +178,6 @@ namespace Server
                 var lobbyPlayer = (LobbyPlayer) netConnection.Tag;
                 writer.Write(lobbyPlayer.ToBytes());
             }
-
 
             return memory.ToArray();
         }

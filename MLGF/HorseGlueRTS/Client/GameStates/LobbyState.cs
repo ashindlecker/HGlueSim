@@ -14,6 +14,8 @@ namespace Client.GameStates
         private GameClient client;
 
         private Text lobbyNameText;
+        private Text lobbyDescriptionText;
+
 
         public LobbyState(string ip, int port)
         {
@@ -21,6 +23,7 @@ namespace Client.GameStates
             client.Connect(ip, port);
 
             lobbyNameText = new Text();
+            lobbyDescriptionText = new Text();
         }
 
         public override void End()
@@ -37,6 +40,12 @@ namespace Client.GameStates
             lobbyNameText.Origin = new Vector2f(lobbyNameText.GetGlobalBounds().Width/2, 0);
             lobbyNameText.Position = new Vector2f(target.Size.X/2, 10);
 
+
+            lobbyDescriptionText.DisplayedString = client.MyLobby.Description;
+            lobbyDescriptionText.Origin = new Vector2f(lobbyDescriptionText.GetGlobalBounds().Width / 2, 0);
+            lobbyDescriptionText.Position = lobbyNameText.Position + new Vector2f(0, 50);
+            lobbyDescriptionText.Scale = new Vector2f(.5f, .5f);
+            target.Draw(lobbyDescriptionText);
             target.Draw(lobbyNameText);
 
             const float RECTHEIGHT = 50;

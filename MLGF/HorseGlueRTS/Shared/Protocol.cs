@@ -18,7 +18,6 @@
         SetID,
         SendAllPlayers,
         ChangeName,
-        ChangeLobbyName,
         SendMaxSlots,
         SendLobbyName,
         SwitchingToGame,
