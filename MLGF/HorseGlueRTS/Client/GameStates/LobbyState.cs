@@ -15,9 +15,15 @@ namespace Client.GameStates
 
         private Text lobbyNameText;
         private Text lobbyDescriptionText;
+        private Text instructionsText;
 
         private float lobbyTitleRotation;
         private float lobbyTitleScaling;
+
+        private float instructionsAlpha;
+
+        private const string INSTRUCTION_STRING =
+            "Press enter to ready up\n\n[TIP OF THE MINUTE]\nDid you know buildings block units \nand create choke points?\n\nUse that to your advantage to kill the shit\nout of enemy ponies";
 
         public LobbyState(string ip, int port)
         {
@@ -26,8 +32,12 @@ namespace Client.GameStates
 
             lobbyNameText = new Text();
             lobbyDescriptionText = new Text();
+            instructionsText = new Text();
+
             lobbyTitleRotation = 0;
             lobbyTitleScaling = 0;
+
+            instructionsAlpha = 0;
         }
 
         public override void End()
@@ -52,6 +62,12 @@ namespace Client.GameStates
             lobbyDescriptionText.Scale = new Vector2f(.5f, .5f);
             target.Draw(lobbyDescriptionText);
             target.Draw(lobbyNameText);
+
+            instructionsText.Position = new Vector2f(target.Size.X/1.5f, target.Size.Y/4);
+            instructionsText.Scale = new Vector2f(.6f, .6f);
+            instructionsText.Color = new Color(255, 255, 255, (byte) instructionsAlpha);
+            instructionsText.DisplayedString = INSTRUCTION_STRING;
+            target.Draw(instructionsText);
 
             const float RECTHEIGHT = 50;
             const float RECTSPACING = 10;
@@ -99,6 +115,12 @@ namespace Client.GameStates
 
             lobbyTitleRotation += ts*0.001f;
             lobbyTitleScaling += ts*0.005f;
+
+            instructionsAlpha += 0.09f*ts;
+            if(instructionsAlpha > 255)
+            {
+                instructionsAlpha = 255;
+            }
         }
 
         public override void KeyPress(KeyEventArgs keyEvent)
