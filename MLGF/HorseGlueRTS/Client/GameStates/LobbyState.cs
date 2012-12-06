@@ -16,6 +16,8 @@ namespace Client.GameStates
         private Text lobbyNameText;
         private Text lobbyDescriptionText;
 
+        private float lobbyTitleRotation;
+        private float lobbyTitleScaling;
 
         public LobbyState(string ip, int port)
         {
@@ -24,6 +26,8 @@ namespace Client.GameStates
 
             lobbyNameText = new Text();
             lobbyDescriptionText = new Text();
+            lobbyTitleRotation = 0;
+            lobbyTitleScaling = 0;
         }
 
         public override void End()
@@ -37,9 +41,10 @@ namespace Client.GameStates
         public override void Render(RenderTarget target)
         {
             lobbyNameText.DisplayedString = client.MyLobby.Name;
-            lobbyNameText.Origin = new Vector2f(lobbyNameText.GetGlobalBounds().Width/2, 0);
-            lobbyNameText.Position = new Vector2f(target.Size.X/2, 10);
-
+            lobbyNameText.Origin = new Vector2f(lobbyNameText.GetGlobalBounds().Width / 2, lobbyNameText.GetGlobalBounds().Height / 2);
+            lobbyNameText.Position = new Vector2f(target.Size.X/2, 10 + lobbyNameText.Origin.Y);
+            lobbyNameText.Rotation = (float)Math.Cos(lobbyTitleRotation) * 10;
+            lobbyNameText.Scale = new Vector2f(1 + (float)Math.Cos(lobbyTitleScaling)*0.5f, 1 + (float)Math.Cos(lobbyTitleScaling)*0.5f);
 
             lobbyDescriptionText.DisplayedString = client.MyLobby.Description;
             lobbyDescriptionText.Origin = new Vector2f(lobbyDescriptionText.GetGlobalBounds().Width / 2, 0);
@@ -91,6 +96,9 @@ namespace Client.GameStates
                 MyManager.SwitchState(new GameModeState(new StandardMelee(client.InputHandler),client), null);
                 client.MyLobby.StartGameSwitchHandShake();
             }
+
+            lobbyTitleRotation += ts*0.001f;
+            lobbyTitleScaling += ts*0.005f;
         }
 
         public override void KeyPress(KeyEventArgs keyEvent)
