@@ -21,11 +21,16 @@ namespace Client
         private Lobby lobby;
         private Thread networkThread;
 
+        public Lobby MyLobby
+        {
+            get { return lobby; }
+            private set { lobby = value; }
+        }
+
         public GameClient()
         {
-            GameMode = null;
             InputHandler = new InputHandler(this);
-
+            GameMode = new StandardMelee(InputHandler);
             bitsPerSecondTimer = new Stopwatch();
             bitsPerSecondTimer.Restart();
             bitsPerSecondList = new List<uint>();
@@ -55,21 +60,25 @@ namespace Client
 
         public void Update(float ms)
         {
+
+            updateNetwork();
+
             while (ms > 0)
             {
                 if (ms > Globals.MAXUPDATETIME)
                 {
-                    GameMode.Update(Globals.MAXUPDATETIME);
+                    if (GameMode != null)
+                        GameMode.Update(Globals.MAXUPDATETIME);
                     ms -= Globals.MAXUPDATETIME;
                 }
                 else
                 {
-                    GameMode.Update(ms);
+                    if (GameMode != null)
+                        GameMode.Update(ms);
                     ms = 0;
                 }
             }
-
-            updateNetwork();
+            lobby.Update();
 
             if (bitsPerSecondTimer.ElapsedMilliseconds >= 1000)
             {
@@ -133,7 +142,8 @@ namespace Client
                                     case Protocol.GameData:
                                         GameMode.ParseData(memory);
                                         break;
-                                        case Protocol.LobbyData:
+                                    case Protocol.LobbyData:
+                                        lobby.ParseData(memory);
                                         break;
                                     case Protocol.Chat:
                                         break;

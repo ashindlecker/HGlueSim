@@ -9,7 +9,7 @@ namespace Client
 {
     internal class Program
     {
-        private static readonly GameClient client = new GameClient();
+        private static GameClient client = null;
 
         public static RenderWindow window = new RenderWindow(new VideoMode(1200, 720), "Game", Styles.Default,
                                                              new ContextSettings(32, 32, 10, 0, 100));
@@ -21,6 +21,7 @@ namespace Client
         private static void Main(string[] args)
         {
             Settings.Init();
+            client = new GameClient();
 
             MRandom = new Random();
 

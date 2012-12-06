@@ -15,14 +15,26 @@ namespace Client
         private GameClient myclient;
         private byte myId;
         private bool idSet;
+        public byte MaxSlots;
+        public string Name;
+        public bool FLAG_IsSwitchedToGame;
+
+        public Dictionary<byte, LobbyPlayer> Players
+        {
+            get { return players; }
+        }
 
         public Lobby(GameClient client)
         {
+            Name = "Lobby Name Not Set";
             idSet = false;
             myId = 0;
 
             players = new Dictionary<byte, LobbyPlayer>();
             myclient = client;
+            MaxSlots = 0;
+
+            FLAG_IsSwitchedToGame = false;
         }
 
         public void Update()
@@ -35,6 +47,7 @@ namespace Client
             var reader = new BinaryReader(memory);
 
             var lobbyProtocol = (LobbyProtocol) reader.ReadByte();
+            Console.WriteLine(lobbyProtocol);
             switch (lobbyProtocol)
             {
                 case LobbyProtocol.UpdatePlayer:
@@ -61,9 +74,48 @@ namespace Client
                         idSet = true;
                     }
                     break;
+                case LobbyProtocol.SendAllPlayers:
+                    {
+                        var playerCount = reader.ReadByte();
+                        for (var i = 0; i < playerCount; i++)
+                        {
+                            var playerAdd = new LobbyPlayer();
+                            playerAdd.Load(memory);
+                            if (players.ContainsKey(playerAdd.Id) == false)
+                                players.Add(playerAdd.Id, playerAdd);
+                        }
+                    }
+                    break;
+                case LobbyProtocol.ChangeName:
+                    break;
+                case LobbyProtocol.ChangeLobbyName:
+                    {
+                        Name = reader.ReadString();
+                    }
+                    break;
+                case LobbyProtocol.SendMaxSlots:
+                    {
+                        MaxSlots = reader.ReadByte();
+                    }
+                    break;
+                case LobbyProtocol.SendLobbyName:
+                    {
+                        Name = reader.ReadString();
+                    }
+                    break;
+                case LobbyProtocol.SwitchingToGame:
+                    {
+                        FLAG_IsSwitchedToGame = true;
+                    }
+                    break;
                 default:
                     break;
             }
+        }
+
+        public void SetReady(bool value)
+        {
+            SendData(new byte[1]{Convert.ToByte(value)}, LobbyProtocol.IsReady );
         }
 
         public void SendData(byte[] data, LobbyProtocol protocol)

@@ -66,7 +66,7 @@ namespace Server
 
             NetOutgoingMessage outMessage = server.CreateMessage();
             outMessage.Write(memory.ToArray());
-            server.SendToAll(outMessage, NetDeliveryMethod.ReliableOrdered);
+            server.SendMessage(outMessage, connection, NetDeliveryMethod.ReliableOrdered);
 
             memory.Close();
             writer.Close();
@@ -93,7 +93,23 @@ namespace Server
             SendData(data, (byte)Protocol.LobbyData, connection);
         }
 
-        
+        public void SwitchToGame(GameModeBase gameMode)
+        {
+            if(ServerState != ServerStates.InLobby) return;
+            ServerState = ServerStates.InGame;
+            SetGame(gameMode);
+
+            foreach (var netConnection in lobby.clients)
+            {
+                gameMode.AddConnection(netConnection);
+            }
+        }
+
+        public void SwitchToLobby()
+        {
+            if (ServerState != ServerStates.InGame) return;
+            ServerState = ServerStates.InLobby;
+        }
 
         public void SetGame(GameModeBase game)
         {
@@ -110,6 +126,7 @@ namespace Server
 
         public void Update(float ms)
         {
+            if(ServerState == ServerStates.InGame)
             while (ms > 0)
             {
                 if (ms > Globals.MAXUPDATETIME)
@@ -123,6 +140,8 @@ namespace Server
                     ms = 0;
                 }
             }
+            if(ServerState == ServerStates.InLobby)
+                lobby.Update();
 
             netUpdate();
         }
@@ -181,7 +200,8 @@ namespace Server
                         {
                             case ServerStates.InLobby:
                                 {
-                                    lobby.AddConnection(message.SenderConnection);
+                                    if(message.SenderConnection.Status == NetConnectionStatus.Connected)
+                                        lobby.AddConnection(message.SenderConnection);
                                 }
                                 break;
                             case ServerStates.InGame:

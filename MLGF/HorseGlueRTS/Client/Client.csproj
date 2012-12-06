@@ -76,7 +76,9 @@
     <Compile Include="GameModes\GameModeBase.cs" />
     <Compile Include="GameModes\StandardMelee.cs" />
     <Compile Include="GameStateManager.cs" />
+    <Compile Include="GameStates\GameModeState.cs" />
     <Compile Include="GameStates\GameStateBase.cs" />
+    <Compile Include="GameStates\LobbyState.cs" />
     <Compile Include="GameStates\MainMenuState.cs" />
     <Compile Include="GameStates\SelectSeverState.cs" />
     <Compile Include="ILoadable.cs" />

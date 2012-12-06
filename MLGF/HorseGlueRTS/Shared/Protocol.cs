@@ -16,6 +16,12 @@
         StartGame,
         SetHost,
         SetID,
+        SendAllPlayers,
+        ChangeName,
+        ChangeLobbyName,
+        SendMaxSlots,
+        SendLobbyName,
+        SwitchingToGame,
     }
 
     public enum SpellTypes:byte

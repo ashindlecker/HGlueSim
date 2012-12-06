@@ -13,6 +13,7 @@ namespace Shared
         public bool IsHost;
         public byte Id;
         public bool IsReady;
+        public string Name;
 
         public LobbyPlayer()
         {
@@ -20,6 +21,7 @@ namespace Shared
             IsHost = false;
             Team = 0;
             IsReady = false;
+            Name = "NOTSET";
         }
         
         public byte[] ToBytes()
@@ -31,7 +33,7 @@ namespace Shared
             writer.Write(Team);
             writer.Write(IsHost);
             writer.Write(IsReady);
-
+            writer.Write(Name);
             return memory.ToArray();
         }
 
@@ -43,6 +45,7 @@ namespace Shared
             Team = reader.ReadByte();
             IsHost = reader.ReadBoolean();
             IsReady = reader.ReadBoolean();
+            Name = reader.ReadString();
         }
     }
 }
