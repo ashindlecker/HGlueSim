@@ -12,9 +12,10 @@ namespace Client.GameStates
     {
         private GameClient myclient;
 
-        public GameModeState(GameClient client)
+        public GameModeState(GameModes.GameModeBase game, GameClient client)
         {
             myclient = client;
+            myclient.GameMode = game;
         }
 
         public override void End()

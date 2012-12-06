@@ -22,6 +22,8 @@
         SendMaxSlots,
         SendLobbyName,
         SwitchingToGame,
+        LoadedGameState,
+        StartGameState,
     }
 
     public enum SpellTypes:byte

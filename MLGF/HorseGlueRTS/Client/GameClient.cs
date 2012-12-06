@@ -30,7 +30,7 @@ namespace Client
         public GameClient()
         {
             InputHandler = new InputHandler(this);
-            GameMode = new StandardMelee(InputHandler);
+            GameMode = null;
             bitsPerSecondTimer = new Stopwatch();
             bitsPerSecondTimer.Restart();
             bitsPerSecondList = new List<uint>();

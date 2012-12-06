@@ -17,7 +17,9 @@ namespace Client
         private bool idSet;
         public byte MaxSlots;
         public string Name;
+
         public bool FLAG_IsSwitchedToGame;
+        public bool FLAG_StartGameState;
 
         public Dictionary<byte, LobbyPlayer> Players
         {
@@ -34,6 +36,7 @@ namespace Client
             myclient = client;
             MaxSlots = 0;
 
+            FLAG_IsSwitchedToGame = false;
             FLAG_IsSwitchedToGame = false;
         }
 
@@ -108,6 +111,11 @@ namespace Client
                         FLAG_IsSwitchedToGame = true;
                     }
                     break;
+                    case LobbyProtocol.StartGameState:
+                    {
+                        FLAG_StartGameState = true;
+                    }
+                    break;
                 default:
                     break;
             }
@@ -116,6 +124,11 @@ namespace Client
         public void SetReady(bool value)
         {
             SendData(new byte[1]{Convert.ToByte(value)}, LobbyProtocol.IsReady );
+        }
+
+        public void StartGameSwitchHandShake()
+        {
+            SendData(new byte[0]{}, LobbyProtocol.LoadedGameState );
         }
 
         public void SendData(byte[] data, LobbyProtocol protocol)

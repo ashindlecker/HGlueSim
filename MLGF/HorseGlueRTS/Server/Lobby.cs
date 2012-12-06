@@ -86,14 +86,21 @@ namespace Server
                         UpdatePlayer(LobbyPlayer);
                     }
                     break;
+                case LobbyProtocol.LoadedGameState:
+                    {
+                        LobbyPlayer.HasLoadedGame = true;
+                    }
+                    break;
             }
         }
 
-        const byte REQUIRED_PLAYERS_TO_START_GAME = 2;
+        const byte REQUIRED_PLAYERS_TO_START_GAME = 1;
         public void Update()
         {
             bool hasHost = false;
             uint readyCount = 0;
+            uint loadedGameCount = 0;
+
             foreach (var netConnection in clients)
             {
                 var LobbyPlayer = (LobbyPlayer) netConnection.Tag;
@@ -102,7 +109,9 @@ namespace Server
                     hasHost = true;
                 }
                 if (LobbyPlayer.IsReady) readyCount++;
+                if (LobbyPlayer.HasLoadedGame) loadedGameCount++;
             }
+
             if(hasHost == false && clients.Count != 0)
             {
                 var LobbyPlayer = (LobbyPlayer) clients[0].Tag;
@@ -110,18 +119,28 @@ namespace Server
                 UpdatePlayer(LobbyPlayer);
             }
 
-
             if(clients.Count >= REQUIRED_PLAYERS_TO_START_GAME && readyCount == clients.Count)
+            {
+                BeginStartGame();
+            }
+
+            if (clients.Count >= REQUIRED_PLAYERS_TO_START_GAME && loadedGameCount == clients.Count)
             {
                 StartGame();
             }
         }
 
-        public void StartGame()
+        public void BeginStartGame()
         {
             SendData(new byte[0], LobbyProtocol.SwitchingToGame, true);
-            myServer.SwitchToGame(new StandardMelee(myServer, REQUIRED_PLAYERS_TO_START_GAME));
         }
+
+        public void StartGame()
+        {
+            myServer.SwitchToGame(new StandardMelee(myServer, REQUIRED_PLAYERS_TO_START_GAME));
+            SendData(new byte[0], LobbyProtocol.LoadedGameState, true);
+        }
+
 
         public void UpdatePlayer(LobbyPlayer player)
         {

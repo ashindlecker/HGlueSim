@@ -31,7 +31,7 @@ namespace Server
             sendBuffer = new List<byte>();
             server = new NetServer(configuration);
             ServerState = ServerStates.InLobby;
-
+            gameMode = null;
             lobby = new Lobby(this);
         }
 

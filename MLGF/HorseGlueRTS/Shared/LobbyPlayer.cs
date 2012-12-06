@@ -15,8 +15,12 @@ namespace Shared
         public bool IsReady;
         public string Name;
 
+        public bool HasLoadedGame;
+
+
         public LobbyPlayer()
         {
+            HasLoadedGame = false;
             Id = 0;
             IsHost = false;
             Team = 0;

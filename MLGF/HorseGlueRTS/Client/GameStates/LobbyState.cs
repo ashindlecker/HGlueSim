@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Client.GameModes;
 using SFML.Graphics;
 using SFML.Window;
 
@@ -78,7 +79,8 @@ namespace Client.GameStates
             client.Update(ts);
             if(client.MyLobby.FLAG_IsSwitchedToGame)
             {
-                MyManager.SwitchState(new GameModeState(client), null);
+                MyManager.SwitchState(new GameModeState(new StandardMelee(client.InputHandler),client), null);
+                client.MyLobby.StartGameSwitchHandShake();
             }
         }
 
