@@ -99,7 +99,7 @@ namespace Server
             }
         }
 
-        const byte REQUIRED_PLAYERS_TO_START_GAME = 1;
+        const byte REQUIRED_PLAYERS_TO_START_GAME = 2;
         public void Update()
         {
             bool hasHost = false;
