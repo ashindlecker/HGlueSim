@@ -34,10 +34,6 @@ namespace Client
             window.SetFramerateLimit(75);
             client.GameMode = new StandardMelee(client.InputHandler);
 
-            Console.WriteLine("Server IP (ip only no port): ");
-            //client.Connect(Console.ReadLine(), 5555);
-            //client.Connect("localhost", 5555);
-
 
             var stopwatch = new Stopwatch();
             stopwatch.Restart();
@@ -52,9 +48,6 @@ namespace Client
 
                 var dt = (float) (stopwatch.Elapsed.TotalSeconds*1000);
                 stopwatch.Restart();
-
-                //client.Update(dt);
-                //client.GameMode.Render(window);
 
                 manager.Update(dt);
                 manager.Render(window);

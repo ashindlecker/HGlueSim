@@ -179,7 +179,7 @@ namespace Client.GameStates
             {
                 case OptionTypes.FindGame:
                     {
-                        MyManager.SwitchState(new LobbyState("localhost", 5555), null);
+                        MyManager.SwitchState(new LobbyState("71.127.154.202", 5555), null);
                     }
                     break;
                 case OptionTypes.ViewProfile:
