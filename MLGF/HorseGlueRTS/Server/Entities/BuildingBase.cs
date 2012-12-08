@@ -194,12 +194,7 @@ namespace Server.Entities
                 writer.Write(buildOrder[i]);
             }
 
-            writer.Write((byte) rallyPoints.Count);
-            for (int i = 0; i < rallyPoints.Count; i++)
-            {
-                writer.Write(rallyPoints[i].X);
-                writer.Write(rallyPoints[i].Y);
-            }
+            writer.Write(SendRallyData());
 
             writer.Write(HotkeyString);
             return memory.ToArray();

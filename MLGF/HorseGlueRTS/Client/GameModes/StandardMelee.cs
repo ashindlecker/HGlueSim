@@ -337,8 +337,6 @@ namespace Client.GameModes
             {
                 allowMinimapCameraMove = true;
                 controlBoxP2 = convertedPos;
-                //SetControlUnits(new FloatRect(controlBoxP1.X, controlBoxP1.Y, controlBoxP2.X - controlBoxP1.X,
-                //controlBoxP2.Y - controlBoxP1.Y));
                 SetControlUnits(CorrectedRect(controlBoxP1, controlBoxP2));
                 releaseSelect = false;
             }
@@ -395,6 +393,7 @@ namespace Client.GameModes
 
         public override void Render(RenderTarget target)
         {
+            //Setting view to camera position
             View view = target.GetView();
             view.Center = new Vector2f((int) CameraPosition.X, (int) CameraPosition.Y);
             target.SetView(view);
@@ -407,9 +406,13 @@ namespace Client.GameModes
                 Height = view.Size.Y
             };
 
+            //Drawing map/tiles
             map.Render(target, screenBounds, Fog);
 
 
+            RenderRallypoints(target);
+
+            //Draw selected unit circles
             const float selectCircleRadius = 20;
             var selectedCircle = new CircleShape(selectCircleRadius);
             selectedCircle.OutlineColor = new Color(100, 255, 100, 200);
@@ -430,7 +433,6 @@ namespace Client.GameModes
             debugHPText.Scale = new Vector2f(.6f, .6f);
             debugHPText.Color = new Color(255, 255, 255, 100);
             var readOnly = new Dictionary<ushort, EntityBase>(entities);
-
 
             foreach (EntityBase entityBase in readOnly.Values)
             {
@@ -687,6 +689,32 @@ namespace Client.GameModes
 
             viewBounds.Position = target.ConvertCoords(new Vector2i(0, 0));
             target.Draw(viewBounds);
+        }
+
+        public void RenderRallypoints(RenderTarget rtarget)
+        {
+            if(selectedUnits == null) return;
+
+            RectangleShape rectangle = new RectangleShape(new Vector2f(10,10));
+
+
+            foreach (var selectedUnit in selectedUnits)
+            {
+                if(selectedUnit.rallyPoints.Count == 1) continue;
+
+                var rallyColor = new Color(255, 255, 255, 100);
+
+
+                foreach (var rally in selectedUnit.rallyPoints)
+                {
+                    
+                    rectangle.Origin = new Vector2f(rectangle.Size.X/2, rectangle.Size.Y/2);
+                    rectangle.Position = new Vector2f(rally.X, rally.Y);
+                    rectangle.FillColor = rallyColor;
+
+                    rtarget.Draw(rectangle);
+                }
+            }
         }
 
         public override void SetCamera(byte id, Vector2f pos)

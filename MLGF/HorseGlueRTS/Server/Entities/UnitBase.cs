@@ -141,7 +141,6 @@ namespace Server.Entities
 
         protected override byte[] SetEntityToUseResponse(EntityBase toUse)
         {
-            rallyPoints.Clear();
             State = UnitState.Standard;
             moveToUsedEntity(toUse);
             return base.SetEntityToUseResponse(toUse);
@@ -340,12 +339,8 @@ namespace Server.Entities
             writer.Write(Energy);
             writer.Write(Range);
             writer.Write(allowMovement);
-            writer.Write((byte) rallyPoints.Count);
-            for (int i = 0; i < rallyPoints.Count; i++)
-            {
-                writer.Write(rallyPoints[i].X);
-                writer.Write(rallyPoints[i].Y);
-            }
+
+            writer.Write(SendRallyData());
 
             writer.Write(StandardAttackDamage);
             writer.Write(HotkeyString);

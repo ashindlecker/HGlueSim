@@ -295,8 +295,8 @@ namespace Server.GameModes
 
                             outwriter.Write(entities[useEntity].Position.X);
                             outwriter.Write(entities[useEntity].Position.Y);
-                            outwriter.Write(false);
-                            outwriter.Write(false);
+                            outwriter.Write(false); //reset
+                            outwriter.Write(false); //attack
                             outwriter.Write((byte) idsToWrite.Count);
 
                             for (int i = 0; i < idsToWrite.Count; i++)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using SFML.Graphics;
 using SFML.Window;
@@ -150,7 +151,9 @@ namespace Server.Entities
                          bool reset = false, bool send = true, string buildData = "", bool noclipLast = false)
         {
             if (reset)
+            {
                 rallyPoints.Clear();
+            }
 
             Vector2f searchStartPos = Position;
             if (rallyPoints.Count > 0)
@@ -193,13 +196,8 @@ namespace Server.Entities
             writer.Write((ushort) Position.X);
             writer.Write((ushort) Position.Y);
 
-            writer.Write((byte) rallyPoints.Count);
 
-            for (int i = 0; i < rallyPoints.Count; i++)
-            {
-                writer.Write((ushort) rallyPoints[i].X);
-                writer.Write((ushort) rallyPoints[i].Y);
-            }
+            writer.Write(SendRallyData());
 
             return memory.ToArray();
         }
@@ -290,6 +288,20 @@ namespace Server.Entities
         protected virtual byte[] UseResponse(EntityBase user)
         {
             return new byte[0];
+        }
+
+        public byte[] SendRallyData()
+        {
+            var memory = new MemoryStream();
+            var writer = new BinaryWriter(memory);
+
+            writer.Write((byte) rallyPoints.Count);
+            foreach (var rallyPoint in rallyPoints)
+            {
+                writer.Write((ushort) rallyPoint.X);
+                writer.Write((ushort) rallyPoint.Y);
+            }
+            return memory.ToArray();
         }
 
         #region Nested type: SpellData

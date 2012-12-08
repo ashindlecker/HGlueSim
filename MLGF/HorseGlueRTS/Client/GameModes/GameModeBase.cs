@@ -229,7 +229,8 @@ namespace Client.GameModes
                             Vector2f startPos = entities[id].Position;
                             if (!reset && entities[id].rallyPoints.Count > 0)
                             {
-                                startPos = entities[id].rallyPoints[entities[id].rallyPoints.Count - 1];
+                                startPos = new Vector2f(entities[id].rallyPoints[entities[id].rallyPoints.Count - 1].X,
+                                                        entities[id].rallyPoints[entities[id].rallyPoints.Count - 1].Y);
                             }
 
                             PathFindReturn path = PathFindNodes(startPos.X, startPos.Y, x, y);

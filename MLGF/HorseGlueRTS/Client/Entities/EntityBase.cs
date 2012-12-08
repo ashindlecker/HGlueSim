@@ -28,7 +28,7 @@ namespace Client.Entities
         public Entity.EntityType Type;
         public Dictionary<ushort, EntityBase> WorldEntities;
         public ushort WorldId;
-        public List<Vector2f> rallyPoints;
+        public List<Entity.RallyPoint> rallyPoints;
 
         public byte Team;
 
@@ -48,7 +48,7 @@ namespace Client.Entities
             WorldId = 0;
             EntityToUse = null;
             WorldEntities = null;
-            rallyPoints = new List<Vector2f>();
+            rallyPoints = new List<Entity.RallyPoint>();
             Health = 0;
             MaxHealth = 0;
             Position = new Vector2f();
@@ -116,7 +116,13 @@ namespace Client.Entities
 
         public virtual void Move(float x, float y)
         {
-            rallyPoints.Add(new Vector2f(x, y));
+            rallyPoints.Add(new Entity.RallyPoint()
+                                {
+                                    RallyType = Entity.RallyPoint.RallyTypes.StandardMove,
+                                    BuildType = "",
+                                    X = x,
+                                    Y = y,
+                                });
         }
 
         public virtual void OnDeath()
@@ -214,13 +220,8 @@ namespace Client.Entities
 
             Position.X = reader.ReadUInt16();
             Position.Y = reader.ReadUInt16();
-            byte count = reader.ReadByte();
             rallyPoints.Clear();
-            for (int i = 0; i < count; i++)
-            {
-                rallyPoints.Add(new Vector2f(reader.ReadUInt16(), reader.ReadUInt16()));
-            }
-
+            ParseRallyPoints(memoryStream);
             OnMove();
         }
 
@@ -257,6 +258,21 @@ namespace Client.Entities
         public virtual void Use(EntityBase user)
         {
             //minerals may give the user minerals to hold, etc
+        }
+
+        public void ParseRallyPoints(MemoryStream memory)
+        {
+            var reader = new BinaryReader(memory);
+            var points = reader.ReadByte();
+            for(var i = 0; i < points; i++)
+            {
+                var rallyAdd = new Entity.RallyPoint();
+                rallyAdd.X = (float) reader.ReadUInt16();
+                rallyAdd.Y = (float) reader.ReadUInt16();
+                rallyAdd.BuildType = "";
+                rallyAdd.RallyType = Entity.RallyPoint.RallyTypes.StandardMove;
+                rallyPoints.Add(rallyAdd);
+            }
         }
     }
 }

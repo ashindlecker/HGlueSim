@@ -152,12 +152,9 @@ namespace Client.Entities
                 buildOrder.Add(reader.ReadString());
             }
 
-            byte rallyCount = reader.ReadByte();
             rallyPoints.Clear();
-            for (int i = 0; i < rallyCount; i++)
-            {
-                rallyPoints.Add(new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
-            }
+
+            ParseRallyPoints(memoryStream);
 
             HotkeyString = reader.ReadString();
         }

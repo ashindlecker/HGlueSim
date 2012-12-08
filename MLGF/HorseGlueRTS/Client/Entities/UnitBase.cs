@@ -206,12 +206,8 @@ namespace Client.Entities
             Range = reader.ReadSingle();
             allowMovement = reader.ReadBoolean();
 
-            byte rallyCount = reader.ReadByte();
             rallyPoints.Clear();
-            for (int i = 0; i < rallyCount; i++)
-            {
-                rallyPoints.Add(new Vector2f(reader.ReadSingle(), reader.ReadSingle()));
-            }
+            ParseRallyPoints(memoryStream);
 
             StandardAttackDamage = reader.ReadSingle();
             HotkeyString = reader.ReadString();
@@ -321,7 +317,7 @@ namespace Client.Entities
             if (CurrentAnimation != AnimationTypes.SpellCast)
                 onSetMovingAnimation();
 
-            destination = rallyPoints[0];
+            destination = new Vector2f(rallyPoints[0].X, rallyPoints[0].Y);
 
             if ((int) Position.X < (int) destination.X)
             {
