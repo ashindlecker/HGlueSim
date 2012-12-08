@@ -270,8 +270,8 @@ namespace Server.GameModes
                         var player = (Player) client.Tag;
                         ushort useEntity = reader.ReadUInt16();
 
+                        bool resetRally = reader.ReadBoolean();
                         byte unitCount = reader.ReadByte();
-
 
                         var idsToWrite = new List<ushort>();
 
@@ -284,7 +284,7 @@ namespace Server.GameModes
 
                             entities[entityId].SetEntityToUse(entities[useEntity]);
                             entities[entityId].Move(entities[useEntity].Position.X, entities[useEntity].Position.Y,
-                                                    Entity.RallyPoint.RallyTypes.StandardMove, false, false);
+                                                    Entity.RallyPoint.RallyTypes.StandardMove, resetRally, false);
                             idsToWrite.Add(entityId);
                         }
 
@@ -295,7 +295,7 @@ namespace Server.GameModes
 
                             outwriter.Write(entities[useEntity].Position.X);
                             outwriter.Write(entities[useEntity].Position.Y);
-                            outwriter.Write(false); //reset
+                            outwriter.Write(resetRally); 
                             outwriter.Write(false); //attack
                             outwriter.Write((byte) idsToWrite.Count);
 

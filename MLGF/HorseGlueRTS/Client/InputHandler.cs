@@ -37,7 +37,7 @@ namespace Client
             memory.Close();
         }
 
-        public void SendEntityUseChange(ushort[] entityIds, ushort entityToUseId)
+        public void SendEntityUseChange(ushort[] entityIds, ushort entityToUseId, bool resetRally)
         {
             var memory = new MemoryStream();
             var writer = new BinaryWriter(memory);
@@ -45,6 +45,7 @@ namespace Client
             writer.Write((byte) Protocol.Input);
             writer.Write((byte) InputSignature.ChangeUseEntity);
             writer.Write(entityToUseId);
+            writer.Write(resetRally);
             writer.Write((byte) entityIds.Length);
 
             for (int i = 0; i < (byte) entityIds.Count(); i++)

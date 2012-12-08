@@ -700,14 +700,26 @@ namespace Client.GameModes
 
             foreach (var selectedUnit in selectedUnits)
             {
-                if(selectedUnit.rallyPoints.Count == 1) continue;
+                if(selectedUnit.rallyPoints.Count <= 2) continue;
 
-                var rallyColor = new Color(255, 255, 255, 100);
+                var rallyColor = new Color(255, 255, 255, 50);
 
 
                 foreach (var rally in selectedUnit.rallyPoints)
                 {
-                    
+                    if(rally.RallyType == Entity.RallyPoint.RallyTypes.AttackMove)
+                    {
+                        rallyColor = new Color(255, 100, 100, 50);
+                    }
+                    if(rally.RallyType == Entity.RallyPoint.RallyTypes.StandardMove)
+                    {
+                        rallyColor = new Color(100, 255, 100, 50);
+                    }
+                    if (rally.RallyType == Entity.RallyPoint.RallyTypes.Build)
+                    {
+                        rallyColor = new Color(211, 125, 67, 50);
+                    }
+
                     rectangle.Origin = new Vector2f(rectangle.Size.X/2, rectangle.Size.Y/2);
                     rectangle.Position = new Vector2f(rally.X, rally.Y);
                     rectangle.FillColor = rallyColor;
@@ -913,7 +925,7 @@ namespace Client.GameModes
             }
         }
 
-        private void sendUseCommand(EntityBase entity)
+        private void sendUseCommand(EntityBase entity, bool rallyReset = true)
         {
             if (selectedUnits != null)
             {
@@ -924,7 +936,7 @@ namespace Client.GameModes
                 }
                 if (idList.Count > 0)
                 {
-                    InputHandler.SendEntityUseChange(idList.ToArray(), entity.WorldId);
+                    InputHandler.SendEntityUseChange(idList.ToArray(), entity.WorldId, rallyReset);
                 }
 
                 PlayUseSound(ExternalResources.UseSounds.CliffUsing);

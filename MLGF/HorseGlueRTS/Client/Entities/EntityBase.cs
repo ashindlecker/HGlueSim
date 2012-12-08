@@ -114,11 +114,11 @@ namespace Client.Entities
                                  BoundsSize.Y);
         }
 
-        public virtual void Move(float x, float y)
+        public virtual void Move(float x, float y, bool attack = false)
         {
             rallyPoints.Add(new Entity.RallyPoint()
                                 {
-                                    RallyType = Entity.RallyPoint.RallyTypes.StandardMove,
+                                    RallyType = (!attack) ? Entity.RallyPoint.RallyTypes.StandardMove : Entity.RallyPoint.RallyTypes.AttackMove,
                                     BuildType = "",
                                     X = x,
                                     Y = y,
@@ -270,7 +270,7 @@ namespace Client.Entities
                 rallyAdd.X = (float) reader.ReadUInt16();
                 rallyAdd.Y = (float) reader.ReadUInt16();
                 rallyAdd.BuildType = "";
-                rallyAdd.RallyType = Entity.RallyPoint.RallyTypes.StandardMove;
+                rallyAdd.RallyType = (Entity.RallyPoint.RallyTypes)reader.ReadByte();
                 rallyPoints.Add(rallyAdd);
             }
         }

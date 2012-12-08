@@ -115,9 +115,9 @@ namespace Client.Entities
             SpriteFolder = "";
         }
 
-        public override void Move(float x, float y)
+        public override void Move(float x, float y, bool attack)
         {
-            base.Move(x, y);
+            base.Move(x, y, attack);
             _moveXCompleted = false;
             _moveYCompleted = false;
         }

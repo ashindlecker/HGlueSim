@@ -243,7 +243,7 @@ namespace Client.GameModes
                                 var pos =
                                     new Vector2f(pathNode.X*path.MapSize.X + (path.MapSize.X/2),
                                                  pathNode.Y*path.MapSize.Y + (path.MapSize.Y/2));
-                                entities[id].Move(pos.X, pos.Y);
+                                entities[id].Move(pos.X, pos.Y, attack);
                             }
                         }
                     }

@@ -300,6 +300,7 @@ namespace Server.Entities
             {
                 writer.Write((ushort) rallyPoint.X);
                 writer.Write((ushort) rallyPoint.Y);
+                writer.Write((byte) rallyPoint.RallyType);
             }
             return memory.ToArray();
         }
