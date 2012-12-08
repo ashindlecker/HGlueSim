@@ -14,7 +14,8 @@ namespace Shared
         public byte Id;
         public bool IsReady;
         public string Name;
-
+        public byte Wins;
+        public byte Losses;
         public bool HasLoadedGame;
 
 
@@ -26,6 +27,8 @@ namespace Shared
             Team = 0;
             IsReady = false;
             Name = "NOTSET";
+            Wins = 0;
+            Losses = 0;
         }
         
         public byte[] ToBytes()
@@ -37,7 +40,10 @@ namespace Shared
             writer.Write(Team);
             writer.Write(IsHost);
             writer.Write(IsReady);
+            writer.Write(Wins);
+            writer.Write(Losses);
             writer.Write(Name);
+            
             return memory.ToArray();
         }
 
@@ -49,6 +55,8 @@ namespace Shared
             Team = reader.ReadByte();
             IsHost = reader.ReadBoolean();
             IsReady = reader.ReadBoolean();
+            Wins = reader.ReadByte();
+            Losses = reader.ReadByte();
             Name = reader.ReadString();
         }
     }
