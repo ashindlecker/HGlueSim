@@ -155,6 +155,12 @@ namespace Client.GameModes
 
             return new FloatRect(left, top, right - left, bottom - top);
         }
+
+        protected bool unitFilter(EntityBase entity)
+        {
+            return entity.Team != myPlayer.Team || entity.Neutral;
+        }
+
         protected void FilterSelectedUnits(ref EntityBase[] listArray)
         {
             if (listArray != null)
@@ -162,7 +168,7 @@ namespace Client.GameModes
                 var list = new List<EntityBase>(listArray);
                 foreach (EntityBase entityBase in listArray)
                 {
-                    if (entities.ContainsValue(entityBase) == false)
+                    if (entities.ContainsValue(entityBase) == false || unitFilter(entityBase))
                         list.Remove(entityBase);
                 }
 
@@ -176,7 +182,7 @@ namespace Client.GameModes
                 var list = new List<EntityBase>(listArray);
                 foreach (EntityBase entityBase in listArray)
                 {
-                    if (entities.ContainsValue(entityBase) == false)
+                    if (entities.ContainsValue(entityBase) == false || unitFilter(entityBase))
                         list.Remove(entityBase);
                 }
 
