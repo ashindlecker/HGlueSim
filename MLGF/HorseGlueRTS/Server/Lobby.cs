@@ -18,9 +18,11 @@ namespace Server
         public byte MaxSlots;
         public string Name;
         public string Description;
+        public byte PlayableSlots;
 
         public Lobby(GameServer server)
         {
+            PlayableSlots = 2;
             MaxSlots = 8;
             idToGive = 0;
             myServer = server;
@@ -99,7 +101,6 @@ namespace Server
             }
         }
 
-        const byte REQUIRED_PLAYERS_TO_START_GAME = 2;
         public void Update()
         {
             bool hasHost = false;
@@ -124,12 +125,12 @@ namespace Server
                 UpdatePlayer(LobbyPlayer);
             }
 
-            if(clients.Count >= REQUIRED_PLAYERS_TO_START_GAME && readyCount == clients.Count)
+            if(clients.Count >= PlayableSlots && readyCount == clients.Count)
             {
                 BeginStartGame();
             }
 
-            if (clients.Count >= REQUIRED_PLAYERS_TO_START_GAME && loadedGameCount == clients.Count)
+            if (clients.Count >= PlayableSlots && loadedGameCount == clients.Count)
             {
                 StartGame();
             }
@@ -142,7 +143,7 @@ namespace Server
 
         public void StartGame()
         {
-            myServer.SwitchToGame(new StandardMelee(myServer, REQUIRED_PLAYERS_TO_START_GAME));
+            myServer.SwitchToGame(new StandardMelee(myServer, PlayableSlots));
             SendData(new byte[0], LobbyProtocol.LoadedGameState, true);
         }
 
